@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Try All - Dashboard</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -140,27 +141,57 @@
     </div>
 
     <script>
-        function handleAction() {
-            // Send SMS first
-            sendEvacuationSMS();
+        async function handleAction() {
+            const button = document.querySelector('.action-button');
+            const originalText = button.innerHTML;
             
-            // Emergency Evacuation Alert
-            alert('🚨 EMERGENCY EVACUATION ALERT! 🚨\n\n' +
-                  '⚠️ EVACUATE IMMEDIATELY! ⚠️\n\n' +
-                  'THIS IS NOT A DRILL!\n\n' +
-                  '📍 ACTION REQUIRED:\n' +
-                  '1. Stay calm and move quickly\n' +
-                  '2. Proceed to nearest evacuation route\n' +
-                  '3. Go to designated assembly point\n' +
-                  '4. Do NOT use elevators\n' +
-                  '5. Assist those who need help\n\n' +
-                  '🆘 EMERGENCY CONTACTS:\n' +
-                  '• Emergency: 911\n' +
-                  '• Red Cross: 143\n' +
-                  '• Fire: 160\n\n' +
-                  '📱 SMS Alert sent to 09648990664\n\n' +
-                  'Your safety is our priority!\n' +
-                  'Follow evacuation coordinators!');
+            try {
+                // Show loading state
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
+                // Send SMS
+                const response = await fetch('/send-evacuation-sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        phone: '09648990664' // Default number, can be made configurable
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert('🚨 EMERGENCY EVACUATION ALERT! 🚨\n\n' +
+                          '⚠️ EVACUATE IMMEDIATELY! ⚠️\n\n' +
+                          'THIS IS NOT A DRILL!\n\n' +
+                          '📍 ACTION REQUIRED:\n' +
+                          '1. Stay calm and move quickly\n' +
+                          '2. Proceed to nearest evacuation route\n' +
+                          '3. Go to designated assembly point\n' +
+                          '4. Do NOT use elevators\n\n' +
+                          '🆘 EMERGENCY CONTACTS:\n' +
+                          '• Emergency: 911\n' +
+                          '• Red Cross: 143\n' +
+                          '• Fire: 160\n\n' +
+                          '📱 SMS Alert sent successfully!\n\n' +
+                          'Your safety is our priority!\n' +
+                          'Follow evacuation coordinators!');
+                } else {
+                    throw new Error(result.message || 'Failed to send SMS');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('⚠️ Error: ' + (error.message || 'Failed to send emergency alert. Please try again.'));
+            } finally {
+                // Reset button state
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
             
             // Play alert sound if browser supports it
             if (typeof Audio !== 'undefined') {
@@ -205,7 +236,7 @@
                         osc3.stop(audioContext.currentTime + 0.2);
                     }, 600);
                 } catch (e) {
-                    console.log('Audio not supported');
+                    console.error('Audio error:', e);
                 }
             }
             
@@ -214,30 +245,6 @@
                 // Vibrate pattern: vibrate for 200ms, pause 100ms, repeat 3 times
                 navigator.vibrate([200, 100, 200, 100, 200, 100, 200]);
             }
-        }
-
-        // Function to send evacuation SMS
-        function sendEvacuationSMS() {
-            fetch('{{ route("send.evacuation.sms") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('SMS Response:', data);
-                if (data.success) {
-                    console.log('✅ Emergency SMS sent successfully to 09648990664');
-                } else {
-                    console.log('⚠️ SMS failed:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('SMS Error:', error);
-            });
         }
     </script>
 </body>

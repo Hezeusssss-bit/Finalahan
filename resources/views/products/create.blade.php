@@ -68,9 +68,8 @@ select:focus { border-color: #1976d2; box-shadow: 0 0 10px rgba(25,118,210,0.3);
     <span>Logo</span>
   </div>
   <nav class="nav-menu">
-    <a href="{{ url('/home') }}" class="nav-item"><i class="fas fa-home"></i> <span>Home</span></a>
-    <a href="{{ route('resident.index') }}" class="nav-item active"><i class="fas fa-boxes"></i> <span>Residents</span></a>
-    <a href="#" class="nav-item"><i class="fas fa-users"></i> <span>Customers</span></a>
+    <a href="{{ route('resident.index') }}" class="nav-item"><i class="fas fa-home"></i> <span>Dashbaord</span></a>
+    <a href="{{ url('/home') }}" class="nav-item "><i class="fas fa-boxes"></i> <span>Residents</span></a>
   </nav>
 </div>
 

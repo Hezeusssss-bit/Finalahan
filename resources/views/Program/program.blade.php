@@ -124,21 +124,53 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
       <h2 style="margin:0;color:#1a1a2e;">Community Programs</h2>
       <a href="javascript:void(0)" onclick="openAddProgramModal()" class="btn-add" title="Add Program">ADD +</a>
     </div>
-    <div style="margin-top:16px; display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:16px;">
-      <div class="analytics-card" style="background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;">
-        <div style="font-weight:800;color:#17002B;font-size:18px;">Medical Mission</div>
-        <div style="margin-top:6px;color:#555;">Location: <span style="font-weight:600;color:#1a1a2e;">Purok II</span></div>
-        <div style="margin-top:6px;color:#16a34a;font-weight:700;">Status: Completed</div>
-        <p style="margin-top:10px;color:#444;">Basic health check-ups and free medicines were provided to residents.</p>
-        <div style="margin-top:8px;color:#777;font-size:13px;">Date: 2025-10-10</div>
+    <div style="margin-top: 24px;">
+      <!-- Upcoming Programs -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px;">Upcoming Programs</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+          <!-- Sample Upcoming Program -->
+          <div class="analytics-card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;">
+            <div style="font-weight:800;color:#17002B;font-size:18px;">Clean-up Drive</div>
+            <div style="margin-top:6px;color:#555;">Location: <span style="font-weight:600;color:#1a1a2e;">Purok V</span></div>
+            <div style="margin-top:6px;color:#d97706;font-weight:700;">Status: Upcoming</div>
+            <p style="margin-top:10px;color:#444;">Barangay-wide clean-up activity focusing on streets and waterways.</p>
+            <div style="margin-top:8px;color:#777;font-size:13px;">Starts: 2025-12-15</div>
+          </div>
+          <!-- Add more upcoming programs here -->
+        </div>
       </div>
 
-      <div class="analytics-card" style="background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;">
-        <div style="font-weight:800;color:#17002B;font-size:18px;">Clean-up Drive</div>
-        <div style="margin-top:6px;color:#555;">Location: <span style="font-weight:600;color:#1a1a2e;">Purok V</span></div>
-        <div style="margin-top:6px;color:#d97706;font-weight:700;">Status: Upcoming</div>
-        <p style="margin-top:10px;color:#444;">Barangay-wide clean-up activity focusing on streets and waterways.</p>
-        <div style="margin-top:8px;color:#777;font-size:13px;">Schedule: TBD</div>
+      <!-- Ongoing Programs -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px;">Ongoing Programs</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+          <!-- Sample Ongoing Program -->
+          <div class="analytics-card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;">
+            <div style="font-weight:800;color:#17002B;font-size:18px;">Youth Sports League</div>
+            <div style="margin-top:6px;color:#555;">Location: <span style="font-weight:600;color:#1a1a2e;">Purok III</span></div>
+            <div style="margin-top:6px;color:#2563eb;font-weight:700;">Status: Ongoing</div>
+            <p style="margin-top:10px;color:#444;">Weekly sports activities for youth development and physical fitness.</p>
+            <div style="margin-top:8px;color:#777;font-size:13px;">Until: 2025-12-30</div>
+          </div>
+          <!-- Add more ongoing programs here -->
+        </div>
+      </div>
+
+      <!-- Completed Programs -->
+      <div>
+        <h3 style="color: #1a1a2e; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px;">Completed Programs</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+          <!-- Sample Completed Program -->
+          <div class="analytics-card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;">
+            <div style="font-weight:800;color:#17002B;font-size:18px;">Medical Mission</div>
+            <div style="margin-top:6px;color:#555;">Location: <span style="font-weight:600;color:#1a1a2e;">Purok II</span></div>
+            <div style="margin-top:6px;color:#16a34a;font-weight:700;">Status: Completed</div>
+            <p style="margin-top:10px;color:#444;">Basic health check-ups and free medicines were provided to residents.</p>
+            <div style="margin-top:8px;color:#777;font-size:13px;">Completed: 2025-10-10</div>
+          </div>
+          <!-- Add more completed programs here -->
+        </div>
       </div>
     </div>
   </div>
@@ -160,7 +192,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
         </div>
         <div style="display:flex; flex-direction:column; gap:6px;">
           <label>Location</label>
-          <input type="text" placeholder="e.g., Purok II" style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" />
+          <select name="location" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="" disabled selected>Select Purok</option>
+            <option value="Purok I">Purok I</option>
+            <option value="Purok II">Purok II</option>
+            <option value="Purok III">Purok III</option>
+            <option value="Purok IV">Purok IV</option>
+            <option value="Purok V">Purok V</option>
+          </select>
         </div>
         <div style="display:flex; flex-direction:column; gap:6px;">
           <label>Status</label>

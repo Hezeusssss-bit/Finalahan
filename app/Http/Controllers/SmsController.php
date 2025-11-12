@@ -9,7 +9,10 @@ class SmsController extends Controller
 {
     public function sendEvacuationAlert(Request $request)
     {
-        $phoneNumber = '09648990664';
+        // Log the incoming request data for debugging
+        \Log::info('SMS Request Data:', $request->all());
+        
+        $phoneNumber = $request->input('phone', '09648990664'); // Allow phone number from request or use default
         $message = "🚨 EMERGENCY EVACUATION ALERT! 🚨\n\n" .
                    "EVACUATE IMMEDIATELY!\n\n" .
                    "ACTION REQUIRED:\n" .
@@ -23,94 +26,99 @@ class SmsController extends Controller
                    "This is not a drill!";
 
         try {
-            // Using Semaphore SMS API (Popular in Philippines)
-            // You need to register at https://semaphore.co and get API key
-            // Replace 'YOUR_SEMAPHORE_API_KEY' with your actual API key
+            // Using Semaphore SMS API (Free tier available)
+            // Register at https://semaphore.co to get your free API key
+            $apiKey = env('SEMAPHORE_API_KEY');
             
-            $apiKey = env('SEMAPHORE_API_KEY', 'YOUR_SEMAPHORE_API_KEY');
-            
-            // If you don't have Semaphore API key yet, this will simulate the SMS
-            if ($apiKey === 'YOUR_SEMAPHORE_API_KEY') {
+            // If no API key is set, use a simulation mode
+            if (empty($apiKey)) {
                 // Simulation mode - log the SMS instead of sending
                 \Log::info('SMS would be sent to: ' . $phoneNumber);
                 \Log::info('Message: ' . $message);
+                
                 // Log recent activity (simulation)
-                $activities = session('system_activities', []);
-                array_unshift($activities, [
-                    'type' => 'sms_alert',
-                    'description' => 'Evacuation alert triggered (simulation mode)',
-                    'timestamp' => now(),
-                    'time_ago' => 'just now'
-                ]);
-                $activities = array_slice($activities, 0, 20);
-                session(['system_activities' => $activities]);
+                $this->logActivity('Evacuation alert triggered (simulation mode)');
 
                 return response()->json([
                     'success' => true,
                     'message' => 'SMS simulation successful! Check logs.',
-                    'note' => 'To enable real SMS: Get API key from semaphore.co and add SEMAPHORE_API_KEY to .env file'
+                    'note' => 'To enable real SMS: Get API key from semaphore.co (free tier available) and add SEMAPHORE_API_KEY to your .env file'
                 ]);
             }
 
             // Real SMS sending using Semaphore
-            $response = Http::post('https://api.semaphore.co/api/v4/messages', [
+            $response = Http::timeout(30)->post('https://api.semaphore.co/api/v4/messages', [
                 'apikey' => $apiKey,
-                'number' => $phoneNumber,
+                'number' => $this->formatPhoneNumber($phoneNumber),
                 'message' => $message,
-                'sendername' => 'EVACALERT'
+                'sendername' => 'EVACALERT' // Max 11 chars, alphanumeric only
             ]);
 
             if ($response->successful()) {
-                // Log recent activity (real SMS)
-                $activities = session('system_activities', []);
-                array_unshift($activities, [
-                    'type' => 'sms_alert',
-                    'description' => 'Evacuation alert sent successfully',
-                    'timestamp' => now(),
-                    'time_ago' => 'just now'
-                ]);
-                $activities = array_slice($activities, 0, 20);
-                session(['system_activities' => $activities]);
-
+                $this->logActivity('Evacuation alert sent successfully to ' . $phoneNumber);
+                
                 return response()->json([
                     'success' => true,
-                    'message' => 'Emergency SMS sent successfully!'
+                    'message' => 'Emergency SMS sent successfully!',
+                    'data' => $response->json()
                 ]);
             } else {
-                // Log failure activity
-                $activities = session('system_activities', []);
-                array_unshift($activities, [
-                    'type' => 'sms_failed',
-                    'description' => 'Failed to send evacuation alert (check API config)',
-                    'timestamp' => now(),
-                    'time_ago' => 'just now'
-                ]);
-                $activities = array_slice($activities, 0, 20);
-                session(['system_activities' => $activities]);
+                $error = $response->json() ?: $response->body();
+                \Log::error('SMS API Error: ' . json_encode($error));
+                $this->logActivity('Failed to send evacuation alert: ' . ($error['message'] ?? 'Unknown error'));
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to send SMS. Please check your API configuration.'
-                ], 500);
+                    'message' => 'Failed to send SMS. ' . ($error['message'] ?? 'Please try again later.'),
+                    'error' => $error
+                ], $response->status());
             }
 
         } catch (\Exception $e) {
             \Log::error('SMS Error: ' . $e->getMessage());
-            // Log exception activity
-            $activities = session('system_activities', []);
-            array_unshift($activities, [
-                'type' => 'sms_failed',
-                'description' => 'SMS service error: ' . $e->getMessage(),
-                'timestamp' => now(),
-                'time_ago' => 'just now'
-            ]);
-            $activities = array_slice($activities, 0, 20);
-            session(['system_activities' => $activities]);
-
+            $this->logActivity('SMS sending failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'SMS service error: ' . $e->getMessage()
+                'message' => 'An error occurred while sending the SMS. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
+    }
+
+    /**
+     * Helper method to log activities
+     */
+    private function logActivity($description, $type = 'info')
+    {
+        $activities = session('system_activities', []);
+        array_unshift($activities, [
+            'type' => $type,
+            'description' => $description,
+            'timestamp' => now(),
+            'time_ago' => 'just now'
+        ]);
+        $activities = array_slice($activities, 0, 20);
+        session(['system_activities' => $activities]);
+    }
+
+    /**
+     * Format phone number to international format
+     */
+    private function formatPhoneNumber($number)
+    {
+        // Remove all non-numeric characters
+        $number = preg_replace('/[^0-9]/', '', $number);
+        
+        // If number starts with 0, replace with +63 (Philippines country code)
+        if (strpos($number, '0') === 0) {
+            return '63' . substr($number, 1);
+        }
+        
+        // If number starts with +, remove the +
+        if (strpos($number, '+') === 0) {
+            return substr($number, 1);
+        }
+        
+        return $number;
     }
 }

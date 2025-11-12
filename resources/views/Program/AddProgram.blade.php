@@ -101,7 +101,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
         </div>
         <div class="field">
           <label>Location</label>
-          <input type="text" placeholder="e.g., Purok II" />
+          <select name="location" required>
+            <option value="" disabled selected>Select Purok</option>
+            <option value="Purok I">Purok I</option>
+            <option value="Purok II">Purok II</option>
+            <option value="Purok III">Purok III</option>
+            <option value="Purok IV">Purok IV</option>
+            <option value="Purok V">Purok V</option>
+          </select>
         </div>
         <div class="field">
           <label>Status</label>

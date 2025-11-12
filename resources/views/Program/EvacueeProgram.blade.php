@@ -57,9 +57,67 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 .actions a { color:#6b7280; text-decoration:none; font-size:16px; }
 .actions a:hover { color:#111827; }
 
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px) scale(0.98);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  position: relative;
+  margin: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  will-change: transform, opacity;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-overlay.active .modal {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Ensure modal is centered on all screen sizes */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 85vh;
+    padding: 16px;
+  }
+}
+
 /* Floating Alert */
 .alert { position: fixed; top: 20px; right: 20px; background-color: #17002B; color: #ffffff; padding: 15px 25px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px #17002B; z-index: 9999; opacity: 0; animation: slideIn 0.5s forwards; }
 .alert.success { background-color: #17002B; color: #fff; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100px); } }
 .alert.hide { animation: slideOut 0.5s forwards; }
@@ -147,7 +205,7 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
       </select>
       <input type="text" class="search" placeholder="Search" />
       <div style="margin-left:auto; display:flex; gap:10px;">
-        <a href="#" class="btn add">ADD +</a>
+        <a href="#" class="btn add" onclick="openAddEvacueeModal()">ADD +</a>
         <a href="#" class="btn export"><i class="fas fa-download"></i> EXPORT</a>
       </div>
     </div>
@@ -195,9 +253,161 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
   </div>
 </div>
 
+<!-- Add Evacuee Modal -->
+<div class="modal-overlay" id="addEvacueeOverlay">
+  <div class="modal" id="addEvacueeModal">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <h3 style="margin:0; color:#1a1a2e;">Add New Evacuee</h3>
+      <button onclick="closeAddEvacueeModal()" class="icon-btn" aria-label="Close" style="width:36px;height:36px;"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div style="background:#fafafa; border:1px dashed #e5e7eb; border-radius:12px; padding:20px;">
+      <form id="addEvacueeForm" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Full Name</label>
+          <input type="text" name="fullname" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" />
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Age</label>
+          <input type="number" name="age" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" />
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Gender</label>
+          <select name="gender" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="" disabled selected>Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Evacuation Status</label>
+          <select name="status" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="" disabled selected>Select Status</option>
+            <option value="Evacuated">Evacuated</option>
+            <option value="Relocated">Relocated</option>
+            <option value="Returned">Returned</option>
+          </select>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Evacuation Area</label>
+          <select name="area" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="" disabled selected>Select Area</option>
+            <option value="Barangay Hall">Barangay Hall</option>
+            <option value="Evacuation Center 1">Evacuation Center 1</option>
+            <option value="Evacuation Center 2">Evacuation Center 2</option>
+            <option value="School Gym">School Gym</option>
+          </select>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Room Number</label>
+          <input type="text" name="room" placeholder="e.g., Room 3B" style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" />
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Purok</label>
+          <select name="purok" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="" disabled selected>Select Purok</option>
+            <option value="Purok I">Purok I</option>
+            <option value="Purok II">Purok II</option>
+            <option value="Purok III">Purok III</option>
+            <option value="Purok IV">Purok IV</option>
+            <option value="Purok V">Purok V</option>
+          </select>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label>Assistance Received</label>
+          <select name="program_received" style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+            <option value="Yes">Yes</option>
+            <option value="No" selected>No</option>
+          </select>
+        </div>
+        
+        <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button type="button" onclick="closeAddEvacueeModal()" style="padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; background:#f5f5f5; cursor:pointer; font-weight:600;">Cancel</button>
+          <button type="submit" style="padding:10px 14px; border-radius:8px; border:1px solid #17002B; background:#17002B; color:white; cursor:pointer; font-weight:600;">Save Evacuee</button>
+        </div>
+      </form>
+    
+
 @if(session('Success'))
   <div class="alert success" id="successAlert">{{ session('Success') }}</div>
 @endif
+
+<script>
+// Function to open the add evacuee modal
+function openAddEvacueeModal() {
+  const modal = document.getElementById('addEvacueeModal');
+  const overlay = document.getElementById('addEvacueeOverlay');
+  
+  // Show modal and overlay with animation
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// Function to close the add evacuee modal
+function closeAddEvacueeModal() {
+  const overlay = document.getElementById('addEvacueeOverlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = 'auto';
+  document.getElementById('addEvacueeForm').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const overlay = document.getElementById('addEvacueeOverlay');
+  if (event.target === overlay) {
+    closeAddEvacueeModal();
+  }
+}
+
+// Handle form submission
+const form = document.getElementById('addEvacueeForm');
+if (form) {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Here you would typically send the form data to your server
+    // For now, we'll just close the modal and show a success message
+    closeAddEvacueeModal();
+    showAlert('Evacuee added successfully!', 'success');
+  });
+}
+
+// Function to show alert message
+function showAlert(message, type = 'success') {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert ${type}`;
+  alertDiv.textContent = message;
+  document.body.appendChild(alertDiv);
+  
+  // Trigger reflow
+  void alertDiv.offsetWidth;
+  
+  // Add show class
+  alertDiv.style.animation = 'slideIn 0.5s forwards';
+  
+  // Remove alert after 3 seconds
+  setTimeout(() => {
+    alertDiv.style.animation = 'slideOut 0.5s forwards';
+    setTimeout(() => alertDiv.remove(), 500);
+  }, 3000);
+}
+
+// Auto-hide success message after 3 seconds
+setTimeout(() => {
+  const alert = document.getElementById('successAlert');
+  if (alert) {
+    alert.style.animation = 'slideOut 0.5s forwards';
+    setTimeout(() => alert.remove(), 500);
+  }
+}, 3000);
+</script>
 
 <script>
 setTimeout(()=>{

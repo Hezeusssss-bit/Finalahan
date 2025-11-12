@@ -62,7 +62,23 @@ Route::post('/send-evacuation-sms', [App\Http\Controllers\SmsController::class, 
 // Direct view routes for newly moved Blade files
 Route::view('/facility', 'Facility.facilities')->name('facility.facilities');
 Route::view('/sms/tryall', 'SMS.tryall')->name('sms.tryall');
-Route::view('/services', 'Services.services')->name('services');
+// Services Routes
+Route::prefix('services')->group(function () {
+    Route::get('/', function () {
+        return view('Services.services');
+    })->name('services');
+    
+    Route::get('/assign-venue', function () {
+        return view('Services.assignvenue');
+    })->name('services.assignvenue');
+    
+    Route::post('/assign-venue', function (\Illuminate\Http\Request $request) {
+        // Here you would typically save the venue assignment to the database
+        // For now, we'll just redirect back with a success message
+        return redirect()->route('services.assignvenue')
+            ->with('success', 'Venue assigned successfully!');
+    })->name('services.assignvenue.store');
+});
 Route::view('/program', 'Program.program')->name('program');
 Route::view('/program/evacuee', 'Program.EvacueeProgram')->name('program.evacuee');
 Route::view('/program/add', 'Program.AddProgram')->name('program.add');

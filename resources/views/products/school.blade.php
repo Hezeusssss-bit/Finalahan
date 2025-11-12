@@ -99,7 +99,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   <div class="logo"><i class="fas fa-store"></i> <span>Logo</span></div>
   <nav class="nav-menu">
     <a href="{{ route('resident.index') }}" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-    <a href="{{ route('facilities') }}" class="nav-item"><i class="fas fa-building"></i><span>Facilities</span></a>
     <a href="" class="nav-item"><i class="fas fa-users"></i><span>View Evacuee</span></a>
   </nav>
   <div class="sidebar-footer">
