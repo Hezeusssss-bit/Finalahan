@@ -82,3 +82,8 @@ Route::prefix('services')->group(function () {
 Route::view('/program', 'Program.program')->name('program');
 Route::view('/program/evacuee', 'Program.EvacueeProgram')->name('program.evacuee');
 Route::view('/program/add', 'Program.AddProgram')->name('program.add');
+
+// Officials Route
+Route::get('/officials', function () {
+    return view('Officials.officials');
+})->name('officials');
