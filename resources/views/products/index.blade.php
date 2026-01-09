@@ -1,13 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MSWD Information System</title>
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - YOTS</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f6fa;
+        }
+        .sidebar {
+            background-color: #1a1a2e;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            width: 250px;
+            transition: all 0.3s;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .dropdown-content {
+            display: none;
+            padding-left: 20px;
+        }
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+        .insights-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; display: flex; }
 
 /* Sidebar */
@@ -137,10 +188,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 
 /* Activity Item Hover */
 .activity-item {
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 12px 16px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid transparent;
 }
+
 .activity-item:hover {
-  background: #f8f9fa;
+  background: #f0f4ff;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(74, 106, 247, 0.1);
+  border-left-color: #4a6cf7;
+}
   border-radius: 6px;
 }
 
@@ -149,7 +214,92 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   .sidebar { width: 70px; }
   .logo span, .nav-item span { display: none; }
   .main-content { margin-left: 70px; padding: 20px; }
+  
+  /* Dropdown styles */
+  .dropdown {
+    position: relative;
+  }
+  
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background: #fff;
+    min-width: 220px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    z-index: 1000;
+    padding: 8px 0;
+    margin-top: 8px;
+    border: 1px solid #e5e5e5;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  .dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    animation: fadeInUp 0.25s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: #4a5568;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    font-size: 14px;
+    position: relative;
+    border-left: 3px solid transparent;
+  }
+  
+  .dropdown-item:hover {
+    background: linear-gradient(90deg, rgba(74, 85, 104, 0.05), transparent);
+    color: #1a1a2e;
+    padding-left: 25px;
+    border-left-color: #4a6cf7;
+  }
+  
+  .dropdown-item i {
+    width: 22px;
+    margin-right: 12px;
+    color: #718096;
+    text-align: center;
+    font-size: 16px;
+    transition: all 0.25s ease;
+  }
+  
+  .dropdown-item:hover i {
+    color: #4a6cf7;
+    transform: scale(1.1);
+  }
+  
+  .dropdown-toggle {
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  
 }
+
 </style>
 </head>
 <body>
@@ -158,10 +308,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 <div class="sidebar">
   <div class="logo"><i class="fas fa-store"></i> <span>MSWD</span></div>
   <nav class="nav-menu">
-    <a href="#" class="nav-item active "><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-    <a href="{{ route('program') }}" class="nav-item"><i class="fas fa-chart-line"></i><span>Program</span></a>
+    <a href="#" class="nav-item active">
+      <i class="fas fa-chart-line"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="{{ route('program') }}" class="nav-item"><i class="fas fa-chart-line"></i><span>Programs</span></a>
     <a href="{{ route('services') }}" class="nav-item"><i class="fas fa-boxes"></i><span>Services</span></a>
-    <a href="#" class="nav-item"><i class="fas fa-users"></i><span>Events</span></a>
+    <a href="{{ route('events') }}" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Events</span></a>
   </nav>
   <div class="sidebar-footer">
     <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
@@ -346,11 +499,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <div style="font-size:12px;color:#666;">Export resident data</div>
         </div>
       </a>
-      <a href="#" class="quick-action" style="background:#f8f9fa;padding:15px;border-radius:8px;text-decoration:none;color:#333;border:1px solid #e9ecef;display:flex;align-items:center;gap:10px;">
-        <i class="fas fa-cog" style="color:#6c757d;font-size:18px;"></i>
+      <a href="{{ route('employee.employee') }}" class="quick-action" style="background:#f8f9fa;padding:15px;border-radius:8px;text-decoration:none;color:#333;border:1px solid #e9ecef;display:flex;align-items:center;gap:10px;">
+        <i class="fas fa-users" style="color:#6c757d;font-size:18px;"></i>
         <div>
-          <div style="font-weight:600;font-size:14px;">Settings</div>
-          <div style="font-size:12px;color:#666;">System configuration</div>
+          <div style="font-weight:600;font-size:14px;">Employee Management</div>
+          <div style="font-size:12px;color:#666;">Manage employees and access</div>
         </div>
       </a>
     </div>
@@ -502,6 +655,35 @@ setTimeout(()=>{
   const alert = document.getElementById('successAlert') || document.getElementById('welcomeAlert');
   if(alert){ alert.classList.add('hide'); setTimeout(()=>alert.remove(),500); }
 },3000);
+
+// Program dropdown functionality
+const programDropdown = document.querySelector('.dropdown');
+const programToggle = programDropdown.querySelector('.dropdown-toggle');
+const programMenu = programDropdown.querySelector('.dropdown-menu');
+
+// Toggle dropdown on click
+programToggle.addEventListener('click', function(e) {
+  e.preventDefault();
+  const isOpen = programMenu.style.display === 'block';
+  programMenu.style.display = isOpen ? 'none' : 'block';
+  programMenu.style.opacity = isOpen ? '0' : '1';
+  programMenu.style.transform = isOpen ? 'translateY(10px)' : 'translateY(0)';
+  programMenu.style.pointerEvents = isOpen ? 'none' : 'auto';
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!programDropdown.contains(e.target)) {
+    programMenu.style.display = 'none';
+    programMenu.style.opacity = '0';
+    programMenu.style.transform = 'translateY(10px)';
+    programMenu.style.pointerEvents = 'none';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Existing code...
+});
 </script>
 </body>
 </html>

@@ -73,6 +73,31 @@
             color: #1a1a2e; 
             font-size: 28px; 
             font-weight: 700; 
+            margin: 0;
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .icon-btn:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+        }
+        
+        .icon-btn i {
+            color: #333;
+            font-size: 16px;
         }
 
         /* Responsive */
@@ -103,7 +128,12 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1>Officials</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="{{ url()->previous() }}" class="icon-btn" style="text-decoration: none;" title="Go back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1>Officials</h1>
+            </div>
             <button id="manageOfficialsBtn" class="btn btn-primary" style="background: #1a1a2e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; position: relative; z-index: 1;">
                 <i class="fas fa-user-plus"></i> Manage Officials
             </button>

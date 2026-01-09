@@ -97,7 +97,8 @@ public function index(Request $request)
             'price' => 'required|integer',
             // description now represents Address
             'description' => 'nullable|string',
-            'gender' => 'required|in:Male,Female'
+            'gender' => 'required|in:Male,Female',
+            'contact_number' => 'nullable|string|max:20'
         ]);
 
         $resident = Resident::create($data);
@@ -136,7 +137,8 @@ public function index(Request $request)
             'qty' => 'required|string',
             'price' => 'required|integer',
             'description' => "nullable",
-            'gender' => 'nullable|in:Male,Female'
+            'gender' => 'nullable|in:Male,Female',
+            'contact_number' => 'nullable|string|max:20'
         ]);
 
         $resident->update($data);

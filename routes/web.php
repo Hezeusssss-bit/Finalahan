@@ -26,16 +26,30 @@ Route::middleware('authCheck')->group(function () {
         'destroy' => 'resident.destroy',
     ]);
     
+    // Officials page
+    Route::get('/officials', function () {
+        return view('Officials.officials');
+    })->name('officials');
+    
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+    
+    });
 
-});
+// Employee Management (temporarily outside auth for testing)
+Route::get('/employee', function () {
+    return view('Employee.employee');
+})->name('employee.employee');
+
+// Events page (public)
+Route::get('/events', function () {
+    return view('Events.event');
+})->name('events');
 
 Route::get('/', function () {
     return redirect()->route('login'); // redirect root to login page
 });
-
 
 // Login routes
 Route::get('/login', [ProductController::class, 'login'])->name('login');

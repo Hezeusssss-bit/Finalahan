@@ -162,11 +162,12 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 <!-- Main Content -->
 <div class="main-content">
   <div class="header">
-    <h1>Evacuee Program</h1>
-    <a href="{{ route('program') }}" class="btn-back" title="Back to Program">
-      <i class="fas fa-arrow-left"></i>
-      Back
-    </a>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <a href="{{ url()->previous() }}" class="icon-btn" style="text-decoration: none;" title="Go back">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <h1>Evacuee Program</h1>
+    </div>
   </div>
 
   <div class="container">

@@ -193,6 +193,11 @@
                 <option value="Purok V" {{ $product->description == 'Purok V' ? 'selected' : '' }}>Purok V</option>
             </select>
         </div>
+        
+        <div>
+            <label>Contact Number</label>
+            <input type="text" name="contact_number" value="{{ $product->contact_number ?? '' }}" placeholder="Contact Number" />
+        </div>
         <div>
             <input type="submit" value="Update Record" id="updateBtn" disabled />
         </div>

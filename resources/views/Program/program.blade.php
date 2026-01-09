@@ -113,7 +113,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 <!-- Main Content -->
 <div class="main-content">
   <div class="header">
-    <h1>Program</h1>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <a href="{{ url()->previous() }}" class="icon-btn" style="text-decoration: none;">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <h1>Program</h1>
+    </div>
   </div>
   @if(session('Success'))
     <div class="alert success" id="successAlert">{{ session('Success') }}</div>

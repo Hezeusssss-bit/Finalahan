@@ -264,6 +264,7 @@ tbody tr:hover { background: #fafafa; }
             <th>AGE</th>
             <th>GENDER</th>
             <th>ADDRESS</th>
+            <th>CONTACT NUMBER</th>
             <th>ADDED ON</th>
             <th>ACTION</th>
           </tr>
@@ -277,18 +278,19 @@ tbody tr:hover { background: #fafafa; }
             <td>{{ $resident->price }}</td>
             <td>{{ $resident->gender ?? '-' }}</td>
             <td>{{ $resident->description }}</td>
+            <td>{{ $resident->contact_number ?? '-' }}</td>
             <td>{{ $resident->created_at->format('M d, Y') }}</td>
             <td>
               <div class="actions">
                 <button type="button" class="btn-icon view" onclick="openViewModal({{ $resident->id }})"><i class="fas fa-eye"></i></button>
-                <button type="button" class="btn-icon edit" onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}')"><i class="fas fa-edit"></i></button>
+                <button type="button" class="btn-icon edit" onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}')"><i class="fas fa-edit"></i></button>
                 <button type="button" class="btn-icon delete" onclick="openDeleteModal('{{ route('resident.destroy', $resident->id) }}')"><i class="fas fa-trash"></i></button>
               </div>
             </td>
           </tr>
           @empty
           <tr>
-            <td colspan="8" style="text-align:center;color:#999;">No residents found.</td>
+            <td colspan="9" style="text-align:center;color:#999;">No residents found.</td>
           </tr>
           @endforelse
         </tbody>
@@ -361,6 +363,11 @@ tbody tr:hover { background: #fafafa; }
       </select>
       @error('gender')<div class="error-message">{{ $message }}</div>@enderror
     </div>
+    <div>
+      <label>Contact Number</label>
+      <input type="text" name="contact_number" placeholder="Contact Number" value="{{ old('contact_number') }}">
+      @error('contact_number')<div class="error-message">{{ $message }}</div>@enderror
+    </div>
     <div class="modal-buttons" style="margin-top:15px;">
       <button type="submit" class="btn-add">Save</button>
       <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
@@ -411,6 +418,11 @@ tbody tr:hover { background: #fafafa; }
         </select>
         @error('gender')<div class="error-message">{{ $message }}</div>@enderror
       </div>
+      <div>
+        <label>Contact Number</label>
+        <input type="text" name="contact_number" id="edit_contact_number" placeholder="Contact Number" value="">
+        @error('contact_number')<div class="error-message">{{ $message }}</div>@enderror
+      </div>
       <div class="modal-buttons" style="margin-top:15px;">
         <button type="submit" class="btn-add">Save Changes</button>
         <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
@@ -442,6 +454,10 @@ tbody tr:hover { background: #fafafa; }
     <div class="detail-row">
       <label>Address:</label>
       <span id="view_description">-</span>
+    </div>
+    <div class="detail-row">
+      <label>Contact Number:</label>
+      <span id="view_contact_number">-</span>
     </div>
     <div class="detail-row">
       <label>Created:</label>
@@ -519,7 +535,7 @@ function closeAddModal() {
   document.getElementById('addResidentOverlay').style.display = 'none';
   document.getElementById('addResidentModal').style.display = 'none';
 }
-function openEditModal(action, name, qty, price, description, gender) {
+function openEditModal(action, name, qty, price, description, gender, contactNumber = '') {
   document.getElementById('editResidentOverlay').style.display = 'block';
   document.getElementById('editResidentModal').style.display = 'block';
   const form = document.getElementById('editResidentForm');
@@ -528,6 +544,7 @@ function openEditModal(action, name, qty, price, description, gender) {
   document.getElementById('edit_qty').value = qty;
   document.getElementById('edit_price').value = price;
   document.getElementById('edit_description').value = description;
+  document.getElementById('edit_contact_number').value = contactNumber || '';
   if (gender) { document.getElementById('edit_gender').value = gender; }
 }
 function closeEditModal() {
@@ -576,6 +593,7 @@ function openViewModal(residentId) {
       document.getElementById('view_qty').textContent = data.qty;
       document.getElementById('view_price').textContent = data.price;
       document.getElementById('view_description').textContent = data.description || '-';
+      document.getElementById('view_contact_number').textContent = data.contact_number || '-';
       document.getElementById('view_created').textContent = data.created_at;
       document.getElementById('view_updated').textContent = data.updated_at;
       

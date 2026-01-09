@@ -138,6 +138,14 @@ select:focus { border-color: #1976d2; box-shadow: 0 0 10px rgba(25,118,210,0.3);
                 </div>
 
                 <div>
+                    <label>Contact Number</label>
+                    <input type="text" name="contact_number" placeholder="Contact Number" value="{{ old('contact_number') }}" />
+                    @error('contact_number')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div>
                     <input type="submit" value="Save New Resident" class="btn-add"/>
                 </div>
             </div>
