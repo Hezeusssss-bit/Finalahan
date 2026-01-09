@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Try All - Dashboard</title>
+    <title>SMS Test - YOTSSSSSS</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -22,76 +22,134 @@
         .container {
             background: #fff;
             border-radius: 20px;
-            padding: 60px 40px;
+            padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
             max-width: 600px;
             width: 100%;
         }
 
         .icon-container {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 30px;
+            margin: 0 auto 20px;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
         .icon-container i {
             color: #fff;
-            font-size: 50px;
+            font-size: 36px;
         }
 
         h1 {
             color: #1a1a2e;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        p {
-            color: #666;
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 16px;
-            margin-bottom: 40px;
-            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
         }
 
         .action-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            padding: 18px 50px;
+            width: 100%;
+            padding: 15px;
             border: none;
-            border-radius: 50px;
-            font-size: 18px;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            text-decoration: none;
-            display: inline-block;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 10px;
         }
 
         .action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
 
         .action-button:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
+        }
+
+        .action-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #e6f7e6;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            display: block;
         }
 
         .back-link {
             display: inline-block;
-            margin-top: 30px;
+            margin-top: 25px;
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
             transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
         }
 
         .back-link:hover {
@@ -122,130 +180,123 @@
 <body>
     <div class="container">
         <div class="icon-container">
-            <i class="fas fa-rocket"></i>
+            <i class="fas fa-sms"></i>
         </div>
+        <h1>Test SMS Sending</h1>
         
-        <h1>MSWD Information System</h1>
-        <p>
+        <form id="smsForm">
+            @csrf
+            <div class="form-group">
+                <label for="phone">Phone Number (with country code, e.g., 639123456789)</label>
+                <input type="text" id="phone" name="phone" placeholder="e.g., 639123456789" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" placeholder="Enter your message here...">This is a test message from YOTSSSSSS</textarea>
+            </div>
+            
+            <button type="submit" class="action-button" id="sendButton">
+                <span class="button-text">Send SMS</span>
+                <span class="button-loader" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Sending...
+                </span>
+            </button>
+            
+            <div id="messageContainer" class="message" style="display: none;"></div>
+        </form>
         
-        </p>
-
-        <button class="action-button" onclick="handleAction()">
-            <i class="fas fa-play"></i> Send Alert
-        </button>
-
-        <br>
-        <a href="{{ route('resident.index') }}" class="back-link">
+        <a href="{{ route('home') }}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
     <script>
-        async function handleAction() {
-            const button = document.querySelector('.action-button');
-            const originalText = button.innerHTML;
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('smsForm');
+            const sendButton = document.getElementById('sendButton');
+            const messageContainer = document.getElementById('messageContainer');
             
-            try {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const phone = document.getElementById('phone').value.trim();
+                const message = document.getElementById('message').value.trim();
+                const buttonText = sendButton.querySelector('.button-text');
+                const buttonLoader = sendButton.querySelector('.button-loader');
+                
+                // Validate phone number
+                if (!phone) {
+                    showMessage('Please enter a phone number', 'error');
+                    return;
+                }
+                
                 // Show loading state
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendButton.disabled = true;
+                buttonText.style.display = 'none';
+                buttonLoader.style.display = 'inline-block';
+                messageContainer.style.display = 'none';
                 
-                // Send SMS
-                const response = await fetch('/send-evacuation-sms', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({
-                        phone: '09648990664' // Default number, can be made configurable
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Show success message
-                    alert('🚨 EMERGENCY EVACUATION ALERT! 🚨\n\n' +
-                          '⚠️ EVACUATE IMMEDIATELY! ⚠️\n\n' +
-                          'THIS IS NOT A DRILL!\n\n' +
-                          '📍 ACTION REQUIRED:\n' +
-                          '1. Stay calm and move quickly\n' +
-                          '2. Proceed to nearest evacuation route\n' +
-                          '3. Go to designated assembly point\n' +
-                          '4. Do NOT use elevators\n\n' +
-                          '🆘 EMERGENCY CONTACTS:\n' +
-                          '• Emergency: 911\n' +
-                          '• Red Cross: 143\n' +
-                          '• Fire: 160\n\n' +
-                          '📱 SMS Alert sent successfully!\n\n' +
-                          'Your safety is our priority!\n' +
-                          'Follow evacuation coordinators!');
-                } else {
-                    throw new Error(result.message || 'Failed to send SMS');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('⚠️ Error: ' + (error.message || 'Failed to send emergency alert. Please try again.'));
-            } finally {
-                // Reset button state
-                button.disabled = false;
-                button.innerHTML = originalText;
-            }
-            
-            // Play alert sound if browser supports it
-            if (typeof Audio !== 'undefined') {
                 try {
-                    // Create a beep sound using Web Audio API
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
+                    const response = await fetch('{{ route("sms.test") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            phone: phone,
+                            message: message
+                        })
+                    });
                     
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
+                    const data = await response.json();
                     
-                    oscillator.frequency.value = 800;
-                    oscillator.type = 'sine';
-                    
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.2);
-                    
-                    // Repeat beep 3 times
-                    setTimeout(() => {
-                        const osc2 = audioContext.createOscillator();
-                        const gain2 = audioContext.createGain();
-                        osc2.connect(gain2);
-                        gain2.connect(audioContext.destination);
-                        osc2.frequency.value = 800;
-                        osc2.type = 'sine';
-                        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-                        osc2.start();
-                        osc2.stop(audioContext.currentTime + 0.2);
-                    }, 300);
-                    
-                    setTimeout(() => {
-                        const osc3 = audioContext.createOscillator();
-                        const gain3 = audioContext.createGain();
-                        osc3.connect(gain3);
-                        gain3.connect(audioContext.destination);
-                        osc3.frequency.value = 800;
-                        osc3.type = 'sine';
-                        gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
-                        osc3.start();
-                        osc3.stop(audioContext.currentTime + 0.2);
-                    }, 600);
-                } catch (e) {
-                    console.error('Audio error:', e);
+                    if (data.success) {
+                        showMessage('SMS sent successfully!', 'success');
+                        form.reset();
+                    } else {
+                        showMessage('Failed to send SMS: ' + (data.message || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage('An error occurred. Please try again.', 'error');
+                } finally {
+                    // Reset button state
+                    sendButton.disabled = false;
+                    buttonText.style.display = 'inline-block';
+                    buttonLoader.style.display = 'none';
+                }
+            });
+            
+            function showMessage(message, type) {
+                messageContainer.textContent = message;
+                messageContainer.className = 'message ' + type;
+                messageContainer.style.display = 'block';
+                
+                // Scroll to message
+                messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                // Add haptic feedback on mobile
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(type === 'success' ? 50 : [100, 50, 100]);
                 }
             }
             
-            // Vibrate phone if supported (for mobile devices)
-            if ('vibrate' in navigator) {
-                // Vibrate pattern: vibrate for 200ms, pause 100ms, repeat 3 times
-                navigator.vibrate([200, 100, 200, 100, 200, 100, 200]);
-            }
-        }
+            // Add input validation
+            const phoneInput = document.getElementById('phone');
+            phoneInput.addEventListener('input', function(e) {
+                // Allow only numbers and + at the start
+                this.value = this.value.replace(/[^0-9+]/g, '');
+                
+                // If + is not at the start, remove all + and add to start
+                if (this.value.includes('+') && !this.value.startsWith('+')) {
+                    const numbers = this.value.replace(/\D/g, '');
+                    this.value = '+' + numbers;
+                }
+            });
+        });
     </script>
 </body>
 </html>

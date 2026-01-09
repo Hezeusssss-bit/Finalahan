@@ -4,15 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Services\SmsService;
 
 class SmsController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
     public function sendEvacuationAlert(Request $request)
     {
         // Log the incoming request data for debugging
         \Log::info('SMS Request Data:', $request->all());
         
-        $phoneNumber = $request->input('phone', '09648990664'); // Allow phone number from request or use default
+        $phoneNumber = $request->input('phone', '09648990664'); // Default number if none provided
         $message = "🚨 EMERGENCY EVACUATION ALERT! 🚨\n\n" .
                    "EVACUATE IMMEDIATELY!\n\n" .
                    "ACTION REQUIRED:\n" .
@@ -26,60 +33,75 @@ class SmsController extends Controller
                    "This is not a drill!";
 
         try {
-            // Using Semaphore SMS API (Free tier available)
-            // Register at https://semaphore.co to get your free API key
-            $apiKey = env('SEMAPHORE_API_KEY');
-            
-            // If no API key is set, use a simulation mode
-            if (empty($apiKey)) {
-                // Simulation mode - log the SMS instead of sending
-                \Log::info('SMS would be sent to: ' . $phoneNumber);
-                \Log::info('Message: ' . $message);
-                
-                // Log recent activity (simulation)
-                $this->logActivity('Evacuation alert triggered (simulation mode)');
+            $response = $this->smsService->sendSms($phoneNumber, $message);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'SMS simulation successful! Check logs.',
-                    'note' => 'To enable real SMS: Get API key from semaphore.co (free tier available) and add SEMAPHORE_API_KEY to your .env file'
-                ]);
-            }
-
-            // Real SMS sending using Semaphore
-            $response = Http::timeout(30)->post('https://api.semaphore.co/api/v4/messages', [
-                'apikey' => $apiKey,
-                'number' => $this->formatPhoneNumber($phoneNumber),
-                'message' => $message,
-                'sendername' => 'EVACALERT' // Max 11 chars, alphanumeric only
-            ]);
-
-            if ($response->successful()) {
+            if ($response['success']) {
                 $this->logActivity('Evacuation alert sent successfully to ' . $phoneNumber);
-                
                 return response()->json([
                     'success' => true,
                     'message' => 'Emergency SMS sent successfully!',
-                    'data' => $response->json()
+                    'data' => $response['data'] ?? null
                 ]);
             } else {
-                $error = $response->json() ?: $response->body();
-                \Log::error('SMS API Error: ' . json_encode($error));
-                $this->logActivity('Failed to send evacuation alert: ' . ($error['message'] ?? 'Unknown error'));
-
+                $error = $response['message'] ?? 'Unknown error';
+                $this->logActivity('Failed to send evacuation alert: ' . $error);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to send SMS. ' . ($error['message'] ?? 'Please try again later.'),
-                    'error' => $error
-                ], $response->status());
+                    'message' => 'Failed to send SMS. ' . $error,
+                    'error' => $response['data'] ?? null
+                ], $response['status'] ?? 500);
             }
-
         } catch (\Exception $e) {
             \Log::error('SMS Error: ' . $e->getMessage());
             $this->logActivity('SMS sending failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while sending the SMS. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+    /**
+     * Send a test SMS
+     */
+    public function sendTestSms(Request $request)
+    {
+        $phoneNumber = $request->input('phone');
+        $message = $request->input('message', 'This is a test message from YOTSSSSSS');
+
+        if (empty($phoneNumber)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number is required'
+            ], 400);
+        }
+
+        try {
+            $response = $this->smsService->sendSms($phoneNumber, $message);
+
+            if ($response['success']) {
+                $this->logActivity('Test SMS sent successfully to ' . $phoneNumber);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Test SMS sent successfully!',
+                    'data' => $response['data'] ?? null
+                ]);
+            } else {
+                $error = $response['message'] ?? 'Unknown error';
+                $this->logActivity('Failed to send test SMS: ' . $error);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send test SMS. ' . $error,
+                    'error' => $response['data'] ?? null
+                ], $response['status'] ?? 500);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Test SMS Error: ' . $e->getMessage());
+            $this->logActivity('Test SMS sending failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while sending the test SMS. Please try again.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
