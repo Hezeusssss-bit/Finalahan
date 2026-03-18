@@ -1,0 +1,88 @@
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header unset Server
+    Header unset X-Powered-By
+</IfModule>
+
+# Hide PHP Version
+<IfModule mod_php7.c>
+    php_flag expose_php off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag expose_php off
+</IfModule>
+
+# Prevent Directory Browsing
+Options -Indexes
+
+# Disable Server Signature
+ServerSignature Off
+
+# File Upload Protection
+<FilesMatch "\.(php|phtml|php3|php4|php5|pl|py|cgi|sh|exe)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Protect Configuration Files
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(^\.|config\.php|\.env|composer\.json|composer\.lock|package\.json|webpack\.mix\.js)">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Prevent Access to Backup Files
+<FilesMatch "~$|^#.*#$|\.bak$|\.backup$|\.old$|\.orig$|\.save$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Block Suspicious User Agents
+<IfModule mod_setenvif.c>
+    SetEnvIfNoCase User-Agent "^$" bad_bot
+    SetEnvIfNoCase User-Agent "^bot" bad_bot
+    SetEnvIfNoCase User-Agent "^crawler" bad_bot
+    SetEnvIfNoCase User-Agent "^spider" bad_bot
+    SetEnvIfNoCase User-Agent "^scraper" bad_bot
+    Order Allow,Deny
+    Allow from all
+    Deny from env=bad_bot
+</IfModule>
+
+# Rate Limiting
+<IfModule mod_reqtimeout.c>
+    RequestReadTimeout header=20-40,MinRate=500 body=10,MinRate=500
+</IfModule>
+
+# Laravel Default Configuration
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

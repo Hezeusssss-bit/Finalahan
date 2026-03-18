@@ -28,7 +28,18 @@ class OfficialController extends Controller
             ->orderBy('purok')
             ->get();
             
-        return view('Officials.officials', compact('officials'));
+        // Separate officials by position
+        $captains = $officials->filter(function($official) {
+            return str_contains($official->position, 'Captain');
+        });
+        $kagawads = $officials->filter(function($official) {
+            return str_contains($official->position, 'Kagawad');
+        });
+        $otherOfficials = $officials->filter(function($official) {
+            return !str_contains($official->position, 'Captain') && !str_contains($official->position, 'Kagawad');
+        });
+            
+        return view('Officials.officials', compact('officials', 'captains', 'kagawads', 'otherOfficials'));
     }
 
     /**

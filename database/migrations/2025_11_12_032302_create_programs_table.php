@@ -15,7 +15,15 @@ class CreateProgramsTable extends Migration
     {
         Schema::create('programs', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('location')->nullable();
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->string('status')->default('upcoming');
             $table->timestamps();
+            
+            $table->index(['status', 'start_date']);
         });
     }
 

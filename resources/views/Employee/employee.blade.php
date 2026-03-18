@@ -202,6 +202,21 @@
             font-size: 18px;
             color: #4A4A4A;
         }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
     </style>
 </head>
 <body>
@@ -222,7 +237,28 @@
     </div>
 
     @if(session('success'))
-        <div class="alert success">{{ session('success') }}</div>
+        <div class="alert success">
+            <i class="fas fa-check-circle"></i>
+            {{ session('success') }}
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="alert" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ session('error') }}
+        </div>
+    @endif
+    
+    @if($errors->any())
+        <div class="alert" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+            <i class="fas fa-exclamation-circle"></i>
+            <ul style="margin: 0; padding-left: 20px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
     @endif
 
     <div class="panel full" style="margin-top: 20px;">
@@ -246,23 +282,41 @@
                     </tr>
                 </thead>
                 <tbody id="employeeTableBody">
-                    <!-- Employee data will be loaded here via JavaScript -->
+                    @forelse($employees as $employee)
+                    <tr style="border-bottom: 1px solid #f1f1f1;">
+                        <td style="padding: 12px 15px;">{{ $employee->name }}</td>
+                        <td style="padding: 12px 15px;">{{ $employee->position }}</td>
+                        <td style="padding: 12px 15px;">{{ $employee->department }}</td>
+                        <td style="padding: 12px 15px;">{{ $employee->email }}</td>
+                        <td style="padding: 12px 15px; text-align: right; position: relative;">
+                            <button onclick="editEmployee({{ $employee->id }});" class="btn-icon" title="Edit">
+                                <i class="fas fa-edit" style="color: #4e73df;"></i>
+                            </button>
+                            <button onclick="openAssignmentModal({{ $employee->id }}, '{{ $employee->name }}')" class="btn-icon" title="Assign Task" style="background: #28a745; border: 1px solid #28a745;">
+                                <i class="fas fa-user-check" style="color: white;"></i>
+                            </button>
+                            <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-icon" title="Delete">
+                                    <i class="fas fa-trash-alt" style="color: #e74a3b;"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
                     <tr>
                         <td colspan="5" style="text-align: center; padding: 20px; color: #6c757d;">
                             No employees found. Click "Add Employee" to get started.
                         </td>
                     </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; color: #6c757d; font-size: 14px;">
-            <div>Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> employees</div>
-            <div class="pagination">
-                <button class="btn btn-outline" id="prevPage" disabled>Previous</button>
-                <span style="margin: 0 15px;">Page <span id="currentPage">1</span></span>
-                <button class="btn btn-outline" id="nextPage" disabled>Next</button>
-            </div>
+            <div>Showing {{ $employees->count() }} of {{ $employees->count() }} employees</div>
         </div>
     </div>
 </div>
@@ -274,171 +328,77 @@
         <h2 style="margin: 0; color: #1a1a2e;" id="modalTitle">Add New Employee</h2>
         <button onclick="closeEmployeeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
     </div>
-    <form id="employeeForm" onsubmit="saveEmployee(event)" style="margin-top: 20px;">
-        <input type="hidden" id="employeeId">
+    <form id="employeeForm" action="{{ route('employee.store') }}" method="POST" style="margin-top: 20px;">
+        @csrf
+        <input type="hidden" id="employeeId" name="employee_id">
+        <input type="hidden" id="formMethod" name="_method" value="POST">
         <div class="form-group" style="margin-bottom: 15px;">
             <label for="fullName" style="display: block; margin-bottom: 5px; font-weight: 500;">Full Name</label>
-            <input type="text" id="fullName" required class="form-control" placeholder="Enter full name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="fullName" name="name" required class="form-control" placeholder="Enter full name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-group" style="margin-bottom: 15px;">
             <label for="email" style="display: block; margin-bottom: 5px; font-weight: 500;">Email</label>
-            <input type="email" id="email" required class="form-control" placeholder="Enter email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="email" id="email" name="email" required class="form-control" placeholder="Enter email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="password" style="display: block; margin-bottom: 5px; font-weight: 500;">Password</label>
+            <input type="password" id="password" name="password" required class="form-control" placeholder="Enter password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="password_confirmation" style="display: block; margin-bottom: 5px; font-weight: 500;">Confirm Password</label>
+            <input type="password" id="password_confirmation" name="password_confirmation" required class="form-control" placeholder="Confirm password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-group" style="margin-bottom: 15px;">
             <label for="position" style="display: block; margin-bottom: 5px; font-weight: 500;">Position</label>
-            <select id="position" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+            <select id="position" name="position" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
                 <option value="">Select position</option>
-                <option value="admin">Administrator</option>
-                <option value="staff">Staff</option>
-                <option value="manager">Manager</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="officer">Officer</option>
+                <option value="Administrator">Administrator</option>
+                <option value="Staff">Staff</option>
+                <option value="Manager">Manager</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Officer">Officer</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="department" style="display: block; margin-bottom: 5px; font-weight: 500;">Department</label>
+            <input type="text" id="department" name="department" required class="form-control" placeholder="Enter department" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="contact_number" style="display: block; margin-bottom: 5px; font-weight: 500;">Contact Number (Optional)</label>
+            <input type="text" id="contact_number" name="contact_number" class="form-control" placeholder="Enter contact number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="address" style="display: block; margin-bottom: 5px; font-weight: 500;">Address (Optional)</label>
+            <textarea id="address" name="address" class="form-control" placeholder="Enter address" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="status" style="display: block; margin-bottom: 5px; font-weight: 500;">Status</label>
+            <select id="status" name="status" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="on_leave">On Leave</option>
             </select>
         </div>
         <div class="form-group" style="margin-bottom: 20px;">
-            <label for="department" style="display: block; margin-bottom: 5px; font-weight: 500;">Department</label>
-            <input type="text" id="department" required class="form-control" placeholder="Enter department" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <label for="hire_date" style="display: block; margin-bottom: 5px; font-weight: 500;">Hire Date (Optional)</label>
+            <input type="date" id="hire_date" name="hire_date" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee;">
             <button type="button" class="btn btn-outline" onclick="closeEmployeeModal()" style="background: #f8f9fa; border: 1px solid #ddd; color: #333; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancel</button>
-            <button type="submit" class="btn" style="background: #1a1a2e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;">Save Employee</button>
+            <button type="submit" class="btn" style="background: #1a1a2e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;" onclick="console.log('Submit button clicked')">Save Employee</button>
         </div>
     </form>
 </div>
 
 <!-- Include any additional scripts here -->
 <script>
-// Sample employee data (replace with actual API calls in production)
-let employees = [];
-let currentPage = 1;
-const itemsPerPage = 10;
-
-// DOM Elements
-const employeeTableBody = document.getElementById('employeeTableBody');
-const searchInput = document.getElementById('searchEmployee');
-const prevPageBtn = document.getElementById('prevPage');
-const nextPageBtn = document.getElementById('nextPage');
-const currentPageSpan = document.getElementById('currentPage');
-const showingCountSpan = document.getElementById('showingCount');
-const totalCountSpan = document.getElementById('totalCount');
-
-// Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
-    // Load employees (in a real app, this would be an API call)
-    loadEmployees();
-    
-    // Add event listeners
-    searchInput.addEventListener('input', filterEmployees);
-    prevPageBtn.addEventListener('click', goToPrevPage);
-    nextPageBtn.addEventListener('click', goToNextPage);
-});
-
-// Load employees (simulated)
-function loadEmployees() {
-    // In a real app, you would fetch this from your API
-    // For now, we'll use sample data
-    employees = [];
-    
-    // Uncomment the line below to add sample data
-    // employees = generateSampleEmployees(25);
-    
-    renderEmployees();
-}
-
-// Render employees in the table
-function renderEmployees() {
-    const filteredEmployees = filterEmployees();
-    const start = (currentPage - 1) * itemsPerPage;
-    const paginatedEmployees = filteredEmployees.slice(start, start + itemsPerPage);
-    
-    // Update table
-    if (paginatedEmployees.length > 0) {
-        let html = '';
-        paginatedEmployees.forEach(emp => {
-            html += `
-                <tr style="border-bottom: 1px solid #f1f1f1;">
-                    <td style="padding: 12px 15px;">${emp.name}</td>
-                    <td style="padding: 12px 15px;">${emp.position}</td>
-                    <td style="padding: 12px 15px;">${emp.department}</td>
-                    <td style="padding: 12px 15px;">${emp.email}</td>
-                    <td style="padding: 12px 15px; text-align: right;">
-                        <button onclick="editEmployee('${emp.id}');" class="btn-icon" title="Edit">
-                            <i class="fas fa-edit" style="color: #4e73df;"></i>
-                        </button>
-                        <button onclick="deleteEmployee('${emp.id}');" class="btn-icon" title="Delete">
-                            <i class="fas fa-trash-alt" style="color: #e74a3b;"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        employeeTableBody.innerHTML = html;
-    } else {
-        employeeTableBody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align: center; padding: 20px; color: #6c757d;">
-                    No employees found. Try adjusting your search or add a new employee.
-                </td>
-            </tr>
-        `;
-    }
-    
-    // Update pagination
-    updatePagination(filteredEmployees.length);
-    
-    // Update counts
-    showingCountSpan.textContent = paginatedEmployees.length;
-    totalCountSpan.textContent = filteredEmployees.length;
-}
-
-// Filter employees based on search input
-function filterEmployees() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const filtered = employees.filter(emp => 
-        emp.name.toLowerCase().includes(searchTerm) ||
-        emp.email.toLowerCase().includes(searchTerm) ||
-        emp.position.toLowerCase().includes(searchTerm) ||
-        emp.department.toLowerCase().includes(searchTerm)
-    );
-    
-    // Reset to first page when filtering
-    currentPage = 1;
-    currentPageSpan.textContent = currentPage;
-    
-    renderEmployees();
-    return filtered;
-}
-
-// Pagination functions
-function goToPrevPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        currentPageSpan.textContent = currentPage;
-        renderEmployees();
-    }
-}
-
-function goToNextPage() {
-    const totalPages = Math.ceil(employees.length / itemsPerPage);
-    if (currentPage < totalPages) {
-        currentPage++;
-        currentPageSpan.textContent = currentPage;
-        renderEmployees();
-    }
-}
-
-function updatePagination(totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-}
-
 // Employee CRUD operations
 function openAddEmployeeModal() {
     document.getElementById('modalTitle').textContent = 'Add New Employee';
     document.getElementById('employeeForm').reset();
     document.getElementById('employeeId').value = '';
+    document.getElementById('formMethod').value = 'POST';
+    document.getElementById('employeeForm').action = '{{ route("employee.store") }}';
     document.getElementById('employeeModalOverlay').style.display = 'block';
     document.getElementById('employeeModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -451,90 +411,37 @@ function closeEmployeeModal() {
 }
 
 function editEmployee(employeeId) {
-    // In a real app, you would fetch the employee data from your API
-    const employee = employees.find(emp => emp.id === employeeId);
-    
-    if (employee) {
-        document.getElementById('modalTitle').textContent = 'Edit Employee';
-        document.getElementById('employeeId').value = employee.id;
-        document.getElementById('fullName').value = employee.name;
-        document.getElementById('email').value = employee.email;
-        document.getElementById('position').value = employee.position;
-        document.getElementById('department').value = employee.department;
-        
-        document.getElementById('employeeModalOverlay').style.display = 'block';
-        document.getElementById('employeeModal').style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function saveEmployee(event) {
-    event.preventDefault();
-    
-    const employeeData = {
-        id: document.getElementById('employeeId').value || generateId(),
-        name: document.getElementById('fullName').value,
-        email: document.getElementById('email').value,
-        position: document.getElementById('position').value,
-        department: document.getElementById('department').value
-    };
-    
-    // In a real app, you would send this to your API
-    const existingIndex = employees.findIndex(emp => emp.id === employeeData.id);
-    
-    if (existingIndex >= 0) {
-        // Update existing employee
-        employees[existingIndex] = employeeData;
-    } else {
-        // Add new employee
-        employees.push(employeeData);
-    }
-    
-    // Show success message
-    alert('Employee saved successfully!');
-    
-    // Close modal and refresh the list
-    closeEmployeeModal();
-    renderEmployees();
-}
-
-function deleteEmployee(employeeId) {
-    if (confirm('Are you sure you want to delete this employee?')) {
-        // In a real app, you would call your API to delete the employee
-        employees = employees.filter(emp => emp.id !== employeeId);
-        renderEmployees();
-        alert('Employee deleted successfully!');
-    }
-}
-
-// Helper functions
-function generateId() {
-    return 'emp-' + Math.random().toString(36).substr(2, 9);
-}
-
-function generateSampleEmployees(count) {
-    const positions = ['Admin', 'Staff', 'Manager', 'Supervisor', 'Officer'];
-    const departments = ['HR', 'IT', 'Finance', 'Operations', 'Marketing'];
-    const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'Robert', 'Lisa', 'James', 'Maria'];
-    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-    
-    const sampleEmployees = [];
-    
-    for (let i = 1; i <= count; i++) {
-        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-        
-        sampleEmployees.push({
-            id: 'emp' + i,
-            name: `${firstName} ${lastName}`,
-            email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-            position: positions[Math.floor(Math.random() * positions.length)],
-            department: departments[Math.floor(Math.random() * departments.length)]
+    // Fetch employee data from API
+    fetch(`{{ route('employee.get', ':id') }}`.replace(':id', employeeId))
+        .then(response => response.json())
+        .then(employee => {
+            document.getElementById('modalTitle').textContent = 'Edit Employee';
+            document.getElementById('employeeId').value = employee.id;
+            document.getElementById('formMethod').value = 'PUT';
+            document.getElementById('employeeForm').action = `{{ route('employee.update', ':id') }}`.replace(':id', employee.id);
+            
+            // Populate form fields
+            document.getElementById('fullName').value = employee.name;
+            document.getElementById('email').value = employee.email;
+            document.getElementById('position').value = employee.position;
+            document.getElementById('department').value = employee.department;
+            document.getElementById('contact_number').value = employee.contact_number || '';
+            document.getElementById('address').value = employee.address || '';
+            document.getElementById('status').value = employee.status || 'active';
+            document.getElementById('hire_date').value = employee.hire_date || '';
+            
+            document.getElementById('employeeModalOverlay').style.display = 'block';
+            document.getElementById('employeeModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(error => {
+            console.error('Error fetching employee:', error);
+            alert('Error loading employee data. Please try again.');
         });
-    }
-    
-    return sampleEmployees;
 }
+
+// Remove old JavaScript simulation code
+// The employee data is now loaded from the backend
 </script>
 
 <style>
@@ -575,6 +482,9 @@ function generateSampleEmployees(count) {
     margin: 0 2px;
     border-radius: 4px;
     transition: all 0.2s;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
 }
 
 .btn-icon:hover {
@@ -669,251 +579,169 @@ tr:hover {
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Sample employee data (for demo purposes)
-        let employees = [];
-        let currentPage = 1;
-        const itemsPerPage = 10;
-
-        // DOM Elements
-        const employeeTableBody = document.getElementById('employeeTableBody');
-        const searchInput = document.getElementById('searchEmployee');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
-        const currentPageSpan = document.getElementById('currentPage');
-        const showingCountSpan = document.getElementById('showingCount');
-        const totalCountSpan = document.getElementById('totalCount');
-
-        // Initialize the page
+        // Search functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Load employees (in a real app, this would be an API call)
-            loadEmployees();
-            
-            // Add event listeners
+            const searchInput = document.getElementById('searchEmployee');
             if (searchInput) {
-                searchInput.addEventListener('input', filterEmployees);
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#employeeTableBody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                });
             }
-            if (prevPageBtn) {
-                prevPageBtn.addEventListener('click', goToPrevPage);
-            }
-            if (nextPageBtn) {
-                nextPageBtn.addEventListener('click', goToNextPage);
+            
+            // Add form submission listener for debugging
+            const employeeForm = document.getElementById('employeeForm');
+            if (employeeForm) {
+                employeeForm.addEventListener('submit', function(e) {
+                    console.log('Form submitting!');
+                    console.log('Form action:', this.action);
+                    console.log('Form method:', this.method);
+                    // Let the form submit normally
+                });
             }
         });
-
-        // Load employees (simulated)
-        function loadEmployees() {
-            // In a real app, you would fetch this from your API
-            // For now, we'll use sample data
-            employees = [];
-            renderEmployees();
-        }
-
-        // Render employees in the table
-        function renderEmployees() {
-            const filteredEmployees = filterEmployees();
-            const start = (currentPage - 1) * itemsPerPage;
-            const paginatedEmployees = filteredEmployees.slice(start, start + itemsPerPage);
-            
-            // Update table
-            if (paginatedEmployees.length > 0) {
-                let html = '';
-                paginatedEmployees.forEach(emp => {
-                    html += `
-                        <tr>
-                            <td>${emp.name}</td>
-                            <td>${emp.position}</td>
-                            <td>${emp.department}</td>
-                            <td>${emp.email}</td>
-                            <td style="text-align: right;">
-                                <button onclick="editEmployee('${emp.id}')" class="btn-icon" title="Edit">
-                                    <i class="fas fa-edit" style="color: #4e73df;"></i>
-                                </button>
-                                <button onclick="deleteEmployee('${emp.id}')" class="btn-icon" title="Delete">
-                                    <i class="fas fa-trash-alt" style="color: #e74a3b;"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                if (employeeTableBody) {
-                    employeeTableBody.innerHTML = html;
-                }
-            } else {
-                if (employeeTableBody) {
-                    employeeTableBody.innerHTML = `
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px; color: #6c757d;">
-                                No employees found. Click "Add Employee" to get started.
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-            
-            // Update pagination
-            updatePagination(filteredEmployees.length);
-            
-            // Update counts
-            if (showingCountSpan && totalCountSpan) {
-                showingCountSpan.textContent = paginatedEmployees.length;
-                totalCountSpan.textContent = filteredEmployees.length;
-            }
-        }
-
-        // Filter employees based on search input
-        function filterEmployees() {
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-            const filtered = employees.filter(emp => 
-                emp.name.toLowerCase().includes(searchTerm) ||
-                emp.email.toLowerCase().includes(searchTerm) ||
-                emp.position.toLowerCase().includes(searchTerm) ||
-                emp.department.toLowerCase().includes(searchTerm)
-            );
-            
-            // Reset to first page when filtering
-            currentPage = 1;
-            if (currentPageSpan) {
-                currentPageSpan.textContent = currentPage;
-            }
-            
-            renderEmployees();
-            return filtered;
-        }
-
-        // Pagination functions
-        function goToPrevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                if (currentPageSpan) {
-                    currentPageSpan.textContent = currentPage;
-                }
-                renderEmployees();
-            }
-        }
-
-        function goToNextPage() {
-            const totalPages = Math.ceil(employees.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                if (currentPageSpan) {
-                    currentPageSpan.textContent = currentPage;
-                }
-                renderEmployees();
-            }
-        }
-
-        function updatePagination(totalItems) {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            
-            if (prevPageBtn) {
-                prevPageBtn.disabled = currentPage === 1;
-            }
-            if (nextPageBtn) {
-                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-            }
-        }
-
-        // Employee CRUD operations
-        function openAddEmployeeModal() {
-            document.getElementById('modalTitle').textContent = 'Add New Employee';
-            document.getElementById('employeeForm').reset();
-            document.getElementById('employeeId').value = '';
-            document.getElementById('employeeModalOverlay').style.display = 'block';
-            document.getElementById('employeeModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeEmployeeModal() {
-            document.getElementById('employeeModalOverlay').style.display = 'none';
-            document.getElementById('employeeModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        function editEmployee(employeeId) {
-            // In a real app, you would fetch the employee data from your API
-            const employee = employees.find(emp => emp.id === employeeId);
-            
-            if (employee) {
-                document.getElementById('modalTitle').textContent = 'Edit Employee';
-                document.getElementById('employeeId').value = employee.id;
-                document.getElementById('fullName').value = employee.name;
-                document.getElementById('email').value = employee.email;
-                document.getElementById('position').value = employee.position;
-                document.getElementById('department').value = employee.department;
-                
-                document.getElementById('employeeModalOverlay').style.display = 'block';
-                document.getElementById('employeeModal').style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function saveEmployee(event) {
-            event.preventDefault();
-            
-            const employeeData = {
-                id: document.getElementById('employeeId').value || generateId(),
-                name: document.getElementById('fullName').value,
-                email: document.getElementById('email').value,
-                position: document.getElementById('position').value,
-                department: document.getElementById('department').value
-            };
-            
-            // In a real app, you would send this to your API
-            const existingIndex = employees.findIndex(emp => emp.id === employeeData.id);
-            
-            if (existingIndex >= 0) {
-                // Update existing employee
-                employees[existingIndex] = employeeData;
-            } else {
-                // Add new employee
-                employees.push(employeeData);
-            }
-            
-            // Show success message
-            alert('Employee saved successfully!');
-            
-            // Close modal and refresh the list
-            closeEmployeeModal();
-            renderEmployees();
-        }
-
-        function deleteEmployee(employeeId) {
-            if (confirm('Are you sure you want to delete this employee?')) {
-                // In a real app, you would call your API to delete the employee
-                employees = employees.filter(emp => emp.id !== employeeId);
-                renderEmployees();
-                alert('Employee deleted successfully!');
-            }
-        }
-
-        // Helper functions
-        function generateId() {
-            return 'emp-' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function generateSampleEmployees(count) {
-            const positions = ['Admin', 'Staff', 'Manager', 'Supervisor', 'Officer'];
-            const departments = ['HR', 'IT', 'Finance', 'Operations', 'Marketing'];
-            const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'Robert', 'Lisa', 'James', 'Maria'];
-            const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-            
-            const sampleEmployees = [];
-            
-            for (let i = 1; i <= count; i++) {
-                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-                
-                sampleEmployees.push({
-                    id: 'emp' + i,
-                    name: `${firstName} ${lastName}`,
-                    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-                    position: positions[Math.floor(Math.random() * positions.length)],
-                    department: departments[Math.floor(Math.random() * departments.length)]
-                });
-            }
-            
-            return sampleEmployees;
-        }
     </script>
+    
+    <!-- Assignment Modal -->
+<div class="modal-overlay" id="assignmentModalOverlay" style="display: none;"></div>
+<div class="modal" id="assignmentModal" style="display: none; max-width: 500px;">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #1a1a2e; font-size: 24px; font-weight: 600;">Assign Employee to Evacuation Center</h2>
+        <button type="button" onclick="closeAssignmentModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+    </div>
+    
+    <p style="color: #666; margin-bottom: 25px; font-size: 14px; line-height: 1.5;">Assign an employee to manage and organize residents at a specific evacuation center.</p>
+    
+    <form id="assignmentForm" onsubmit="submitAssignment(event)">
+        @csrf
+        <input type="hidden" id="employeeId" name="employee_id">
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Select Employee</label>
+            <select id="employeeName" name="employee_name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
+                <option value="">Choose an employee...</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Evacuation Center</label>
+            <select id="evacuationCenter" name="evacuation_center" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
+                <option value="">Select evacuation center...</option>
+                <option value="Barangay Hall Evacuation Center">Barangay Hall Evacuation Center</option>
+                <option value="Community Center Evacuation">Community Center Evacuation</option>
+                <option value="School Gymnasium">School Gymnasium</option>
+                <option value="Sports Complex">Sports Complex</option>
+                <option value="Multi-Purpose Hall">Multi-Purpose Hall</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Responsibilities</label>
+            <textarea id="responsibilities" name="responsibilities" rows="4" placeholder="e.g., Organize residents, manage supplies, maintain order..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Additional Notes</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Any additional instructions or notes..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+        </div>
+        
+        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+            <button type="button" onclick="closeAssignmentModal()" class="btn btn-outline" style="background: #f8f9fa; border: 1px solid #ddd; color: #333; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
+            <button type="submit" class="btn" style="background: #28a745; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 500;">Assign Task</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function openAssignmentModal(employeeId, employeeName) {
+    console.log('Assignment button clicked!', employeeId, employeeName);
+    
+    // Simple modal opening - just set display to block
+    const overlay = document.getElementById('assignmentModalOverlay');
+    const modal = document.getElementById('assignmentModal');
+    
+    if (overlay && modal) {
+        console.log('Elements found, opening modal');
+        document.getElementById('employeeId').value = employeeId;
+        
+        // Simple population of employee dropdown
+        const employeeSelect = document.getElementById('employeeName');
+        if (employeeSelect) {
+            employeeSelect.innerHTML = `<option value="${employeeId}" selected>${employeeName}</option>`;
+        }
+        
+        overlay.style.display = 'block';
+        modal.style.display = 'block';
+        console.log('Modal should be visible now');
+    } else {
+        console.error('Modal elements not found!');
+        alert('Error: Modal not found');
+    }
+}
+
+function closeAssignmentModal() {
+    document.getElementById('assignmentModalOverlay').style.display = 'none';
+    document.getElementById('assignmentModal').style.display = 'none';
+    document.getElementById('assignmentForm').reset();
+}
+
+function submitAssignment(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Update employee_id from the dropdown selection
+    const employeeSelect = document.getElementById('employeeName');
+    formData.set('employee_id', employeeSelect.value);
+    
+    // Show loading state
+    submitBtn.innerHTML = 'Assigning...';
+    submitBtn.disabled = true;
+    
+    // Send AJAX request
+    fetch('/employee-assignments', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                           document.querySelector('input[name="_token"]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert('Task assigned successfully!');
+            
+            // Close modal and reset form
+            closeAssignmentModal();
+        } else {
+            // Show validation errors
+            let errorMessage = 'Please fix the following errors:\n';
+            for (const [field, errors] of Object.entries(data.errors)) {
+                errorMessage += `\n• ${errors.join(', ')}`;
+            }
+            alert(errorMessage);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning the task. Please try again.');
+    })
+    .finally(() => {
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+</script>
 </body>
 </html>

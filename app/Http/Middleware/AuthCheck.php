@@ -9,7 +9,7 @@ class AuthCheck
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->session()->has('user_id')) {
+        if (!$request->session()->has('loggedIn')) {
             return redirect()->route('login')->withErrors(['You must log in first.']);
         }
 

@@ -18,48 +18,178 @@
 
         /* Sidebar */
         .sidebar { 
-            width: 250px; 
-            background: #1a1a2e; 
+            width: 280px; 
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
             min-height: 100vh; 
-            padding: 30px 0; 
+            padding: 0; 
             position: fixed; 
             left: 0; 
             top: 0; 
             display: flex; 
-            flex-direction: column; 
+            flex-direction: column;
+            box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .logo { 
             color: #fff; 
-            font-size: 24px; 
-            font-weight: 700; 
-            padding: 0 30px; 
-            margin-bottom: 50px; 
+            font-size: 28px; 
+            font-weight: 800; 
+            padding: 30px; 
+            margin-bottom: 10px; 
             display: flex; 
             align-items: center; 
-            gap: 10px; 
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
         }
-        .nav-menu { flex: 1; }
+
+        .logo i { 
+            color: #3b82f6; 
+            font-size: 32px;
+            filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)); }
+            to { filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)); }
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+            padding: 0 20px;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 0 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-section-title::before {
+            content: '';
+            width: 3px;
+            height: 3px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .nav-menu { 
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
         .nav-item { 
-            color: #999; 
-            padding: 15px 30px; 
+            color: rgba(255, 255, 255, 0.8); 
+            padding: 14px 20px; 
             text-decoration: none; 
             display: flex; 
             align-items: center; 
-            gap: 10px; 
-            transition: all 0.3s ease; 
+            gap: 15px; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
             cursor: pointer; 
-            font-size: 15px; 
+            font-size: 15px;
+            font-weight: 500;
+            position: relative;
+            margin: 3px 0;
+            border-radius: 12px;
+            overflow: hidden;
         }
-        .nav-item i { width: 20px; text-align: center; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .nav-item.active { color: #fff; background: rgba(255,255,255,0.1); border-left: 3px solid #fff; }
-        .sidebar-footer { margin-top: auto; }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item i { 
+            width: 24px; 
+            text-align: center; 
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.4s ease;
+        }
+
+        .nav-item:hover { 
+            background: rgba(59, 130, 246, 0.15); 
+            color: #fff;
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        .nav-item:hover i {
+            color: #60a5fa;
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .nav-item.active { 
+            color: #fff; 
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+            font-weight: 600;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active::before {
+            display: none;
+        }
+
+        .nav-item.active i {
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .sidebar-footer { 
+            margin-top: auto; 
+            padding: 25px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-footer .nav-item {
+            margin: 3px 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sidebar-footer .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+            box-shadow: none;
+        }
+
+        .sidebar-footer .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
 
         /* Main Content */
         .main-content { 
-            margin-left: 250px; 
+            margin-left: 280px; 
             flex: 1; 
-            padding: 30px 40px; 
+            padding: 35px; 
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
         }
 
         /* Header */
@@ -67,13 +197,24 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 25px; 
+            margin-bottom: 40px;
+            padding: 30px 35px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
+
         .header h1 { 
-            color: #1a1a2e; 
-            font-size: 28px; 
-            font-weight: 700; 
-            margin: 0;
+            color: #1e293b; 
+            font-size: 36px; 
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
         }
         
         .icon-btn {
@@ -110,20 +251,70 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo"><i class="fas fa-store"></i> <span>MSWD</span></div>
-        <nav class="nav-menu">
-            <a href="{{ route('resident.index') }}" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-            <a href="{{ route('officials') }}" class="nav-item active"><i class="fas fa-user-tie"></i><span>Officials</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-users"></i><span>IDP's</span></a>
-        </nav>
-        <div class="sidebar-footer">
-            <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
-            <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
-                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
-            </button>
-        </div>
+<div class="sidebar">
+  <div class="logo">
+    <i class="fas fa-shield-alt"></i> 
+    <span>MSWD</span>
+  </div>
+  
+  <!-- Main Navigation -->
+  <div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <nav class="nav-menu">
+      <a href="{{ route('resident.index') }}" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ route('program.index') }}" class="nav-item">
+        <i class="fas fa-tasks"></i>
+        <span>Programs</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Services Section -->
+  <div class="nav-section">
+    <div class="nav-section-title">Services</div>
+    <nav class="nav-menu">
+      <a href="{{ route('services') }}" class="nav-item">
+        <i class="fas fa-concierge-bell"></i>
+        <span>Services</span>
+      </a>
+      <a href="{{ route('tryall') }}" class="nav-item">
+        <i class="fas fa-sms"></i>
+        <span>SMS Alert</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Events</span>
+      </a>
+      <a href="{{ route('facilities') }}" class="nav-item">
+        <i class="fas fa-building"></i>
+        <span>Facilities</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- System Section -->
+  <div class="sidebar-footer">
+    <div class="nav-section">
+      <div class="nav-section-title">System</div>
+      <nav class="nav-menu">
+        <a href="#" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
+        </form>
+      </nav>
     </div>
+  </div>
+</div>
 
     <!-- Main Content -->
     <div class="main-content">

@@ -15,6 +15,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Update program statuses every 5 minutes
+        $schedule->command('programs:update-statuses')->everyFiveMinutes();
+        
         // $schedule->command('inspire')->hourly();
     }
 

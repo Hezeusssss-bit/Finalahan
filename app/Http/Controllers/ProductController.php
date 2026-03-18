@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Resident;
+use App\Models\Evacuee;
 use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
@@ -27,6 +28,17 @@ class ProductController extends Controller
             $this->logActivity('login', 'Admin logged into the system');
             
             return redirect()->route('resident.index')->with('Success', 'Welcome Admin!');
+        }
+
+        // Check if it's an employee login
+        $employee = \App\Models\Employee::where('email', $credentials['email'])->first();
+        if ($employee && \Hash::check($credentials['password'], $employee->password)) {
+            session(['loggedIn' => true, 'employee_id' => $employee->id]);
+            
+            // Log login activity
+            $this->logActivity('login', "Employee '{$employee->name}' logged into the system");
+            
+            return redirect()->route('employee.dashboard')->with('Success', 'Welcome to Employee Dashboard!');
         }
 
         return back()->withErrors([
@@ -221,6 +233,70 @@ public function index(Request $request)
     }
 
     /**
+     * Get residents grouped by purok for evacuee modal
+     */
+    public function getResidentsByPurok(Request $request)
+    {
+        // If a specific purok is requested, return only those residents
+        if ($request->has('purok')) {
+            $requestedPurok = $request->input('purok');
+            
+            $residents = Resident::select('id', 'name', 'qty', 'price', 'gender', 'description', 'contact_number')
+                ->where('description', $requestedPurok)
+                ->get()
+                ->map(function($resident) {
+                    // Check if resident is already evacuated
+                    $evacuee = \App\Models\Evacuee::where('resident_id', $resident->id)->first();
+                    $isEvacuated = $evacuee ? true : false;
+                    $evacuationStatus = $evacuee ? $evacuee->evacuation_status : null;
+                    
+                    return [
+                        'id' => $resident->id,
+                        'name' => $resident->name,
+                        'qty' => $resident->qty,
+                        'price' => $resident->price,
+                        'age' => $resident->price,
+                        'gender' => $resident->gender,
+                        'description' => $resident->description,
+                        'contact_number' => $resident->contact_number,
+                        'evacuation_status' => $evacuationStatus,
+                        'is_evacuated' => $isEvacuated
+                    ];
+                });
+                
+            return response()->json(['residents' => $residents]);
+        }
+        
+        // Original functionality - return all residents grouped by purok
+        $residents = Resident::select('id', 'name', 'qty', 'price', 'gender', 'description')
+            ->get()
+            ->map(function($resident) {
+                // Extract purok from address/description
+                $purok = 'Unassigned';
+                if (preg_match('/Purok\s*(I|II|III|IV|V|1|2|3|4|5)/i', $resident->description, $matches)) {
+                    $purokMap = ['1' => 'Purok I', '2' => 'Purok II', '3' => 'Purok III', '4' => 'Purok IV', '5' => 'Purok V',
+                                 'I' => 'Purok I', 'II' => 'Purok II', 'III' => 'Purok III', 'IV' => 'Purok IV', 'V' => 'Purok V'];
+                    $purok = $purokMap[strtoupper($matches[1])] ?? 'Unassigned';
+                }
+                
+                // Check if resident is already evacuated
+                $isEvacuated = \App\Models\Evacuee::where('resident_id', $resident->id)->exists();
+                
+                return [
+                    'id' => $resident->id,
+                    'name' => $resident->name . ' ' . $resident->qty,
+                    'age' => $resident->price,
+                    'gender' => $resident->gender,
+                    'purok' => $purok,
+                    'is_evacuated' => $isEvacuated
+                ];
+            })
+            ->groupBy('purok');
+
+        return response()->json($residents);
+    }
+
+    /**
      * Log system activity
      */
     private function logActivity($type, $description)
@@ -311,5 +387,184 @@ public function index(Request $request)
         ];
         
         return $colors[$type] ?? '#6c757d';
+    }
+
+    /**
+     * Show evacuee program page with real counts
+     */
+    public function evacueeProgram()
+    {
+        // Get total evacuees count
+        $totalEvacuees = Evacuee::count();
+        
+        // Get unique shelters count
+        $totalShelters = Evacuee::distinct('evacuation_area')->count('evacuation_area');
+        
+        // Get all evacuees with their resident data
+        $evacuees = Evacuee::with('resident')->get()->map(function($evacuee) {
+            return [
+                'id' => $evacuee->id,
+                'fullname' => $evacuee->resident->name . ' ' . $evacuee->resident->qty,
+                'age' => $evacuee->resident->price,
+                'gender' => $evacuee->resident->gender,
+                'evacuation_status' => $evacuee->evacuation_status,
+                'evacuation_area' => $evacuee->evacuation_area,
+                'room_number' => $evacuee->room_number,
+                'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-'
+            ];
+        });
+        
+        return view('Program.EvacueeProgram', [
+            'totalEvacuees' => $totalEvacuees,
+            'totalShelters' => $totalShelters,
+            'evacuees' => $evacuees
+        ]);
+    }
+
+    /**
+     * Store new evacuees
+     */
+    public function storeEvacuees(Request $request)
+    {
+        try {
+            // Handle both JSON and form data
+            if ($request->isJson()) {
+                $data = $request->validate([
+                    'purok' => 'required|string',
+                    'status' => 'required|string|in:Evacuated,Relocated,Returned',
+                    'area' => 'required|string',
+                    'room' => 'nullable|string',
+                    'evacuation_date' => 'required|date',
+                    'residents' => 'required|array'
+                ]);
+                $residents = $data['residents'];
+            } else {
+                $data = $request->validate([
+                    'purok' => 'required|string',
+                    'status' => 'required|string|in:Evacuated,Relocated,Returned',
+                    'area' => 'required|string',
+                    'room' => 'nullable|string',
+                    'evacuation_date' => 'required|date',
+                    'residents_data' => 'required|json'
+                ]);
+                $residents = json_decode($data['residents_data'], true);
+            }
+            
+            if (empty($residents)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No residents selected'
+                ], 400);
+            }
+
+            foreach ($residents as $resident) {
+                // Skip if already evacuated
+                if (Evacuee::where('resident_id', $resident['id'])->exists()) {
+                    continue;
+                }
+                
+                Evacuee::create([
+                    'resident_id' => $resident['id'],
+                    'purok' => $data['purok'],
+                    'evacuation_status' => $data['status'],
+                    'evacuation_area' => $data['area'],
+                    'room_number' => $data['room'],
+                    'evacuation_date' => $data['evacuation_date'],
+                    'notes' => null
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($residents) . ' evacuee(s) added successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error adding evacuees: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export evacuees data to CSV
+     */
+    public function exportEvacuees()
+    {
+        try {
+            // Get all evacuees with their resident data
+            $evacuees = Evacuee::with('resident')->get()->map(function($evacuee) {
+                return [
+                    'ID' => str_pad($evacuee->id, 4, '0', STR_PAD_LEFT),
+                    'Fullname' => $evacuee->resident->name . ' ' . $evacuee->resident->qty,
+                    'Age' => $evacuee->resident->price,
+                    'Gender' => $evacuee->resident->gender,
+                    'Evacuation Status' => $evacuee->evacuation_status,
+                    'Evacuation Area' => $evacuee->evacuation_area,
+                    'Room Number' => $evacuee->room_number ?? '-',
+                    'Evacuation Date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-'
+                ];
+            });
+
+            // Generate CSV filename with timestamp
+            $filename = 'evacuees_export_' . date('Y-m-d_H-i-s') . '.csv';
+            
+            // Set headers for CSV download
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ];
+
+            // Create CSV content
+            $callback = function() use ($evacuees) {
+                $file = fopen('php://output', 'w');
+                
+                // Add UTF-8 BOM for proper character encoding in Excel
+                fwrite($file, "\xEF\xBB\xBF");
+                
+                // Add header row
+                if ($evacuees->isNotEmpty()) {
+                    fputcsv($file, array_keys($evacuees->first()));
+                }
+                
+                // Add data rows
+                foreach ($evacuees as $evacuee) {
+                    fputcsv($file, $evacuee);
+                }
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error exporting evacuees data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get evacuees statistics for export preview
+     */
+    public function getEvacueesStatistics()
+    {
+        try {
+            $totalEvacuees = Evacuee::count();
+            $totalShelters = Evacuee::distinct('evacuation_area')->count('evacuation_area');
+
+            return response()->json([
+                'totalEvacuees' => $totalEvacuees,
+                'totalShelters' => $totalShelters
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'totalEvacuees' => 0,
+                'totalShelters' => 0
+            ], 500);
+        }
     }
 }
