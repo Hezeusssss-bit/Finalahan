@@ -131,6 +131,12 @@
             width: 90%;
             max-width: 600px;
             display: none;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .modal::-webkit-scrollbar {
+            display: none;
         }
         
         .form-group {
@@ -364,23 +370,15 @@
             <input type="text" id="department" name="department" required class="form-control" placeholder="Enter department" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-group" style="margin-bottom: 15px;">
-            <label for="contact_number" style="display: block; margin-bottom: 5px; font-weight: 500;">Contact Number (Optional)</label>
+            <label for="contact_number" style="display: block; margin-bottom: 5px; font-weight: 500;">Contact Number</label>
             <input type="text" id="contact_number" name="contact_number" class="form-control" placeholder="Enter contact number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-group" style="margin-bottom: 15px;">
-            <label for="address" style="display: block; margin-bottom: 5px; font-weight: 500;">Address (Optional)</label>
+            <label for="address" style="display: block; margin-bottom: 5px; font-weight: 500;">Address</label>
             <textarea id="address" name="address" class="form-control" placeholder="Enter address" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
         </div>
         <div class="form-group" style="margin-bottom: 20px;">
-            <label for="status" style="display: block; margin-bottom: 5px; font-weight: 500;">Status</label>
-            <select id="status" name="status" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="on_leave">On Leave</option>
-            </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 20px;">
-            <label for="hire_date" style="display: block; margin-bottom: 5px; font-weight: 500;">Hire Date (Optional)</label>
+            <label for="hire_date" style="display: block; margin-bottom: 5px; font-weight: 500;">Hire Date</label>
             <input type="date" id="hire_date" name="hire_date" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
         </div>
         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee;">
@@ -399,6 +397,14 @@ function openAddEmployeeModal() {
     document.getElementById('employeeId').value = '';
     document.getElementById('formMethod').value = 'POST';
     document.getElementById('employeeForm').action = '{{ route("employee.store") }}';
+
+    // Set current date for hire_date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('hire_date').value = `${yyyy}-${mm}-${dd}`;
+
     document.getElementById('employeeModalOverlay').style.display = 'block';
     document.getElementById('employeeModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -427,7 +433,6 @@ function editEmployee(employeeId) {
             document.getElementById('department').value = employee.department;
             document.getElementById('contact_number').value = employee.contact_number || '';
             document.getElementById('address').value = employee.address || '';
-            document.getElementById('status').value = employee.status || 'active';
             document.getElementById('hire_date').value = employee.hire_date || '';
             
             document.getElementById('employeeModalOverlay').style.display = 'block';

@@ -11,153 +11,11 @@
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; display: flex; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; }
 
-/* Sidebar */
-.sidebar { 
-    width: 280px; 
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
-    min-height: 100vh; 
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 0; 
-    position: fixed; 
-    left: 0; 
-    top: 0; 
-    display: flex; 
-    flex-direction: column;
-    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo { 
-    color: #fff; 
-    font-size: 28px; 
-    font-weight: 800; 
-    padding: 30px; 
-    margin-bottom: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.logo i { 
-    color: #3b82f6; 
-    font-size: 32px;
-    filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)); }
-    to { filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)); }
-}
-
-.nav-section {
-    margin-bottom: 25px;
-    padding: 0 20px;
-}
-
-.nav-section-title {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    padding: 0 15px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-section-title::before {
-    content: '';
-    width: 3px;
-    height: 3px;
-    background: #3b82f6;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.nav-menu { 
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-item { 
-    color: rgba(255, 255, 255, 0.8); 
-    padding: 14px 20px; 
-    text-decoration: none; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    cursor: pointer; 
-    font-size: 15px;
-    font-weight: 500;
-    position: relative;
-    margin: 3px 0;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.6s;
-}
-
-.nav-item:hover::before {
-    left: 100%;
-}
-
-.nav-item i { 
-    width: 24px; 
-    text-align: center; 
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.4s ease;
-}
-
-.nav-item:hover { 
-    background: rgba(59, 130, 246, 0.15); 
-    color: #fff;
-    transform: translateX(8px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-}
-
-.nav-item:hover i {
-    color: #60a5fa;
-    transform: scale(1.15) rotate(5deg);
-}
-
-.nav-item.active { 
-    color: #fff; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-    font-weight: 600;
-    transform: translateX(5px);
-}
-
-.nav-item.active i {
-    color: #fff;
-    transform: scale(1.1);
-}
 
 /* Main Content */
 .main-content { 
-    margin-left: 280px; 
-    flex: 1; 
     padding: 35px; 
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     min-height: 100vh;
@@ -271,6 +129,77 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     color: #991b1b;
 }
 
+/* Employee Row Styles */
+.employee-row {
+    margin-bottom: 8px;
+}
+
+.employee-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.employee-header:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #3b82f6;
+    transform: translateX(4px);
+}
+
+.employee-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.employee-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.employee-details h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.employee-details p {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.assignment-count {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chevron {
+    color: #6b7280;
+    font-size: 14px;
+}
+
 .pagination {
     display: flex;
     justify-content: center;
@@ -299,86 +228,160 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     color: white;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar { width: 70px; }
-    .logo span, .nav-item span { display: none; }
-    .main-content { margin-left: 70px; padding: 20px; }
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
 }
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.modal-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    padding: 24px 30px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Form Styles for Modal */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">
-    <i class="fas fa-shield-alt"></i> 
-    <span>B-DEAMS</span>
-  </div>
-  
-  <!-- Main Navigation -->
-  <div class="nav-section">
-    <div class="nav-section-title">Main</div>
-    <nav class="nav-menu">
-      <a href="{{ route('resident.index') }}" class="nav-item">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="{{ route('program.index') }}" class="nav-item">
-        <i class="fas fa-tasks"></i>
-        <span>Programs</span>
-      </a>
-    </nav>
-  </div>
-
-  <!-- Services Section -->
-  <div class="nav-section">
-    <div class="nav-section-title">Services</div>
-    <nav class="nav-menu">
-      <a href="{{ route('services') }}" class="nav-item">
-        <i class="fas fa-concierge-bell"></i>
-        <span>Services</span>
-      </a>
-      <a href="{{ route('tryall') }}" class="nav-item">
-        <i class="fas fa-sms"></i>
-        <span>SMS Alert</span>
-      </a>
-      <a href="{{ route('facilities') }}" class="nav-item">
-        <i class="fas fa-building"></i>
-        <span>Facilities</span>
-      </a>
-    </nav>
-  </div>
-
-  <!-- System Section -->
-  <div class="sidebar-footer">
-    <div class="nav-section">
-      <div class="nav-section-title">System</div>
-      <nav class="nav-menu">
-        <a href="{{ route('activity-logs.index') }}" class="nav-item">
-          <i class="fas fa-cog"></i>
-          <span>Activity Log</span>
-        </a>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="confirmLogout(this)">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        </form>
-      </nav>
-    </div>
-  </div>
-</div>
 
 <!-- Main Content -->
 <div class="main-content">
   <div class="header">
-    <h1>Employee Assignments</h1>
-    <a href="{{ route('employee-assignments.create') }}" class="btn btn-primary">
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <a href="{{ route('resident.index') }}" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: white; color: black; text-decoration: none; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); transition: all 0.3s ease;">
+        <i class="fas fa-arrow-left" style="font-size: 16px;"></i>
+      </a>
+      <h1 style="margin: 0;">Employee Assignments</h1>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="openCreateModal()">
       <i class="fas fa-plus"></i>
       New Assignment
-    </a>
+    </button>
   </div>
 
   <div class="panel">
@@ -389,77 +392,152 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     @endif
 
     @if($assignments->count() > 0)
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Evacuation Center</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($assignments as $assignment)
-            <tr>
-              <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user" style="color: #6b7280;"></i>
-                  </div>
-                  <div>
-                    <div style="font-weight: 600; color: #374151;">{{ $assignment->employee->name }}</div>
-                    <div style="font-size: 12px; color: #6b7280;">{{ $assignment->employee->position }}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{{ $assignment->evacuation_center }}</td>
-              <td>
-                <span class="status-badge status-{{ $assignment->status }}">
-                  {{ $assignment->getStatusLabel() }}
-                </span>
-              </td>
-              <td>
-                <div style="display: flex; gap: 8px;">
-                  <a href="{{ route('employee-assignments.edit', $assignment) }}" style="color: #3b82f6; text-decoration: none;">
-                    <i class="fas fa-edit"></i>
-                  </a>
-                  <form method="POST" action="{{ route('employee-assignments.destroy', $assignment) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this assignment?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          @endforeach
-        </tbody>
-      </table>
+      <?php 
+        // Group assignments by employee
+        $groupedAssignments = [];
+        foreach ($assignments as $assignment) {
+          $employeeId = $assignment->employee_id;
+          if (!isset($groupedAssignments[$employeeId])) {
+            $groupedAssignments[$employeeId] = [
+              'employee' => $assignment->employee,
+              'assignments' => []
+            ];
+          }
+          $groupedAssignments[$employeeId]['assignments'][] = $assignment;
+        }
+      ?>
 
-      <div class="pagination">
-        {{ $assignments->links() }}
-      </div>
+      @foreach($groupedAssignments as $employeeId => $data)
+        <div class="employee-row">
+          <a href="{{ route('employee-assignments.employee', $data['employee']) }}" class="employee-header">
+            <div class="employee-info">
+              <div class="employee-avatar">
+                {{ strtoupper(substr($data['employee']->name, 0, 1)) }}
+              </div>
+              <div class="employee-details">
+                <h3>{{ $data['employee']->name }}</h3>
+                <p>{{ $data['employee']->position }}</p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="assignment-count">{{ count($data['assignments']) }} {{ count($data['assignments']) == 1 ? 'Assignment' : 'Assignments' }}</span>
+              <i class="fas fa-chevron-right chevron"></i>
+            </div>
+          </a>
+        </div>
+      @endforeach
+
     @else
       <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
         <i class="fas fa-user-check" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
         <h3 style="margin-bottom: 8px; color: #374151;">No Employee Assignments</h3>
         <p>Get started by creating your first employee assignment.</p>
-        <a href="{{ route('employee-assignments.create') }}" class="btn btn-primary" style="margin-top: 16px;">
+        <button type="button" class="btn btn-primary" onclick="openCreateModal()">
           <i class="fas fa-plus"></i>
           Create Assignment
-        </a>
+        </button>
       </div>
     @endif
   </div>
-</div>
 
-<script>
-function confirmLogout(button) {
-  if (confirm('Are you sure you want to logout?')) {
-    button.closest('form').submit();
-  }
-}
-</script>
+  </div>
+
+  <!-- Create Assignment Modal -->
+  <div id="createAssignmentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create Employee Assignment</h2>
+        <button type="button" class="modal-close" onclick="closeCreateModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        @if($errors->any())
+          <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc2626;">
+            <ul style="margin: 0; padding-left: 20px;">
+              @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
+
+        <form id="createAssignmentForm" method="POST" action="{{ route('employee-assignments.store') }}">
+          @csrf
+          
+          <div class="form-group">
+            <label for="employee_id">Select Employee *</label>
+            <select id="employee_id" name="employee_id" class="form-control" required>
+              <option value="">Choose an employee...</option>
+              @foreach($employees as $employee)
+                <option value="{{ $employee->id }}">{{ $employee->name }} - {{ $employee->position }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="evacuation_center">Evacuation Center *</label>
+            <select id="evacuation_center" name="evacuation_center" class="form-control" required>
+              <option value="">Select evacuation center...</option>
+              @foreach($evacuationCenters as $center)
+                <option value="{{ $center }}">{{ $center }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="responsibilities">Responsibilities</label>
+            <textarea id="responsibilities" name="responsibilities" rows="4" class="form-control" placeholder="e.g., Organize residents, manage supplies, maintain order..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Additional Notes</label>
+            <textarea id="notes" name="notes" rows="3" class="form-control" placeholder="Any additional instructions or notes..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+        <button type="submit" form="createAssignmentForm" class="btn btn-primary">
+          <i class="fas fa-save"></i>
+          Create Assignment
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
+
+<script>
+// Modal functionality
+function openCreateModal() {
+    document.getElementById('createAssignmentModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCreateModal() {
+    document.getElementById('createAssignmentModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+    
+    // Reset form
+    document.getElementById('createAssignmentForm').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('createAssignmentModal');
+    if (event.target == modal) {
+        closeCreateModal();
+    }
+}
+
+// Handle form submission with AJAX (optional - for better UX)
+document.getElementById('createAssignmentForm').addEventListener('submit', function(e) {
+    // You can add AJAX submission here if you want to avoid page reload
+    // For now, let it submit normally
+});
+</script>

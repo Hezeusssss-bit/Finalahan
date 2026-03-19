@@ -13,9 +13,20 @@ class EmployeeAssignmentController extends Controller
     {
         $assignments = EmployeeAssignment::with('employee')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
             
-        return view('employee-assignments.index', compact('assignments'));
+        // Data needed for the create modal form
+        $employees = Employee::where('status', 'active')->get();
+        $evacuationCenters = [
+            'Barangay Hall Evacuation Center',
+            'Community Center Evacuation',
+            'School Gymnasium',
+            'Sports Complex',
+            'Multi-Purpose Hall'
+        ];
+        $shifts = ['morning', 'afternoon', 'night'];
+            
+        return view('employee-assignments.index', compact('assignments', 'employees', 'evacuationCenters', 'shifts'));
     }
     
     public function create()
@@ -43,19 +54,32 @@ class EmployeeAssignmentController extends Controller
         ]);
         
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            // Check if request expects JSON (AJAX) or regular form submission
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            } else {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
         }
         
         $assignment = EmployeeAssignment::create($request->all());
         
-        return response()->json([
-            'success' => true,
-            'message' => 'Employee assigned successfully!',
-            'assignment' => $assignment->load('employee')
-        ]);
+        // Check if request expects JSON (AJAX) or regular form submission
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee assigned successfully!',
+                'assignment' => $assignment->load('employee')
+            ]);
+        } else {
+            return redirect()->route('employee-assignments.index')
+                ->with('success', 'Employee assignment created successfully!');
+        }
     }
     
     public function edit(EmployeeAssignment $assignment)
@@ -127,6 +151,19 @@ class EmployeeAssignmentController extends Controller
             ->get();
             
         return response()->json($assignments);
+    }
+    
+    public function showEmployeeAssignments(Employee $employee)
+    {
+        $assignments = EmployeeAssignment::where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        $activeAssignments = $assignments->where('status', 'active');
+        $completedAssignments = $assignments->where('status', 'completed');
+        $cancelledAssignments = $assignments->where('status', 'cancelled');
+            
+        return view('employee-assignments.employee', compact('employee', 'activeAssignments', 'completedAssignments', 'cancelledAssignments'));
     }
     
     public function complete(EmployeeAssignment $assignment)

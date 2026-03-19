@@ -77,6 +77,7 @@ Route::get('/employee-assignments/{assignment}/edit', [App\Http\Controllers\Empl
 Route::put('/employee-assignments/{assignment}', [App\Http\Controllers\EmployeeAssignmentController::class, 'update'])->name('employee-assignments.update');
 Route::delete('/employee-assignments/{assignment}', [App\Http\Controllers\EmployeeAssignmentController::class, 'destroy'])->name('employee-assignments.destroy');
 Route::post('/employee-assignments/{assignment}/complete', [App\Http\Controllers\EmployeeAssignmentController::class, 'complete'])->name('employee-assignments.complete');
+Route::get('/employee-assignments/employee/{employee}', [App\Http\Controllers\EmployeeAssignmentController::class, 'showEmployeeAssignments'])->name('employee-assignments.employee');
 Route::get('/api/employee-assignments/date/{date}', [App\Http\Controllers\EmployeeAssignmentController::class, 'getAssignmentsForDate']);
 Route::get('/api/employee-assignments/employee/{employeeId}', [App\Http\Controllers\EmployeeAssignmentController::class, 'getEmployeeAssignments']);
 

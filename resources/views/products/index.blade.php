@@ -300,6 +300,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 .panel.small { flex: 1 1 280px; min-height: 220px; }
 .panel.full { min-height: 140px; }
 
+/* Hide scrollbar for Recent Activities */
+.recent-activities-container::-webkit-scrollbar {
+    display: none;
+}
+
+.recent-activities-container {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
 /* Floating Alert */
 .alert { position: fixed; top: 20px; right: 20px; background-color: #17002B; color: #ffffff; padding: 15px 25px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px #17002B; z-index: 9999; opacity: 0; animation: slideIn 0.5s forwards; }
 .alert.success { background-color: #17002B; color: #fff; }
@@ -621,7 +631,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     </div>
     <div class="panel small">
       <div style="font-weight:700;color:#333;margin-bottom:15px;font-size:16px;">🕒 Recent Activities</div>
-      <div style="max-height:200px;overflow-y:auto;">
+      <div class="recent-activities-container" style="max-height:200px;overflow-y:auto;">
         @forelse($recentActivities as $activity)
         <div class="activity-item" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;">
           <div style="width:8px;height:8px;background:{{ $activity['color'] }};border-radius:50%;"></div>
@@ -657,11 +667,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <div style="font-size:12px;color:#666;">Manage employees and access</div>
         </div>
       </a>
-      <a href="#" onclick="openAssignmentModal()" class="quick-action" style="background:#f8f9fa;padding:15px;border-radius:8px;text-decoration:none;color:#333;border:1px solid #e9ecef;display:flex;align-items:center;gap:10px;">
-        <i class="fas fa-user-check" style="color:#28a745;font-size:18px;"></i>
+      <a href="{{ route('employee-assignments.index') }}" class="quick-action" style="background:#f8f9fa;padding:15px;border-radius:8px;text-decoration:none;color:#333;border:1px solid #e9ecef;display:flex;align-items:center;gap:10px;">
+        <i class="fas fa-list-alt" style="color:#6f42c1;font-size:18px;"></i>
         <div>
-          <div style="font-weight:600;font-size:14px;">Employee Assignment</div>
-          <div style="font-size:12px;color:#666;">Assign staff to evacuation centers</div>
+          <div style="font-weight:600;font-size:14px;">Employee Assignments</div>
+          <div style="font-size:12px;color:#666;">View all employee assignments</div>
         </div>
       </a>
     </div>
