@@ -449,14 +449,18 @@ input:focus, textarea:focus, select:focus {
             <span class="facility-status" style="background: {{ $facility->status_color }}; color: {{ $facility->status_text_color }};">
               {{ $facility->status_label }}
             </span>
-            <div class="facility-actions" style="display: flex; gap: 8px; opacity: 1; transition: all 0.3s ease;">
-              <button onclick="editFacility({{ $facility->id }})" class="action-btn edit-btn" title="Edit Facility" style="background: #3b82f6; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
-                <i class="fas fa-edit" style="font-size: 12px;"></i>
-              </button>
-              <button onclick="deleteFacility({{ $facility->id }}, '{{ $facility->name }}')" class="action-btn delete-btn" title="Delete Facility" style="background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
-                <i class="fas fa-trash" style="font-size: 12px;"></i>
-              </button>
-            </div>
+            <span class="facility-capacity" style="font-size: 14px; color: #555; font-weight: 600;">
+                <i class="fas fa-users" style="margin-right: 5px; color: #3b82f6;"></i>
+                Capacity: {{ $facility->capacity ?? 'N/A' }}
+            </span>
+          </div>
+          <div class="facility-actions" style="display: flex; gap: 8px; opacity: 1; transition: all 0.3s ease; margin-top: 10px;">
+            <button onclick="editFacility({{ $facility->id }})" class="action-btn edit-btn" title="Edit Facility" style="background: #3b82f6; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+              <i class="fas fa-edit" style="font-size: 12px;"></i>
+            </button>
+            <button onclick="deleteFacility({{ $facility->id }}, '{{ $facility->name }}')" class="action-btn delete-btn" title="Delete Facility" style="background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+              <i class="fas fa-trash" style="font-size: 12px;"></i>
+            </button>
           </div>
         </div>
       @empty
@@ -505,6 +509,11 @@ input:focus, textarea:focus, select:focus {
             </select>
         </div>
         
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Capacity</label>
+            <input type="number" id="facilityCapacity" name="capacity" required min="1" style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter evacuation area capacity">
+        </div>
+        
         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <button type="button" onclick="closeFacilityModal()" style="background: #f8f9fa; border: 2px solid #e5e7eb; color: #333; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s ease;">Cancel</button>
             <button type="submit" class="btn-add" style="padding: 12px 28px;">
@@ -540,6 +549,11 @@ input:focus, textarea:focus, select:focus {
                 <option value="maintenance">Under Maintenance</option>
                 <option value="unavailable">Unavailable</option>
             </select>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Capacity</label>
+            <input type="number" id="editFacilityCapacity" name="capacity" required min="1" style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter evacuation area capacity">
         </div>
         
         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
@@ -706,11 +720,13 @@ function editFacility(facilityId) {
             document.getElementById('editFacilityId').value = data.facility.id;
             document.getElementById('editFacilityName').value = data.facility.name;
             document.getElementById('editFacilityStatus').value = data.facility.status;
+            document.getElementById('editFacilityCapacity').value = data.facility.capacity || '';
             
             // Store initial values for change detection
             window.initialEditValues = {
                 name: data.facility.name,
-                status: data.facility.status
+                status: data.facility.status,
+                capacity: data.facility.capacity || ''
             };
             
             // Initially disable the update button
@@ -740,12 +756,14 @@ function editFacility(facilityId) {
 function addEditFormListeners() {
     const nameInput = document.getElementById('editFacilityName');
     const statusSelect = document.getElementById('editFacilityStatus');
+    const capacityInput = document.getElementById('editFacilityCapacity');
     const updateBtn = document.querySelector('#editFacilityForm button[type="submit"]');
     
     function checkForChanges() {
         const hasChanges = 
             nameInput.value !== window.initialEditValues.name ||
-            statusSelect.value !== window.initialEditValues.status;
+            statusSelect.value !== window.initialEditValues.status ||
+            capacityInput.value !== window.initialEditValues.capacity;
         
         // Enable/disable button based on changes
         if (hasChanges) {
@@ -762,6 +780,7 @@ function addEditFormListeners() {
     // Add input event listeners
     nameInput.addEventListener('input', checkForChanges);
     statusSelect.addEventListener('change', checkForChanges);
+    capacityInput.addEventListener('input', checkForChanges);
 }
 
 // Close Edit Facility Modal

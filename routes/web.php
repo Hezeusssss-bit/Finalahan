@@ -216,6 +216,8 @@ Route::get('/api/evacuees/statistics', [ProductController::class, 'getEvacueesSt
 
 Route::get('/api/residents/by-purok', [ProductController::class, 'getResidentsByPurok'])->name('residents.by-purok');
 
+Route::get('/api/facilities/{facility}/capacity', [ProductController::class, 'getFacilityCapacity'])->name('facilities.capacity');
+
 Route::view('/program/add', 'Program.AddProgram')->name('program.add');
 
 

@@ -14,6 +14,7 @@ class Facility extends Model
         'description',
         'icon',
         'status',
+        'capacity',
     ];
 
     protected $casts = [

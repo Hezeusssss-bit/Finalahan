@@ -325,15 +325,15 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
         <option>EVACUATION AREA</option>
 
-        <option>Purok I</option>
-
-        <option>Purok II</option>
-
-        <option>Purok III</option>
-
-        <option>Purok IV</option>
-
-        <option>Purok V</option>
+        @forelse($facilities as $facility)
+          <option>{{ $facility->name }}</option>
+        @empty
+          <option>Purok I</option>
+          <option>Purok II</option>
+          <option>Purok III</option>
+          <option>Purok IV</option>
+          <option>Purok V</option>
+        @endforelse
 
       </select>
 
@@ -610,19 +610,25 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
           <label>Evacuation Area <span style="color:#dc2626">*</span></label>
 
-          <select name="area" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+          <select name="area" id="evacuationAreaSelect" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadFacilityCapacity()">
 
             <option value="" disabled selected>Select Area</option>
 
-            <option value="Barangay Hall">Barangay Hall</option>
-
-            <option value="Evacuation Center 1">Evacuation Center 1</option>
-
-            <option value="Evacuation Center 2">Evacuation Center 2</option>
-
-            <option value="School Gym">School Gym</option>
+            @forelse($facilities as $facility)
+              <option value="{{ $facility->name }}">{{ $facility->name }}</option>
+            @empty
+              <option value="Barangay Hall">Barangay Hall</option>
+              <option value="Evacuation Center 1">Evacuation Center 1</option>
+              <option value="Evacuation Center 2">Evacuation Center 2</option>
+              <option value="School Gym">School Gym</option>
+            @endforelse
 
           </select>
+
+          <!-- Capacity Display -->
+          <div id="capacityDisplay" style="display:none; margin-top:8px; padding:8px; border-radius:6px; font-size:12px;">
+            
+          </div>
 
         </div>
 
@@ -717,6 +723,20 @@ function openAddEvacueeModal() {
   overlay.classList.add('active');
 
   document.body.style.overflow = 'hidden';
+
+  
+
+  // Auto-fill evacuation date with today's date
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const evacuationDateInput = document.querySelector('input[name="evacuation_date"]');
+
+  if (evacuationDateInput) {
+
+    evacuationDateInput.value = today;
+
+  }
 
 }
 
@@ -880,15 +900,15 @@ function loadResidentsByPurok() {
 
   // Fetch residents from database
 
-  fetch('/api/residents/by-purok')
+  fetch(`/api/residents/by-purok?purok=${encodeURIComponent(selectedPurok)}`)
 
     .then(response => response.json())
 
     .then(data => {
 
-      allResidentsByPurok = data;
+      // When filtering by specific Purok, data comes as { "residents": [...] }
 
-      currentResidents = allResidentsByPurok[selectedPurok] || [];
+      currentResidents = data.residents || [];
 
       
 
@@ -914,7 +934,7 @@ function loadResidentsByPurok() {
 
           item.innerHTML = `
 
-            <span style="font-size:14px; color:#374151;">${resident.name} <span style="color:#6b7280; font-size:12px;">(${resident.age} yrs, ${resident.gender})</span></span>
+            <span style="font-size:14px; color:#374151;">${resident.name} ${resident.qty ? resident.qty : ''} <span style="color:#6b7280; font-size:12px;">(${resident.age} yrs, ${resident.gender})</span></span>
 
             ${statusIndicator}
 
@@ -955,6 +975,157 @@ function loadResidentsByPurok() {
       residentCount.textContent = '0 residents';
 
       saveBtn.disabled = true;
+
+    });
+
+}
+
+// Load facility capacity information
+
+function loadFacilityCapacity() {
+
+  const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
+
+  const capacityDisplay = document.getElementById('capacityDisplay');
+
+  
+
+  const selectedFacility = evacuationAreaSelect.value;
+
+  
+
+  if (!selectedFacility) {
+
+    capacityDisplay.style.display = 'none';
+
+    return;
+
+  }
+
+  
+
+  // Show loading state
+
+  capacityDisplay.style.display = 'block';
+
+  capacityDisplay.innerHTML = '<div style="text-align:center; color:#6b7280;"><i class="fas fa-spinner fa-spin"></i> Loading capacity info...</div>';
+
+  
+
+  // Fetch facility capacity from API
+
+  fetch(`/api/facilities/${encodeURIComponent(selectedFacility)}/capacity`)
+
+    .then(response => response.json())
+
+    .then(data => {
+
+      if (data.success) {
+
+        const facility = data.facility;
+
+        let capacityHtml = '';
+
+        if (facility.capacity) {
+
+          const occupancyColor = facility.occupancy_percentage > 90 ? '#dc2626' : 
+
+                               facility.occupancy_percentage > 75 ? '#f59e0b' : '#16a34a';
+
+          const statusText = facility.occupancy_percentage > 90 ? 'Near Full' : 
+
+                            facility.occupancy_percentage > 75 ? 'Getting Full' : 'Available';
+
+          capacityHtml = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:600; color:#374151;">Capacity:</span>
+              <span style="color:#6b7280;">${facility.current_occupancy} / ${facility.capacity}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:600; color:#374151;">Available:</span>
+              <span style="color:${facility.available_spaces > 0 ? '#16a34a' : '#dc2626'}; font-weight:600;">
+                ${facility.available_spaces} spaces
+              </span>
+            </div>
+            <div style="margin-top:6px;">
+              <div style="background:#e5e7eb; border-radius:4px; height:8px; overflow:hidden;">
+                <div style="background:${occupancyColor}; height:100%; width:${facility.occupancy_percentage}%; transition:width 0.3s ease;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:2px;">
+                <span style="font-size:10px; color:#6b7280;">${facility.occupancy_percentage}% occupied</span>
+                <span style="font-size:10px; color:${occupancyColor}; font-weight:600;">${statusText}</span>
+              </div>
+            </div>
+          `;
+
+          // Add warning if near capacity
+          if (facility.occupancy_percentage > 90) {
+            capacityHtml += `
+              <div style="margin-top:6px; padding:4px 6px; background:#fef2f2; border:1px solid #fecaca; border-radius:4px; color:#dc2626; font-size:11px;">
+                <i class="fas fa-exclamation-triangle"></i> This evacuation center is almost full!
+              </div>
+            `;
+          } else if (facility.occupancy_percentage > 75) {
+            capacityHtml += `
+              <div style="margin-top:6px; padding:4px 6px; background:#fffbeb; border:1px solid #fed7aa; border-radius:4px; color:#d97706; font-size:11px;">
+                <i class="fas fa-info-circle"></i> This evacuation center is getting full
+              </div>
+            `;
+          }
+
+        } else {
+
+          capacityHtml = `
+            <div style="color:#6b7280; font-style:italic;">
+              <i class="fas fa-info-circle"></i> No capacity limit set for this facility
+            </div>
+          `;
+
+        }
+
+        capacityDisplay.innerHTML = capacityHtml;
+
+        // Set background color based on availability
+        if (facility.capacity) {
+          capacityDisplay.style.background = facility.occupancy_percentage > 90 ? '#fef2f2' : 
+
+                                         facility.occupancy_percentage > 75 ? '#fffbeb' : '#f0fdf4';
+
+          capacityDisplay.style.border = facility.occupancy_percentage > 90 ? '1px solid #fecaca' : 
+
+                                         facility.occupancy_percentage > 75 ? '1px solid #fed7aa' : '1px solid #bbf7d0';
+        } else {
+          capacityDisplay.style.background = '#f8fafc';
+          capacityDisplay.style.border = '1px solid #e2e8f0';
+        }
+
+      } else {
+
+        capacityDisplay.innerHTML = `
+          <div style="color:#dc2626; font-size:11px;">
+            <i class="fas fa-exclamation-triangle"></i> Could not load capacity information
+          </div>
+        `;
+
+        capacityDisplay.style.background = '#fef2f2';
+        capacityDisplay.style.border = '1px solid #fecaca';
+
+      }
+
+    })
+
+    .catch(error => {
+
+      console.error('Error fetching facility capacity:', error);
+
+      capacityDisplay.innerHTML = `
+        <div style="color:#dc2626; font-size:11px;">
+          <i class="fas fa-exclamation-triangle"></i> Error loading capacity information
+        </div>
+      `;
+
+      capacityDisplay.style.background = '#fef2f2';
+      capacityDisplay.style.border = '1px solid #fecaca';
 
     });
 

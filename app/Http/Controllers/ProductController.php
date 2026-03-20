@@ -234,6 +234,7 @@ public function index(Request $request)
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'status' => 'required|in:available,maintenance,unavailable',
+                'capacity' => 'required|integer|min:1',
             ]);
 
             // Set default icon and description since they're removed from form
@@ -305,6 +306,7 @@ public function index(Request $request)
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'status' => 'required|in:available,maintenance,unavailable',
+                'capacity' => 'required|integer|min:1',
             ]);
 
             // Keep existing icon and description
@@ -575,10 +577,14 @@ public function index(Request $request)
             ];
         });
         
+        // Get available facilities for evacuation areas
+        $facilities = Facility::where('status', 'available')->orderBy('name')->get();
+        
         return view('Program.EvacueeProgram', [
             'totalEvacuees' => $totalEvacuees,
             'totalShelters' => $totalShelters,
-            'evacuees' => $evacuees
+            'evacuees' => $evacuees,
+            'facilities' => $facilities
         ]);
     }
 
@@ -725,6 +731,44 @@ public function index(Request $request)
             return response()->json([
                 'totalEvacuees' => 0,
                 'totalShelters' => 0
+            ], 500);
+        }
+    }
+
+    /**
+     * Get facility capacity and current occupancy
+     */
+    public function getFacilityCapacity($facility)
+    {
+        try {
+            // Find the facility by name
+            $facilityModel = Facility::where('name', $facility)->first();
+            
+            if (!$facilityModel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Facility not found'
+                ], 404);
+            }
+
+            // Count current evacuees in this facility
+            $currentOccupancy = Evacuee::where('evacuation_area', $facility)->count();
+            
+            return response()->json([
+                'success' => true,
+                'facility' => [
+                    'name' => $facilityModel->name,
+                    'capacity' => $facilityModel->capacity,
+                    'current_occupancy' => $currentOccupancy,
+                    'available_spaces' => $facilityModel->capacity ? $facilityModel->capacity - $currentOccupancy : null,
+                    'occupancy_percentage' => $facilityModel->capacity ? round(($currentOccupancy / $facilityModel->capacity) * 100, 1) : null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching facility data'
             ], 500);
         }
     }
