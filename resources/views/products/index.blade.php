@@ -569,7 +569,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
         </a>
         <form method="POST" action="{{ route('logout') }}">
           @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="confirmLogout(this)">
+          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </button>
@@ -728,10 +728,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   <p>Are you sure you want to log out?</p>
   <div class="modal-buttons">
     <button class="btn-cancel" onclick="closeLogoutModal()">Cancel</button>
-    <form id="logoutForm" method="POST" action="{{ route('logout') }}">
-      @csrf
-      <button type="submit" class="btn-logout-confirm">Yes, Log Out</button>
-    </form>
+    <button type="button" class="btn-logout-confirm" onclick="document.getElementById('logoutForm').submit()">Yes, Log Out</button>
   </div>
 </div>
 

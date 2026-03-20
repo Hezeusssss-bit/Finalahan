@@ -814,9 +814,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <i class="fas fa-cog"></i>
           <span>Activity Log</span>
         </a>
-        <form method="POST" action="{{ route('logout') }}">
+        <form id="logoutForm" method="POST" action="{{ route('logout') }}">
           @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="if(confirm('Are you sure you want to logout?')) this.closest('form').submit();">
+          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </button>
@@ -1028,10 +1028,40 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   </div>
 </div>
 
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Log Out</h2>
+      <button onclick="closeLogoutModal()" class="close-btn">&times;</button>
+    </div>
+    
+    <form style="padding: 32px;">
+      <p style="margin-bottom: 24px; font-size: 16px; color: #374151;">Are you sure you want to log out?</p>
+      
+      <div class="form-actions">
+        <button type="button" onclick="closeLogoutModal()" class="btn btn-secondary">Cancel</button>
+        <button type="button" class="btn btn-primary" style="background: #dc2626; border-color: #dc2626;" onclick="document.getElementById('logoutForm').submit()">Yes, Log Out</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
 <script>
+// Logout Modal Functions
+function openLogoutModal() {
+  document.getElementById('logoutModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLogoutModal() {
+  document.getElementById('logoutModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
 // Modal Functions
 function openModal() {
   document.getElementById('addOfficialModal').classList.add('active');

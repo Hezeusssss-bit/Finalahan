@@ -712,9 +712,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <i class="fas fa-cog"></i>
           <span>Activity Log</span>
         </a>
-        <form method="POST" action="{{ route('logout') }}">
+        <form id="logoutForm" method="POST" action="{{ route('logout') }}">
           @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="confirmLogout(this)">
+          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </button>
@@ -991,7 +991,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   </form>
 </div>
 
+<!-- Logout Confirmation Modal -->
+<div class="modal-overlay" id="logoutModalOverlay" onclick="closeLogoutModal()"></div>
+<div class="modal" id="logoutModal">
+  <div class="modal-header">
+    <h3 class="modal-title">Log Out</h3>
+    <button onclick="closeLogoutModal()" class="modal-close">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to log out?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
+    <button type="button" class="btn-submit" style="background: #dc2626;" onclick="document.getElementById('logoutForm').submit()">Yes, Log Out</button>
+  </div>
+</div>
+
 <script>
+function openLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'block';
+    document.getElementById('logoutModalOverlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+    document.getElementById('logoutModalOverlay').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
 // Modal functions
 function openAddProgramModal() {
     // Reset modal to add mode
