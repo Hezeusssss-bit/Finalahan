@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Resident;
 use App\Models\Evacuee;
+use App\Models\Facility;
 use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
@@ -202,9 +203,169 @@ public function index(Request $request)
 
     public function facilities()
     {
-        // You can add facilities data here in the future
-        $totalFacilities = 0; // Placeholder for now
-        return view('Facility.facilities', compact('totalFacilities'));
+        // Get all facilities from database
+        $facilities = Facility::orderBy('created_at', 'desc')->get();
+        $totalFacilities = $facilities->count();
+        return view('Facility.facilities', compact('totalFacilities', 'facilities'));
+    }
+
+    public function getFacilitiesApi()
+    {
+        try {
+            $facilities = Facility::select('id', 'name')->orderBy('name')->get();
+            
+            return response()->json([
+                'success' => true,
+                'facilities' => $facilities
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Get facilities API error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch facilities.'
+            ], 500);
+        }
+    }
+
+    public function storeFacility(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'status' => 'required|in:available,maintenance,unavailable',
+            ]);
+
+            // Set default icon and description since they're removed from form
+            $validated['icon'] = 'fas fa-building';
+            $validated['description'] = 'Facility for community use and emergency response';
+
+            $facility = Facility::create($validated);
+
+            // Log activity
+            $this->logActivity('create', "New facility '{$facility->name}' was added");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Facility added successfully!',
+                'facility' => $facility
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            \Log::error('Store facility error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while adding the facility. Please try again.'
+            ], 500);
+        }
+    }
+
+    public function deleteFacility($id)
+    {
+        try {
+            $facility = Facility::findOrFail($id);
+            $facilityName = $facility->name;
+            
+            $facility->delete();
+
+            // Log activity
+            $this->logActivity('delete', "Facility '{$facilityName}' was deleted");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Facility deleted successfully!'
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facility not found.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Delete facility error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the facility. Please try again.'
+            ], 500);
+        }
+    }
+
+    public function updateFacility(Request $request, $id)
+    {
+        try {
+            $facility = Facility::findOrFail($id);
+            
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'status' => 'required|in:available,maintenance,unavailable',
+            ]);
+
+            // Keep existing icon and description
+            $validated['icon'] = $facility->icon;
+            $validated['description'] = $facility->description;
+
+            $facility->update($validated);
+
+            // Log activity
+            $this->logActivity('update', "Facility '{$facility->name}' was updated");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Facility updated successfully!',
+                'facility' => $facility
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facility not found.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Update facility error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the facility. Please try again.'
+            ], 500);
+        }
+    }
+
+    public function editFacility($id)
+    {
+        try {
+            $facility = Facility::findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'facility' => $facility
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facility not found.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Edit facility error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while loading facility data.'
+            ], 500);
+        }
     }
 
     public function communityCenter()

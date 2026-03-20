@@ -97,6 +97,11 @@ class EmployeeController extends Controller
         $employee = null;
         $employeeAssignments = collect([]);
         
+        // Initialize variables to avoid undefined variable errors
+        $totalAssignments = 0;
+        $completedAssignments = 0;
+        $activeAssignments = 0;
+        
         // Debug logging
         \Log::info('Dashboard access - Session employee_id: ' . ($employeeId ?? 'NOT SET'));
         \Log::info('Dashboard access - Session loggedIn: ' . (session('loggedIn') ? 'YES' : 'NO'));
@@ -116,10 +121,6 @@ class EmployeeController extends Controller
                 $activeAssignments = EmployeeAssignment::where('employee_id', $employee->id)->where('status', 'active')->count();
                 
                 \Log::info('Active assignments found: ' . $employeeAssignments->count());
-            } else {
-                $totalAssignments = 0;
-                $completedAssignments = 0;
-                $activeAssignments = 0;
             }
         }
         

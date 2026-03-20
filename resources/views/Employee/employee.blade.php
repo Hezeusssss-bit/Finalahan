@@ -666,6 +666,36 @@ tr:hover {
 function openAssignmentModal(employeeId, employeeName) {
     console.log('Assignment button clicked!', employeeId, employeeName);
     
+    // Fetch facilities from API
+    fetch('/facilities/api')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Get the evacuation center select element
+                const evacuationCenterSelect = document.getElementById('evacuationCenter');
+                
+                // Clear existing options
+                evacuationCenterSelect.innerHTML = '<option value="">Select evacuation center...</option>';
+                
+                // Add facilities as options
+                data.facilities.forEach(facility => {
+                    const option = document.createElement('option');
+                    option.value = facility.id;
+                    option.textContent = facility.name;
+                    evacuationCenterSelect.appendChild(option);
+                });
+                
+                console.log('Facilities loaded and dropdown populated');
+            } else {
+                console.error('Failed to load facilities');
+                alert('Error loading facilities. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while loading facilities. Please try again.');
+        });
+    
     // Simple modal opening - just set display to block
     const overlay = document.getElementById('assignmentModalOverlay');
     const modal = document.getElementById('assignmentModal');
@@ -682,6 +712,7 @@ function openAssignmentModal(employeeId, employeeName) {
         
         overlay.style.display = 'block';
         modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
         console.log('Modal should be visible now');
     } else {
         console.error('Modal elements not found!');
@@ -704,7 +735,13 @@ function submitAssignment(event) {
     
     // Update employee_id from the dropdown selection
     const employeeSelect = document.getElementById('employeeName');
+    const evacuationCenterSelect = document.getElementById('evacuationCenter');
     formData.set('employee_id', employeeSelect.value);
+    
+    // Add evacuation center data if selected
+    if (evacuationCenterSelect && evacuationCenterSelect.value) {
+        formData.set('evacuation_center', evacuationCenterSelect.value);
+    }
     
     // Show loading state
     submitBtn.innerHTML = 'Assigning...';

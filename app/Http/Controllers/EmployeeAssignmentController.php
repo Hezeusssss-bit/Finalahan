@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,13 +18,8 @@ class EmployeeAssignmentController extends Controller
             
         // Data needed for the create modal form
         $employees = Employee::where('status', 'active')->get();
-        $evacuationCenters = [
-            'Barangay Hall Evacuation Center',
-            'Community Center Evacuation',
-            'School Gymnasium',
-            'Sports Complex',
-            'Multi-Purpose Hall'
-        ];
+        $facilities = Facility::orderBy('name')->get();
+        $evacuationCenters = $facilities->pluck('name')->toArray();
         $shifts = ['morning', 'afternoon', 'night'];
             
         return view('employee-assignments.index', compact('assignments', 'employees', 'evacuationCenters', 'shifts'));
@@ -32,13 +28,8 @@ class EmployeeAssignmentController extends Controller
     public function create()
     {
         $employees = Employee::where('status', 'active')->get();
-        $evacuationCenters = [
-            'Barangay Hall Evacuation Center',
-            'Community Center Evacuation',
-            'School Gymnasium',
-            'Sports Complex',
-            'Multi-Purpose Hall'
-        ];
+        $facilities = Facility::orderBy('name')->get();
+        $evacuationCenters = $facilities->pluck('name')->toArray();
         $shifts = ['morning', 'afternoon', 'night'];
         
         return view('employee-assignments.create', compact('employees', 'evacuationCenters', 'shifts'));
@@ -85,13 +76,8 @@ class EmployeeAssignmentController extends Controller
     public function edit(EmployeeAssignment $assignment)
     {
         $employees = Employee::where('status', 'active')->get();
-        $evacuationCenters = [
-            'Barangay Hall Evacuation Center',
-            'Community Center Evacuation',
-            'School Gymnasium',
-            'Sports Complex',
-            'Multi-Purpose Hall'
-        ];
+        $facilities = Facility::orderBy('name')->get();
+        $evacuationCenters = $facilities->pluck('name')->toArray();
         $shifts = ['morning', 'afternoon', 'night'];
         
         return view('employee-assignments.edit', compact('assignment', 'employees', 'evacuationCenters', 'shifts'));

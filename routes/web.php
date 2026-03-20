@@ -120,6 +120,16 @@ Route::get('/home', [ProductController::class, 'home'])->name('home');
 
 Route::get('/facilities', [ProductController::class, 'facilities'])->name('facilities');
 
+Route::get('/facilities/api', [ProductController::class, 'getFacilitiesApi'])->name('facilities.api');
+
+Route::post('/facilities', [ProductController::class, 'storeFacility'])->name('facilities.store');
+
+Route::get('/facilities/{id}/edit', [ProductController::class, 'editFacility'])->name('facilities.edit');
+
+Route::put('/facilities/{id}', [ProductController::class, 'updateFacility'])->name('facilities.update');
+
+Route::delete('/facilities/{id}', [ProductController::class, 'deleteFacility'])->name('facilities.destroy');
+
 Route::get('/facilities/community-center', [ProductController::class, 'communityCenter'])->name('community');
 
 Route::get('/facilities/health-center', [ProductController::class, 'healthCenter'])->name('health');

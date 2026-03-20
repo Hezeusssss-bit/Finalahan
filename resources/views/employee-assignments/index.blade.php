@@ -446,7 +446,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   <div id="createAssignmentModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Create Employee Assignment</h2>
+        <h2>Assign Employee to Evacuation Center</h2>
         <button type="button" class="modal-close" onclick="closeCreateModal()">
           <i class="fas fa-times"></i>
         </button>
