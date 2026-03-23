@@ -52,6 +52,24 @@ class ActivityLogController extends Controller
     }
     
     /**
+     * Get all activity logs for real-time updates
+     */
+    public function getAllLogs()
+    {
+        $recentLogs = ActivityLog::recent(30)->orderBy('created_at', 'desc')->get();
+        $programLogs = ActivityLog::byModule('Programs')->orderBy('created_at', 'desc')->get();
+        $employeeLogs = ActivityLog::byModule('Employee')->orderBy('created_at', 'desc')->get();
+        $systemLogs = ActivityLog::byModule('System')->orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'recentLogs' => $recentLogs,
+            'programLogs' => $programLogs,
+            'employeeLogs' => $employeeLogs,
+            'systemLogs' => $systemLogs
+        ]);
+    }
+    
+    /**
      * Clear old activity logs
      */
     public function clearOldLogs($days = 90)

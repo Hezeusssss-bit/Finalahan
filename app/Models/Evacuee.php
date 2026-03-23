@@ -18,6 +18,8 @@ class Evacuee extends Model
         'program_received',
         'evacuation_date',
         'return_date',
+        'released_at',
+        'release_time',
         'notes'
     ];
     
@@ -25,6 +27,7 @@ class Evacuee extends Model
         'program_received' => 'boolean',
         'evacuation_date' => 'date',
         'return_date' => 'date',
+        'released_at' => 'datetime',
     ];
     
     public function resident()

@@ -71,17 +71,22 @@ class Program extends Model
         $startDate = Carbon::parse($this->start_date);
         $endDate = $this->end_date ? Carbon::parse($this->end_date) : null;
         
-        // If start date is in the future, status is upcoming
+        // If start date is in future, status is upcoming
         if ($startDate->isFuture()) {
             $this->status = 'upcoming';
         }
-        // If start date is today or in the past, and no end date or end date is in the future, status is ongoing
+        // If start date is today or in the past
         elseif ($startDate->isToday() || $startDate->isPast()) {
-            if (!$endDate || $endDate->isFuture() || $endDate->isToday()) {
+            // If there's no end date, status is ongoing (starts today and continues indefinitely)
+            if (!$endDate) {
+                $this->status = 'ongoing';
+            }
+            // If end date is today or in the future, status is ongoing
+            elseif ($endDate->isToday() || $endDate->isFuture()) {
                 $this->status = 'ongoing';
             }
             // If end date is in the past, status is completed
-            elseif ($endDate && $endDate->isPast()) {
+            elseif ($endDate->isPast()) {
                 $this->status = 'completed';
             }
         }

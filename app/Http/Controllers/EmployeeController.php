@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeController extends Controller
 {
+    protected $activityLogService;
+    
+    public function __construct(ActivityLogService $activityLogService)
+    {
+        $this->activityLogService = $activityLogService;
+    }
     /**
      * Display the employee management page
      */
@@ -40,6 +48,13 @@ class EmployeeController extends Controller
             $validated['password'] = bcrypt($validated['password']);
             
             Employee::create($validated);
+            
+            // Log employee addition
+            $this->logActivity(
+                'Employee Added',
+                "New employee '{$validated['name']}' added as {$validated['position']} in {$validated['department']}",
+                'Employee'
+            );
             
             return redirect()->route('employee.employee')->with('success', 'Employee added successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -192,5 +207,20 @@ class EmployeeController extends Controller
             'activeAssignments',
             'totalAssignments'
         ));
+    }
+    
+    /**
+     * Log system activity
+     */
+    private function logActivity($action, $description, $module = 'Employee')
+    {
+        $performedBy = 'Admin';
+        
+        // Try to get authenticated user, fallback to 'Admin'
+        if (Auth::check()) {
+            $performedBy = Auth::user()->name ?? Auth::user()->email ?? 'Admin';
+        }
+        
+        $this->activityLogService->log($action, $description, $module, $performedBy);
     }
 }

@@ -58,6 +58,15 @@ Route::middleware('authCheck')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+    
+    // Evacuee Program Routes
+    Route::get('/program/evacuee', [ProductController::class, 'evacueeProgram'])->name('program.evacuee');
+    Route::post('/program/evacuee', [ProductController::class, 'storeEvacuees'])->name('program.evacuee.store');
+    Route::get('/program/evacuee/export', [ProductController::class, 'exportEvacuees'])->name('program.evacuee.export');
+    Route::get('/api/evacuees/statistics', [ProductController::class, 'getEvacueesStatistics'])->name('evacuees.statistics');
+    Route::get('/api/residents/by-purok', [ProductController::class, 'getResidentsByPurok'])->name('residents.by-purok');
+    Route::get('/api/facilities/{facility}/capacity', [ProductController::class, 'getFacilityCapacity'])->name('facilities.capacity');
+    Route::post('/evacuees/{evacueeId}/release', [ProductController::class, 'releaseEvacuee'])->name('evacuees.release');
 });
 
 // Employee Management (temporarily outside auth for testing)
@@ -95,6 +104,7 @@ Route::get('/events', function () {
 
 // Activity Logs (public access) - Using controller to pass data
 Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+Route::get('/api/activity-logs', [ActivityLogController::class, 'getAllLogs'])->name('activity-logs.all');
 
 
 
@@ -152,6 +162,8 @@ Route::get('/program', [ProgramController::class, 'index'])->name('program.index
 
 Route::post('/program', [ProgramController::class, 'store'])->name('program.store');
 
+Route::get('/program/{id}', [ProgramController::class, 'getProgram'])->name('program.get');
+
 Route::put('/program/{id}', [ProgramController::class, 'update'])->name('program.update');
 
 Route::delete('/program/{id}', [ProgramController::class, 'destroy'])->name('program.destroy');
@@ -205,18 +217,6 @@ Route::post('/assign-venue', function (\Illuminate\Http\Request $request) {
 
 
 // Additional Program Routes (moved outside auth for testing)
-
-Route::get('/program/evacuee', [ProductController::class, 'evacueeProgram'])->name('program.evacuee');
-
-Route::post('/program/evacuee', [ProductController::class, 'storeEvacuees'])->name('program.evacuee.store');
-
-Route::get('/program/evacuee/export', [ProductController::class, 'exportEvacuees'])->name('program.evacuee.export');
-
-Route::get('/api/evacuees/statistics', [ProductController::class, 'getEvacueesStatistics'])->name('evacuees.statistics');
-
-Route::get('/api/residents/by-purok', [ProductController::class, 'getResidentsByPurok'])->name('residents.by-purok');
-
-Route::get('/api/facilities/{facility}/capacity', [ProductController::class, 'getFacilityCapacity'])->name('facilities.capacity');
 
 Route::view('/program/add', 'Program.AddProgram')->name('program.add');
 

@@ -926,7 +926,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     </button>
   </div>
   
-  <form action="{{ route('program.store') }}" method="POST">
+  <form action="{{ route('program.store') }}" method="POST" id="programForm">
     @csrf
     <div class="form-group">
       <label class="form-label">Program Title *</label>
@@ -986,7 +986,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     
     <div class="modal-footer">
       <button type="button" onclick="closeAddProgramModal()" class="btn-cancel">Cancel</button>
-      <button type="submit" class="btn-submit">Add Program</button>
+      <button type="submit" class="btn-submit" id="submitBtn" onclick="console.log('Form submitted - Action:', document.querySelector('#programForm').action); console.log('Method field:', document.querySelector('#programForm input[name="_method"]?.value);">Add Program</button>
     </div>
   </form>
 </div>
@@ -1027,6 +1027,7 @@ function openAddProgramModal() {
     // Reset modal to add mode
     document.querySelector('#addProgramModal .modal-title').textContent = 'Add New Program';
     document.querySelector('#addProgramModal form').action = '{{ route("program.store") }}';
+    document.getElementById('submitBtn').textContent = 'Add Program';
     
     // Remove method field if exists
     let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
@@ -1042,10 +1043,31 @@ function openAddProgramModal() {
     document.body.style.overflow = 'hidden';
 }
 
+function openEditProgramModal() {
+    // This function is called after editProgram has set up the modal
+    document.getElementById('addProgramModal').style.display = 'block';
+    document.getElementById('addProgramOverlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
 function closeAddProgramModal() {
     document.getElementById('addProgramModal').style.display = 'none';
     document.getElementById('addProgramOverlay').style.display = 'none';
     document.body.style.overflow = 'auto';
+    
+    // Reset to add mode when closing
+    document.querySelector('#addProgramModal .modal-title').textContent = 'Add New Program';
+    document.querySelector('#addProgramModal form').action = '{{ route("program.store") }}';
+    document.getElementById('submitBtn').textContent = 'Add Program';
+    
+    // Remove method field if exists
+    let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
+    if (methodField) {
+        methodField.remove();
+    }
+    
+    // Reset form
+    document.querySelector('#addProgramModal form').reset();
 }
 
 // Alert auto-hide
@@ -1066,6 +1088,7 @@ function editProgram(id) {
             // Populate edit modal fields
             document.querySelector('#addProgramModal .modal-title').textContent = 'Edit Program';
             document.querySelector('#addProgramModal form').action = `/program/${id}`;
+            document.getElementById('submitBtn').textContent = 'Update Program';
             
             // Add method field for PUT request
             let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
@@ -1081,10 +1104,21 @@ function editProgram(id) {
             document.querySelector('select[name="title"]').value = program.title;
             document.querySelector('select[name="location"]').value = program.location || '';
             document.querySelector('textarea[name="description"]').value = program.description || '';
-            document.querySelector('input[name="start_date"]').value = program.start_date;
-            document.querySelector('input[name="end_date"]').value = program.end_date || '';
             
-            openAddProgramModal();
+            // Format dates for input fields (YYYY-MM-DD format)
+            if (program.start_date) {
+                const startDate = new Date(program.start_date);
+                document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
+            }
+            
+            if (program.end_date) {
+                const endDate = new Date(program.end_date);
+                document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
+            } else {
+                document.querySelector('input[name="end_date"]').value = '';
+            }
+            
+            openEditProgramModal();
         })
         .catch(error => {
             console.error('Error fetching program:', error);

@@ -321,35 +321,23 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
     <div class="toolbar">
 
-      <select class="select">
+      <select class="select" id="evacuationAreaFilter" onchange="filterByEvacuationArea()">
 
-        <option>EVACUATION AREA</option>
+        <option value="">EVACUATION AREA</option>
 
         @forelse($facilities as $facility)
-          <option>{{ $facility->name }}</option>
+          <option value="{{ $facility->name }}">{{ $facility->name }}</option>
         @empty
-          <option>Purok I</option>
-          <option>Purok II</option>
-          <option>Purok III</option>
-          <option>Purok IV</option>
-          <option>Purok V</option>
+          <option value="Purok I">Purok I</option>
+          <option value="Purok II">Purok II</option>
+          <option value="Purok III">Purok III</option>
+          <option value="Purok IV">Purok IV</option>
+          <option value="Purok V">Purok V</option>
         @endforelse
 
       </select>
 
-      <select class="select">
-
-        <option>RESIDENTS</option>
-
-        <option>All</option>
-
-        <option>Heads</option>
-
-        <option>Dependents</option>
-
-      </select>
-
-      <input type="text" class="search" placeholder="Search" />
+      <input type="text" class="search" id="searchInput" placeholder="Search" onkeyup="searchEvacuees()" />
 
       <div style="margin-left:auto; display:flex; gap:10px;">
 
@@ -409,9 +397,8 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
                 <td>{{ $evacuee['evacuation_date'] }}</td>
                 <td>
                   <div class="actions">
-                    <a href="#" title="View"><i class="fas fa-eye"></i></a>
-                    <a href="#" title="Edit"><i class="fas fa-pen-to-square"></i></a>
-                    <a href="#" title="Delete"><i class="fas fa-trash"></i></a>
+                    <a href="#" title="View" onclick="viewEvacueeDetails('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}')"><i class="fas fa-eye"></i></a>
+                    <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
                   </div>
                 </td>
               </tr>
@@ -738,9 +725,37 @@ function openAddEvacueeModal() {
 
   }
 
+  
+
+  // Clear any previously selected purok to force refresh
+
+  const purokSelect = document.getElementById('purokSelect');
+
+  const residentsPreview = document.getElementById('residentsPreview');
+
+  const residentsList = document.getElementById('residentsList');
+
+  const residentCount = document.getElementById('residentCount');
+
+  const saveBtn = document.getElementById('saveBtn');
+
+  
+
+  // Reset form and residents preview
+
+  purokSelect.value = '';
+
+  residentsPreview.style.display = 'none';
+
+  residentsList.innerHTML = '';
+
+  residentCount.textContent = '0 residents';
+
+  saveBtn.disabled = true;
+
+  currentResidents = [];
+
 }
-
-
 
 // Function to close the add evacuee modal
 
@@ -853,6 +868,130 @@ let currentResidents = [];
 let allResidentsByPurok = {};
 
 
+
+// Filter by evacuation area
+
+function filterByEvacuationArea() {
+
+  const selectedArea = document.getElementById('evacuationAreaFilter').value;
+
+  const tableRows = document.querySelectorAll('tbody tr');
+
+  
+
+  tableRows.forEach(row => {
+
+    if (row.querySelector('td[colspan]')) {
+
+      // Skip "No evacuees found" rows
+
+      return;
+
+    }
+
+    
+
+    const evacuationAreaCell = row.cells[5]; // Evacuation Area is column 5 (0-indexed)
+
+    const evacuationArea = evacuationAreaCell ? evacuationAreaCell.textContent.trim() : '';
+
+    
+
+    if (selectedArea === '' || evacuationArea === selectedArea) {
+
+      row.style.display = '';
+
+    } else {
+
+      row.style.display = 'none';
+
+    }
+
+  });
+
+  
+
+  // Show message if no results
+
+  const visibleRows = Array.from(tableRows).filter(row => 
+
+    row.style.display !== 'none' && !row.querySelector('td[colspan]')
+
+  );
+
+  
+
+  const existingNoResults = document.querySelector('tbody tr td[colspan]');
+
+  if (visibleRows.length === 0 && !existingNoResults) {
+
+    const tbody = document.querySelector('tbody');
+
+    const noResultsRow = document.createElement('tr');
+
+    noResultsRow.innerHTML = `
+
+      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+
+        No evacuees found in "${selectedArea || 'selected area'}"
+
+      </td>
+
+    `;
+
+    tbody.appendChild(noResultsRow);
+
+  } else if (visibleRows.length > 0 && existingNoResults) {
+
+    existingNoResults.parentElement.remove();
+
+  }
+
+}
+
+// Search evacuees function
+function searchEvacuees() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const tableRows = document.querySelectorAll('tbody tr');
+  
+  tableRows.forEach(row => {
+    if (row.querySelector('td[colspan]')) {
+      // Skip "No evacuees found" rows
+      return;
+    }
+    
+    // Get text content from all cells except the action column (last column)
+    const rowText = Array.from(row.cells)
+      .slice(0, -1) // Exclude action column
+      .map(cell => cell.textContent.toLowerCase())
+      .join(' ');
+    
+    if (rowText.includes(searchTerm)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  // Show message if no results
+  const visibleRows = Array.from(tableRows).filter(row => 
+    row.style.display !== 'none' && !row.querySelector('td[colspan]')
+  );
+  
+  const existingNoResults = document.querySelector('tbody tr td[colspan]');
+  if (visibleRows.length === 0 && !existingNoResults) {
+    const tbody = document.querySelector('tbody');
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.innerHTML = `
+      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+        No evacuees found matching "${searchTerm}"
+      </td>
+    `;
+    tbody.appendChild(noResultsRow);
+  } else if (visibleRows.length > 0 && existingNoResults) {
+    existingNoResults.parentElement.remove();
+  }
+}
 
 // Load residents by selected purok
 
@@ -1258,13 +1397,8 @@ function addEvacueesToTable(data) {
       <td>
 
         <div class="actions">
-
-          <a href="#" title="View"><i class="fas fa-eye"></i></a>
-
-          <a href="#" title="Edit"><i class="fas fa-pen-to-square"></i></a>
-
-          <a href="#" title="Delete"><i class="fas fa-trash"></i></a>
-
+          <a href="#" title="View" onclick="viewEvacueeDetails('${data.id}', '${data.fullname}', '${data.age}', '${data.gender}', '${data.evacuation_status}', '${data.area}', '${data.room || 'N/A'}', '${data.evacuation_date || 'N/A'}')"><i class="fas fa-eye"></i></a>
+          <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('${data.id}', '${data.fullname}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
         </div>
 
       </td>
@@ -1402,6 +1536,321 @@ setTimeout(()=>{
   if(alert){ alert.classList.add('hide'); setTimeout(()=>alert.remove(),500); }
 
 },3000);
+
+// Check for released evacuees on page load
+function hideReleasedEvacuees() {
+  const releasedEvacuees = JSON.parse(localStorage.getItem('releasedEvacuees') || '[]');
+  const releasedIds = releasedEvacuees.map(e => e.id);
+  
+  releasedIds.forEach(evacueeId => {
+    const row = document.querySelector(`tr:has([onclick*="${evacueeId}"])`);
+    if (row) {
+      row.remove();
+      updateTotalEvacueesCount(-1);
+    }
+  });
+  
+  // Check if table is empty after hiding released evacuees
+  const tbody = document.querySelector('tbody');
+  const remainingRows = tbody.querySelectorAll('tr:not([style*="display: none"])');
+  if (remainingRows.length === 0) {
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.innerHTML = `
+      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+        No evacuees found. Add evacuees to see them here.
+      </td>
+    `;
+    tbody.appendChild(noResultsRow);
+  }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', hideReleasedEvacuees);
+
+// View Evacuee Details Function
+function viewEvacueeDetails(id, fullname, age, gender, evacuationStatus, evacuationArea, roomNumber, evacuationDate) {
+  // Create a detailed view modal or alert with all evacuee information
+  const detailsHTML = `
+    <div style="max-width: 500px; margin: 0 auto;">
+      <h3 style="color: #333; margin-bottom: 20px;">👤 Evacuee Details</h3>
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">ID:</strong>
+          <span>${id}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Full Name:</strong>
+          <span>${fullname}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Age:</strong>
+          <span>${age}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Gender:</strong>
+          <span>${gender}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Evacuation Status:</strong>
+          <span><span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${evacuationStatus}</span></span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Evacuation Area:</strong>
+          <span>${evacuationArea}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Room Number:</strong>
+          <span>${roomNumber}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px;">
+          <strong style="color: #666;">Evacuation Date:</strong>
+          <span>${evacuationDate}</span>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="closeViewModal()" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Close</button>
+      </div>
+    </div>
+  `;
+  
+  // Create a simple modal overlay to display the details
+  const modalOverlay = document.createElement('div');
+  modalOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.innerHTML = detailsHTML;
+  modalContent.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
+  
+  // Store reference to modal for closing
+  window.currentViewModal = modalOverlay;
+  
+  // Close modal when clicking overlay
+  modalOverlay.addEventListener('click', function(e) {
+    if (e.target === modalOverlay) {
+      closeViewModal();
+    }
+  });
+  
+  // Add animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Close View Modal Function
+function closeViewModal() {
+  if (window.currentViewModal) {
+    window.currentViewModal.remove();
+    window.currentViewModal = null;
+  }
+}
+
+// Release Evacuee Function
+function releaseEvacuee(evacueeId, evacueeName) {
+  // Create confirmation modal
+  const modalHTML = `
+    <div style="max-width: 400px; margin: 0 auto;">
+      <h3 style="color: #333; margin-bottom: 20px;">🚪 Release Evacuee</h3>
+      <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 20px;">
+        <p style="margin: 0; color: #92400e;">Are you sure you want to release <strong>${evacueeName}</strong> from the evacuation area?</p>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #78350f;">This action will mark them as safely released and update their status.</p>
+      </div>
+      
+      <div style="text-align: left; margin: 20px 0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Release Time:</label>
+        <input type="time" id="releaseTime" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+      </div>
+      
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button onclick="closeReleaseModal()" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancel</button>
+        <button onclick="confirmRelease('${evacueeId}')" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Release Evacuee</button>
+      </div>
+    </div>
+  `;
+  
+  // Create modal overlay
+  const modalOverlay = document.createElement('div');
+  modalOverlay.id = 'releaseModalOverlay';
+  modalOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.innerHTML = modalHTML;
+  modalContent.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
+  
+  // Set current time as default
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('releaseTime').value = `${hours}:${minutes}`;
+  
+  // Close modal when clicking overlay
+  modalOverlay.addEventListener('click', function(e) {
+    if (e.target === modalOverlay) {
+      closeReleaseModal();
+    }
+  });
+}
+
+// Close Release Modal Function
+function closeReleaseModal() {
+  const modal = document.getElementById('releaseModalOverlay');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Confirm Release Function
+function confirmRelease(evacueeId) {
+  const releaseTime = document.getElementById('releaseTime').value;
+  
+  if (!releaseTime) {
+    alert('Please select a release time');
+    return;
+  }
+  
+  // Show loading state
+  const confirmBtn = event.target;
+  const originalText = confirmBtn.innerHTML;
+  confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  confirmBtn.disabled = true;
+  
+  // Make actual API call to update database
+  fetch(`/evacuees/${evacueeId}/release`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value
+    },
+    body: JSON.stringify({
+      release_time: releaseTime
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  })
+  .then(data => {
+    if (data.success) {
+      // Show success message
+      showAlert('success', 'Evacuee successfully released from evacuation area');
+      
+      // Close modal
+      closeReleaseModal();
+      
+      // Remove row from table
+      const row = document.querySelector(`tr:has([onclick*="${evacueeId}"])`);
+      if (row) {
+        // Add fade out animation
+        row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        
+        // Remove row after animation
+        setTimeout(() => {
+          row.remove();
+          
+          // Check if table is empty and show message if needed
+          const tbody = document.querySelector('tbody');
+          const remainingRows = tbody.querySelectorAll('tr:not([style*="display: none"])');
+          if (remainingRows.length === 0) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = `
+              <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+                No evacuees found. Add evacuees to see them here.
+              </td>
+            `;
+            tbody.appendChild(noResultsRow);
+          }
+        }, 300);
+      }
+      
+      // Update total evacuees count
+      updateTotalEvacueesCount(-1);
+    } else {
+      // Show error message
+      showAlert('error', data.message || 'Failed to release evacuee');
+    }
+  })
+  .catch(error => {
+    console.error('Error releasing evacuee:', error);
+    showAlert('error', 'Failed to release evacuee. Please try again.');
+  })
+  .finally(() => {
+    confirmBtn.innerHTML = originalText;
+    confirmBtn.disabled = false;
+  });
+}
+
+// Update Total Evacuees Count Function
+function updateTotalEvacueesCount(change) {
+  // Update the main analytics card
+  const mainCountElement = document.querySelector('.analytics-card div[style*="font-size:28px"]');
+  if (mainCountElement) {
+    const currentCount = parseInt(mainCountElement.textContent) || 0;
+    const newCount = Math.max(0, currentCount + change);
+    mainCountElement.textContent = newCount;
+  }
+  
+  // Update the sidebar count
+  const sidebarCountElement = document.getElementById('totalEvacueesCount');
+  if (sidebarCountElement) {
+    const currentCount = parseInt(sidebarCountElement.textContent) || 0;
+    const newCount = Math.max(0, currentCount + change);
+    sidebarCountElement.textContent = newCount;
+  }
+}
 
 </script>
 

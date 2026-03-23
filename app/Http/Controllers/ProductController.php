@@ -6,10 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\Resident;
 use App\Models\Evacuee;
 use App\Models\Facility;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
+    protected $activityLogService;
+    
+    public function __construct(ActivityLogService $activityLogService)
+    {
+        $this->activityLogService = $activityLogService;
+    }
     // 🔑 Login POST
     public function loginPost(Request $request)
     {
@@ -408,9 +416,9 @@ public function index(Request $request)
                 ->where('description', $requestedPurok)
                 ->get()
                 ->map(function($resident) {
-                    // Check if resident is already evacuated
+                    // Check if resident is already evacuated and not released
                     $evacuee = \App\Models\Evacuee::where('resident_id', $resident->id)->first();
-                    $isEvacuated = $evacuee ? true : false;
+                    $isEvacuated = $evacuee && $evacuee->evacuation_status !== 'Released' ? true : false;
                     $evacuationStatus = $evacuee ? $evacuee->evacuation_status : null;
                     
                     return [
@@ -442,8 +450,9 @@ public function index(Request $request)
                     $purok = $purokMap[strtoupper($matches[1])] ?? 'Unassigned';
                 }
                 
-                // Check if resident is already evacuated
-                $isEvacuated = \App\Models\Evacuee::where('resident_id', $resident->id)->exists();
+                // Check if resident is already evacuated and not released
+                $evacuee = \App\Models\Evacuee::where('resident_id', $resident->id)->first();
+                $isEvacuated = $evacuee && $evacuee->evacuation_status !== 'Released' ? true : false;
                 
                 return [
                     'id' => $resident->id,
@@ -462,25 +471,16 @@ public function index(Request $request)
     /**
      * Log system activity
      */
-    private function logActivity($type, $description)
+    private function logActivity($action, $description, $module = 'System')
     {
-        // Store activity in session for now (you can later move to database)
-        $activities = session('system_activities', []);
+        $performedBy = 'Admin';
         
-        $activity = [
-            'type' => $type,
-            'description' => $description,
-            'timestamp' => now(),
-            'time_ago' => 'just now'
-        ];
+        // Try to get authenticated user, fallback to 'Admin'
+        if (Auth::check()) {
+            $performedBy = Auth::user()->name ?? Auth::user()->email ?? 'Admin';
+        }
         
-        // Add to beginning of array
-        array_unshift($activities, $activity);
-        
-        // Keep only last 20 activities
-        $activities = array_slice($activities, 0, 20);
-        
-        session(['system_activities' => $activities]);
+        $this->activityLogService->log($action, $description, $module, $performedBy);
     }
 
     /**
@@ -488,68 +488,8 @@ public function index(Request $request)
      */
     private function getRecentActivities()
     {
-        $activities = session('system_activities', []);
-        
-        // If no activities, return some default ones
-        if (empty($activities)) {
-            return [
-                [
-                    'type' => 'system',
-                    'description' => 'System backup completed',
-                    'time_ago' => '1 day ago',
-                    'color' => '#17a2b8'
-                ],
-                [
-                    'type' => 'system',
-                    'description' => 'Database maintenance',
-                    'time_ago' => '3 days ago',
-                    'color' => '#6c757d'
-                ]
-            ];
-        }
-        
-        // Add time formatting to activities
-        foreach ($activities as &$activity) {
-            $activity['time_ago'] = $this->formatTimeAgo($activity['timestamp']);
-            $activity['color'] = $this->getActivityColor($activity['type']);
-        }
-        
-        return $activities;
-    }
-
-    /**
-     * Format timestamp to human readable time ago
-     */
-    private function formatTimeAgo($timestamp)
-    {
-        $now = now();
-        $diff = $now->diffInMinutes($timestamp);
-        
-        if ($diff < 1) {
-            return 'just now';
-        } elseif ($diff < 60) {
-            return $diff . ' minutes ago';
-        } elseif ($diff < 1440) {
-            return floor($diff / 60) . ' hours ago';
-        } else {
-            return floor($diff / 1440) . ' days ago';
-        }
-    }
-
-    /**
-     * Get color for activity type
-     */
-    private function getActivityColor($type)
-    {
-        $colors = [
-            'resident_added' => '#28a745',
-            'resident_updated' => '#ffc107',
-            'resident_deleted' => '#dc3545',
-            'system' => '#17a2b8',
-            'login' => '#6c757d'
-        ];
-        
-        return $colors[$type] ?? '#6c757d';
+        // Return activities from ActivityLogService
+        return $this->activityLogService->getRecentLogs(7);
     }
 
     /**
@@ -557,14 +497,17 @@ public function index(Request $request)
      */
     public function evacueeProgram()
     {
-        // Get total evacuees count
-        $totalEvacuees = Evacuee::count();
+        // Get total evacuees count (excluding released)
+        $totalEvacuees = Evacuee::where('evacuation_status', '!=', 'Released')->count();
         
-        // Get unique shelters count
-        $totalShelters = Evacuee::distinct('evacuation_area')->count('evacuation_area');
+        // Get unique shelters count (excluding released)
+        $totalShelters = Evacuee::where('evacuation_status', '!=', 'Released')->distinct('evacuation_area')->count('evacuation_area');
         
-        // Get all evacuees with their resident data
-        $evacuees = Evacuee::with('resident')->get()->map(function($evacuee) {
+        // Get all evacuees with their resident data (excluding released)
+        $evacuees = Evacuee::with('resident')
+            ->where('evacuation_status', '!=', 'Released')
+            ->get()
+            ->map(function($evacuee) {
             return [
                 'id' => $evacuee->id,
                 'fullname' => $evacuee->resident->name . ' ' . $evacuee->resident->qty,
@@ -625,8 +568,10 @@ public function index(Request $request)
             }
 
             foreach ($residents as $resident) {
-                // Skip if already evacuated
-                if (Evacuee::where('resident_id', $resident['id'])->exists()) {
+                // Skip if already evacuated and not released
+                if (Evacuee::where('resident_id', $resident['id'])
+                    ->where('evacuation_status', '!=', 'Released')
+                    ->exists()) {
                     continue;
                 }
                 
@@ -640,6 +585,13 @@ public function index(Request $request)
                     'notes' => null
                 ]);
             }
+
+            // Log evacuee addition activity
+            $this->logActivity(
+                'Evacuees Added', 
+                count($residents) . ' residents evacuated to ' . $data['area'] . ' from ' . $data['purok'], 
+                'System'
+            );
 
             return response()->json([
                 'success' => true,
@@ -660,8 +612,11 @@ public function index(Request $request)
     public function exportEvacuees()
     {
         try {
-            // Get all evacuees with their resident data
-            $evacuees = Evacuee::with('resident')->get()->map(function($evacuee) {
+            // Get all evacuees with their resident data (excluding released)
+            $evacuees = Evacuee::with('resident')
+                ->where('evacuation_status', '!=', 'Released')
+                ->get()
+                ->map(function($evacuee) {
                 return [
                     'ID' => str_pad($evacuee->id, 4, '0', STR_PAD_LEFT),
                     'Fullname' => $evacuee->resident->name . ' ' . $evacuee->resident->qty,
@@ -673,6 +628,13 @@ public function index(Request $request)
                     'Evacuation Date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-'
                 ];
             });
+
+            // Log export activity
+            $this->logActivity(
+                'Evacuees Data Exported',
+                'Exported ' . $evacuees->count() . ' evacuee records to CSV',
+                'System'
+            );
 
             // Generate CSV filename with timestamp
             $filename = 'evacuees_export_' . date('Y-m-d_H-i-s') . '.csv';
@@ -719,8 +681,8 @@ public function index(Request $request)
     public function getEvacueesStatistics()
     {
         try {
-            $totalEvacuees = Evacuee::count();
-            $totalShelters = Evacuee::distinct('evacuation_area')->count('evacuation_area');
+            $totalEvacuees = Evacuee::where('evacuation_status', '!=', 'Released')->count();
+            $totalShelters = Evacuee::where('evacuation_status', '!=', 'Released')->distinct('evacuation_area')->count('evacuation_area');
 
             return response()->json([
                 'totalEvacuees' => $totalEvacuees,
@@ -769,6 +731,47 @@ public function index(Request $request)
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching facility data'
+            ], 500);
+        }
+    }
+
+    /**
+     * Release evacuee from evacuation area
+     */
+    public function releaseEvacuee($evacueeId, Request $request)
+    {
+        try {
+            $evacuee = Evacuee::findOrFail($evacueeId);
+            
+            // Update evacuation status to 'Released'
+            $evacuee->evacuation_status = 'Released';
+            $evacuee->released_at = now();
+            $evacuee->release_time = $request->input('release_time');
+            $evacuee->save();
+
+            // Log the release activity
+            $this->logActivity(
+                'Evacuee Released',
+                "Evacuee '{$evacuee->resident->name}' was released from evacuation area",
+                'System'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Evacuee successfully released from evacuation area'
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Evacuee not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Release evacuee error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error releasing evacuee. Please try again.'
             ], 500);
         }
     }
