@@ -553,7 +553,7 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
           <label>Purok <span style="color:#dc2626">*</span></label>
 
-          <select id="purokSelect" name="purok" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadResidentsByPurok()">
+          <select id="purokSelect" name="purok" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadResidentsByPurok(); checkFormValidity()">
 
             <option value="" disabled selected>Select Purok</option>
 
@@ -577,7 +577,7 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
           <label>Evacuation Status <span style="color:#dc2626">*</span></label>
 
-          <select name="status" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;">
+          <select name="status" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="checkFormValidity()">
 
             <option value="" disabled selected>Select Status</option>
 
@@ -597,7 +597,7 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
           <label>Evacuation Area <span style="color:#dc2626">*</span></label>
 
-          <select name="area" id="evacuationAreaSelect" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadFacilityCapacity()">
+          <select name="area" id="evacuationAreaSelect" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadFacilityCapacity(); checkFormValidity()">
 
             <option value="" disabled selected>Select Area</option>
 
@@ -623,9 +623,9 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
         <div style="display:flex; flex-direction:column; gap:6px;">
 
-          <label>Room Number</label>
+          <label>Room Number <span style="color:#dc2626">*</span></label>
 
-          <input type="text" name="room" placeholder="e.g., Room 3B" style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" />
+          <input type="text" name="room" placeholder="e.g., Room 3B" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" onchange="checkFormValidity()" />
 
         </div>
 
@@ -635,7 +635,7 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
           <label>Evacuation Date</label>
 
-          <input type="date" name="evacuation_date" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" />
+          <input type="date" name="evacuation_date" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="checkFormValidity()" />
 
         </div>
 
@@ -754,6 +754,9 @@ function openAddEvacueeModal() {
   saveBtn.disabled = true;
 
   currentResidents = [];
+  
+  // Check form validity on modal open
+  checkFormValidity();
 
 }
 
@@ -861,6 +864,43 @@ function confirmLogout(button) {
 
 
 
+// Check form validity function
+function checkFormValidity() {
+  const purok = document.getElementById('purokSelect').value;
+  const status = document.querySelector('select[name="status"]').value;
+  const area = document.getElementById('evacuationAreaSelect').value;
+  const date = document.querySelector('input[name="evacuation_date"]').value;
+  const room = document.querySelector('input[name="room"]').value.trim();
+  const saveBtn = document.getElementById('saveBtn');
+  
+  // Enable button only if all required fields are filled AND there are residents AND capacity is available
+  const allFieldsFilled = purok && status && area && date && room;
+  const hasResidents = currentResidents.length > 0;
+  
+  // Check capacity availability
+  let hasCapacity = true;
+  const capacityDisplay = document.getElementById('capacityDisplay');
+  if (capacityDisplay && capacityDisplay.style.display !== 'none') {
+    // Look for "Available: X spaces" text and extract the number
+    const capacityText = capacityDisplay.textContent;
+    const availableMatch = capacityText.match(/Available:\s*(\d+)\s+spaces/);
+    if (availableMatch) {
+      const availableSpaces = parseInt(availableMatch[1]);
+      hasCapacity = availableSpaces > 0;
+    }
+  }
+  
+  if (allFieldsFilled && hasResidents && hasCapacity) {
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = '1';
+    saveBtn.style.cursor = 'pointer';
+  } else {
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.5';
+    saveBtn.style.cursor = 'not-allowed';
+  }
+}
+
 // Store fetched residents
 
 let currentResidents = [];
@@ -945,6 +985,14 @@ function filterByEvacuationArea() {
 
     existingNoResults.parentElement.remove();
 
+  }
+  
+  // Refresh capacity display if the same area is selected in the add form
+  if (selectedArea) {
+    const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
+    if (evacuationAreaSelect && evacuationAreaSelect.value === selectedArea) {
+      loadFacilityCapacity();
+    }
   }
 
 }
@@ -1089,7 +1137,8 @@ function loadResidentsByPurok() {
 
         residentsData.value = JSON.stringify(currentResidents);
 
-        saveBtn.disabled = false;
+        // Check form validity instead of just enabling button
+        checkFormValidity();
 
       } else {
 
@@ -1099,7 +1148,8 @@ function loadResidentsByPurok() {
 
         residentsData.value = '';
 
-        saveBtn.disabled = true;
+        // Check form validity (will disable button since no residents)
+        checkFormValidity();
 
       }
 
@@ -1113,7 +1163,8 @@ function loadResidentsByPurok() {
 
       residentCount.textContent = '0 residents';
 
-      saveBtn.disabled = true;
+      // Check form validity (will disable button due to error)
+      checkFormValidity();
 
     });
 
@@ -1317,6 +1368,12 @@ if (form) {
         closeAddEvacueeModal();
 
         showAlert(data.message, 'success');
+
+        // Refresh capacity display if evacuation area is selected
+        const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
+        if (evacuationAreaSelect.value) {
+          loadFacilityCapacity();
+        }
 
         // Reload page after a short delay to show updated counts
 
@@ -1539,33 +1596,23 @@ setTimeout(()=>{
 
 // Check for released evacuees on page load
 function hideReleasedEvacuees() {
-  const releasedEvacuees = JSON.parse(localStorage.getItem('releasedEvacuees') || '[]');
-  const releasedIds = releasedEvacuees.map(e => e.id);
+  // Clear old localStorage data to ensure accuracy
+  localStorage.removeItem('releasedEvacuees');
   
-  releasedIds.forEach(evacueeId => {
-    const row = document.querySelector(`tr:has([onclick*="${evacueeId}"])`);
-    if (row) {
-      row.remove();
-      updateTotalEvacueesCount(-1);
-    }
-  });
-  
-  // Check if table is empty after hiding released evacuees
-  const tbody = document.querySelector('tbody');
-  const remainingRows = tbody.querySelectorAll('tr:not([style*="display: none"])');
-  if (remainingRows.length === 0) {
-    const noResultsRow = document.createElement('tr');
-    noResultsRow.innerHTML = `
-      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
-        No evacuees found. Add evacuees to see them here.
-      </td>
-    `;
-    tbody.appendChild(noResultsRow);
-  }
+  // Update count to match server data
+  updateTotalEvacueesCount();
 }
 
 // Run on page load
-document.addEventListener('DOMContentLoaded', hideReleasedEvacuees);
+document.addEventListener('DOMContentLoaded', function() {
+  hideReleasedEvacuees();
+  
+  // Auto-refresh capacity display if evacuation area is pre-selected
+  const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
+  if (evacuationAreaSelect && evacuationAreaSelect.value) {
+    loadFacilityCapacity();
+  }
+});
 
 // View Evacuee Details Function
 function viewEvacueeDetails(id, fullname, age, gender, evacuationStatus, evacuationArea, roomNumber, evacuationDate) {
@@ -1763,6 +1810,14 @@ function confirmRelease(evacueeId) {
   confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
   confirmBtn.disabled = true;
   
+  // Get the evacuation area from the table row before making the API call
+  const row = document.querySelector(`tr:has([onclick*="${evacueeId}"])`);
+  let evacuationArea = null;
+  if (row) {
+    const evacuationAreaCell = row.cells[5]; // Evacuation Area is column 5 (0-indexed)
+    evacuationArea = evacuationAreaCell ? evacuationAreaCell.textContent.trim() : null;
+  }
+  
   // Make actual API call to update database
   fetch(`/evacuees/${evacueeId}/release`, {
     method: 'POST',
@@ -1784,13 +1839,12 @@ function confirmRelease(evacueeId) {
   .then(data => {
     if (data.success) {
       // Show success message
-      showAlert('success', 'Evacuee successfully released from evacuation area');
+      showAlert('Evacuee successfully released from evacuation area');
       
       // Close modal
       closeReleaseModal();
       
       // Remove row from table
-      const row = document.querySelector(`tr:has([onclick*="${evacueeId}"])`);
       if (row) {
         // Add fade out animation
         row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -1816,16 +1870,25 @@ function confirmRelease(evacueeId) {
         }, 300);
       }
       
-      // Update total evacuees count
-      updateTotalEvacueesCount(-1);
+      // Update total evacuees count from server
+      updateTotalEvacueesCount();
+      
+      // Refresh capacity display for the evacuation area if it's currently selected in the form
+      if (evacuationArea) {
+        const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
+        if (evacuationAreaSelect.value === evacuationArea) {
+          // Refresh the capacity display for this area
+          loadFacilityCapacity();
+        }
+      }
     } else {
       // Show error message
-      showAlert('error', data.message || 'Failed to release evacuee');
+      showAlert(data.message || 'Failed to release evacuee', 'error');
     }
   })
   .catch(error => {
     console.error('Error releasing evacuee:', error);
-    showAlert('error', 'Failed to release evacuee. Please try again.');
+    showAlert('Failed to release evacuee. Please try again.', 'error');
   })
   .finally(() => {
     confirmBtn.innerHTML = originalText;
@@ -1834,22 +1897,26 @@ function confirmRelease(evacueeId) {
 }
 
 // Update Total Evacuees Count Function
-function updateTotalEvacueesCount(change) {
-  // Update the main analytics card
-  const mainCountElement = document.querySelector('.analytics-card div[style*="font-size:28px"]');
-  if (mainCountElement) {
-    const currentCount = parseInt(mainCountElement.textContent) || 0;
-    const newCount = Math.max(0, currentCount + change);
-    mainCountElement.textContent = newCount;
-  }
-  
-  // Update the sidebar count
-  const sidebarCountElement = document.getElementById('totalEvacueesCount');
-  if (sidebarCountElement) {
-    const currentCount = parseInt(sidebarCountElement.textContent) || 0;
-    const newCount = Math.max(0, currentCount + change);
-    sidebarCountElement.textContent = newCount;
-  }
+function updateTotalEvacueesCount() {
+  // Fetch accurate count from server
+  fetch('/api/evacuees/statistics')
+    .then(response => response.json())
+    .then(data => {
+      // Update the main analytics card
+      const mainCountElement = document.querySelector('.analytics-card div[style*="font-size:28px"]');
+      if (mainCountElement && data.totalEvacuees !== undefined) {
+        mainCountElement.textContent = data.totalEvacuees;
+      }
+      
+      // Update the export modal count
+      const sidebarCountElement = document.getElementById('totalEvacueesCount');
+      if (sidebarCountElement && data.totalEvacuees !== undefined) {
+        sidebarCountElement.textContent = data.totalEvacuees;
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching evacuee count:', error);
+    });
 }
 
 </script>

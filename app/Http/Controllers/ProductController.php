@@ -417,8 +417,10 @@ public function index(Request $request)
                 ->get()
                 ->map(function($resident) {
                     // Check if resident is already evacuated and not released
-                    $evacuee = \App\Models\Evacuee::where('resident_id', $resident->id)->first();
-                    $isEvacuated = $evacuee && $evacuee->evacuation_status !== 'Released' ? true : false;
+                    $evacuee = \App\Models\Evacuee::where('resident_id', $resident->id)
+                        ->where('evacuation_status', '!=', 'Released')
+                        ->first();
+                    $isEvacuated = $evacuee ? true : false;
                     $evacuationStatus = $evacuee ? $evacuee->evacuation_status : null;
                     
                     return [
@@ -713,8 +715,10 @@ public function index(Request $request)
                 ], 404);
             }
 
-            // Count current evacuees in this facility
-            $currentOccupancy = Evacuee::where('evacuation_area', $facility)->count();
+            // Count current active evacuees in this facility (excluding released ones)
+            $currentOccupancy = Evacuee::where('evacuation_area', $facility)
+                ->where('evacuation_status', '!=', 'Released')
+                ->count();
             
             return response()->json([
                 'success' => true,

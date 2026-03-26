@@ -930,7 +930,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
     @csrf
     <div class="form-group">
       <label class="form-label">Program Title *</label>
-      <select name="title" class="form-input" required>
+      <select name="title" class="form-input" required id="programTitleSelect">
         <option value="">Select a program type...</option>
         <option value="Medical Mission">Medical Mission</option>
         <option value="Clean-up Drive">Clean-up Drive</option>
@@ -944,7 +944,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
         <option value="Environmental Protection">Environmental Protection</option>
         <option value="Community Building Activity">Community Building Activity</option>
         <option value="Livelihood Training Program">Livelihood Training Program</option>
+        <option value="Others">Others</option>
       </select>
+    </div>
+    
+    <div class="form-group" id="customProgramGroup" style="display: none;">
+      <label class="form-label">Custom Program Name *</label>
+      <input type="text" name="custom_title" class="form-input" id="customProgramInput" placeholder="Enter custom program name...">
     </div>
     
     <div class="form-group">
@@ -956,16 +962,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
         <option value="Purok III">Purok III</option>
         <option value="Purok IV">Purok IV</option>
         <option value="Purok V">Purok V</option>
-        <option value="Purok VI">Purok VI</option>
-        <option value="Purok VII">Purok VII</option>
-        <option value="Barangay Hall">Barangay Hall</option>
-        <option value="Community Center">Community Center</option>
-        <option value="Multi-Purpose Hall">Multi-Purpose Hall</option>
-        <option value="Basketball Court">Basketball Court</option>
-        <option value="Covered Court">Covered Court</option>
-        <option value="Barangay Health Center">Barangay Health Center</option>
-        <option value="Day Care Center">Day Care Center</option>
-        <option value="Barangay Plaza">Barangay Plaza</option>
       </select>
     </div>
     
@@ -1158,6 +1154,46 @@ setInterval(() => {
         console.error('Error updating statuses:', error);
     });
 }, 60000); // Update every minute
+
+// Handle Program Title dropdown change
+document.addEventListener('DOMContentLoaded', function() {
+    const programTitleSelect = document.getElementById('programTitleSelect');
+    const customProgramGroup = document.getElementById('customProgramGroup');
+    const customProgramInput = document.getElementById('customProgramInput');
+    
+    if (programTitleSelect && customProgramGroup) {
+        programTitleSelect.addEventListener('change', function() {
+            if (this.value === 'Others') {
+                customProgramGroup.style.display = 'block';
+                customProgramInput.required = true;
+            } else {
+                customProgramGroup.style.display = 'none';
+                customProgramInput.required = false;
+                customProgramInput.value = '';
+            }
+        });
+        
+        // Handle form submission to use custom title if "Others" is selected
+        const programForm = document.getElementById('programForm');
+        if (programForm) {
+            programForm.addEventListener('submit', function(e) {
+                if (programTitleSelect.value === 'Others' && customProgramInput.value.trim()) {
+                    // Create a hidden input for the custom title
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'title';
+                    hiddenInput.value = customProgramInput.value.trim();
+                    
+                    // Replace the original title select value
+                    programTitleSelect.name = 'title_original';
+                    programTitleSelect.removeAttribute('required');
+                    
+                    programForm.appendChild(hiddenInput);
+                }
+            });
+        }
+    }
+});
 </script>
 
 </body>
