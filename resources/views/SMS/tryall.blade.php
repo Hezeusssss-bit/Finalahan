@@ -462,7 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     
                     <div class="form-group">
                         <label for="message">Emergency Message:</label>
-                        <textarea name="message" id="message" required placeholder="Type your emergency message here..."> EARLY EVACUATION ALERT: This is an automated early warning message. Due to approaching [HAZARD TYPE], all residents are advised to prepare for EARLY EVACUATION. Please gather emergency supplies, important documents, and prepare your family. Evacuation vehicles will be available at designated pickup points. Monitor official channels for updates. Your safety is our priority - act now to avoid last-minute rush. Contact Barangay Hall: [HOTLINE].</textarea>
+                        <textarea name="message" id="message" required placeholder="Type your emergency message here...">Advisory: Please prepare for a possible disaster. Ensure your emergency kits are ready (water, food, first aid, batteries). Be ready for possible evacuation anytime.</textarea>
                     </div>
                     
                     <div class="quick-actions">
@@ -518,7 +518,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         }
         
         function setEarlyEvacuationMessage() {
-            document.getElementById('message').value = ' EARLY EVACUATION ALERT: This is an automated early warning message. Due to approaching [HAZARD TYPE], all residents are advised to prepare for EARLY EVACUATION. Please gather emergency supplies, important documents, and prepare your family. Evacuation vehicles will be available at designated pickup points. Monitor official channels for updates. Your safety is our priority - act now to avoid last-minute rush. Contact Barangay Hall: [HOTLINE].';
+            document.getElementById('message').value = ' EARLY EVACUATION ALERT: All residents are advised to evacuate immediately due to potential danger. Proceed to the nearest evacuation center. Vehicles are waiting at designated exits. Stay calm and follow instructions.';
         }
         
         function setPurok1Message() {
