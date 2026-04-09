@@ -88,6 +88,9 @@ public function index(Request $request)
     $newThisMonth = Resident::whereMonth('created_at', now()->month)
                            ->whereYear('created_at', now()->year)
                            ->count();
+    
+    // Get total evacuees (excluding released)
+    $totalEvacuees = Evacuee::where('evacuation_status', '!=', 'Released')->count();
 
     // Recent Activities - Get real activities from database
     $recentActivities = $this->getRecentActivities();
@@ -96,6 +99,7 @@ public function index(Request $request)
         'residents' => $residents,
         'totalResidents' => $totalResidents,
         'newThisMonth' => $newThisMonth,
+        'totalEvacuees' => $totalEvacuees,
         'recentActivities' => $recentActivities
     ]);
 }
@@ -522,8 +526,24 @@ public function index(Request $request)
             ];
         });
         
-        // Get available facilities for evacuation areas
-        $facilities = Facility::where('status', 'available')->orderBy('name')->get();
+        // Get available facilities for evacuation areas with capacity info
+        $facilities = Facility::where('status', 'available')->orderBy('name')->get()->map(function($facility) {
+            // Get current occupancy for this facility
+            $currentOccupancy = Evacuee::where('evacuation_area', $facility->name)
+                ->where('evacuation_status', '!=', 'Released')
+                ->count();
+            
+            $availableSpaces = $facility->capacity - $currentOccupancy;
+            
+            return [
+                'id' => $facility->id,
+                'name' => $facility->name,
+                'capacity' => $facility->capacity,
+                'current_occupancy' => $currentOccupancy,
+                'available_spaces' => $availableSpaces,
+                'occupancy_percentage' => $facility->capacity > 0 ? ($currentOccupancy / $facility->capacity) * 100 : 0
+            ];
+        });
         
         return view('Program.EvacueeProgram', [
             'totalEvacuees' => $totalEvacuees,

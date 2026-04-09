@@ -1,1200 +1,837 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Program Management</title>
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; display: flex; }
-
-/* Sidebar */
-.sidebar { 
-    width: 280px; 
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
-    min-height: 100vh; 
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 0; 
-    position: fixed; 
-    left: 0; 
-    top: 0; 
-    display: flex; 
-    flex-direction: column;
-    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo { 
-    color: #fff; 
-    font-size: 28px; 
-    font-weight: 800; 
-    padding: 30px; 
-    margin-bottom: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.logo i { 
-    color: #3b82f6; 
-    font-size: 32px;
-    filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)); }
-    to { filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)); }
-}
-
-.nav-section {
-    margin-bottom: 25px;
-    padding: 0 20px;
-}
-
-.nav-section-title {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    padding: 0 15px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-section-title::before {
-    content: '';
-    width: 3px;
-    height: 3px;
-    background: #3b82f6;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.nav-menu { 
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-item { 
-    color: rgba(255, 255, 255, 0.8); 
-    padding: 14px 20px; 
-    text-decoration: none; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    cursor: pointer; 
-    font-size: 15px;
-    font-weight: 500;
-    position: relative;
-    margin: 3px 0;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.6s;
-}
-
-.nav-item:hover::before {
-    left: 100%;
-}
-
-.nav-item i { 
-    width: 24px; 
-    text-align: center; 
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.4s ease;
-}
-
-.nav-item:hover { 
-    background: rgba(59, 130, 246, 0.15); 
-    color: #fff;
-    transform: translateX(8px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-}
-
-.nav-item:hover i {
-    color: #60a5fa;
-    transform: scale(1.15) rotate(5deg);
-}
-
-.nav-item.active { 
-    color: #fff; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-    font-weight: 600;
-    transform: translateX(5px);
-}
-
-.nav-item.active::before {
-    display: none;
-}
-
-.nav-item.active i {
-    color: #fff;
-    transform: scale(1.1);
-}
-
-.sidebar-footer { 
-    margin-top: auto; 
-    padding: 25px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.sidebar-footer .nav-item {
-    margin: 3px 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.sidebar-footer .nav-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(5px);
-    box-shadow: none;
-}
-
-.sidebar-footer .nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: none;
-}
-
-/* Main Content */
-.main-content { 
-    margin-left: 280px; 
-    flex: 1; 
-    padding: 35px; 
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    min-height: 100vh;
-}
-
-/* Header */
-.header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 40px;
-    padding: 30px 35px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-}
-
-.header h1 { 
-    color: #1e293b; 
-    font-size: 36px; 
-    font-weight: 800;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-}
-
-.header-icons { 
-    display: flex; 
-    gap: 20px; 
-    align-items: center; 
-}
-
-.icon-btn { 
-    width: 50px; 
-    height: 50px; 
-    border-radius: 15px; 
-    background: white; 
-    border: 1px solid #e2e8f0; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-}
-
-.icon-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 0.4s ease;
-}
-
-.icon-btn:hover::before {
-    width: 100%;
-    height: 100%;
-}
-
-.icon-btn:hover { 
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
-    border-color: transparent;
-}
-
-.icon-btn:hover i {
-    color: white;
-    transform: scale(1.1);
-    position: relative;
-    z-index: 1;
-}
-
-.icon-btn i { 
-    color: #64748b; 
-    font-size: 20px;
-    transition: all 0.4s ease;
-    position: relative;
-    z-index: 1;
-}
-
-/* Container */
-.container { 
-    background: white; 
-    border-radius: 24px; 
-    padding: 40px; 
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(20px);
-    position: relative;
-    overflow: hidden;
-}
-
-.container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8, #3b82f6);
-    animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-/* Alert */
-.alert { 
-    position: fixed; 
-    top: 20px; 
-    right: 20px; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    color: #ffffff; 
-    padding: 15px 25px; 
-    border-radius: 12px; 
-    font-weight: 600; 
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3); 
-    z-index: 9999; 
-    opacity: 0; 
-    animation: slideIn 0.5s forwards; 
-}
-
-@keyframes slideIn { 
-    from { opacity: 0; transform: translateX(100px); } 
-    to { opacity: 1; transform: translateX(0); } 
-}
-
-@keyframes slideOut { 
-    from { opacity: 1; transform: translateX(0); } 
-    to { opacity: 0; transform: translateX(100px); } 
-}
-
-.alert.hide { animation: slideOut 0.5s forwards; }
-
-/* Program Sections */
-.program-section {
-    margin-bottom: 40px;
-}
-
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e2e8f0;
-}
-
-.section-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.section-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.upcoming-icon { background: #fef3c7; color: #d97706; }
-.ongoing-icon { background: #dbeafe; color: #2563eb; }
-.completed-icon { background: #dcfce7; color: #16a34a; }
-
-.program-count {
-    background: #f1f5f9;
-    color: #64748b;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-/* Program Cards */
-.program-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.program-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 24px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.program-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-
-.program-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-}
-
-.program-card:hover::before {
-    transform: scaleX(1);
-}
-
-.program-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 8px;
-}
-
-.program-location {
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.program-description {
-    color: #475569;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 16px;
-}
-
-.program-dates {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: #64748b;
-}
-
-.program-status {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.status-upcoming { background: #fef3c7; color: #d97706; }
-.status-ongoing { background: #dbeafe; color: #2563eb; }
-.status-completed { background: #dcfce7; color: #16a34a; }
-
-.program-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.btn-icon:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-edit:hover { border-color: #3b82f6; color: #3b82f6; }
-.btn-delete:hover { border-color: #ef4444; color: #ef4444; }
-
-/* Add Program Button */
-.btn-add-program {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-add-program:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-    width: 600px;
-    max-width: 90%;
-    padding: 30px;
-    display: none;
-    z-index: 2000;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    z-index: 1999;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.modal-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.modal-close {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.modal-close:hover {
-    background: #f1f5f9;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-label {
-    display: block;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 25px;
-}
-
-.btn-cancel {
-    padding: 12px 24px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-cancel:hover {
-    background: #f1f5f9;
-}
-
-.btn-submit {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #64748b;
-}
-
-.empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.empty-text {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.empty-subtext {
-    font-size: 14px;
-    opacity: 0.7;
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Program Management — B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --violet: #7c3aed;
+            --violet-light: #ede9fe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+            --sidebar-w: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--navy);
+            min-height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            display: flex; flex-direction: column;
+            z-index: 200;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .sidebar-brand {
+            padding: 22px 24px 18px;
+            display: flex; align-items: center; gap: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .brand-badge {
+            width: 38px; height: 38px;
+            background: var(--teal); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; color: white; flex-shrink: 0;
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px; font-weight: 700; color: white;
+        }
+
+        .brand-sub {
+            font-size: 10px; color: rgba(255,255,255,0.35);
+            font-weight: 300; letter-spacing: 0.06em;
+            text-transform: uppercase; margin-top: 1px;
+        }
+
+        .nav-section { padding: 18px 16px 4px; }
+
+        .nav-section-label {
+            font-size: 10.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            padding: 0 8px; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .nav-section-label::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 10px;
+            color: rgba(255,255,255,0.6); text-decoration: none;
+            font-size: 14px; font-weight: 400;
+            transition: all 0.2s; margin-bottom: 2px;
+            border: none; background: none;
+            width: 100%; cursor: pointer; text-align: left;
+        }
+
+        .nav-link i {
+            width: 18px; text-align: center; font-size: 14px;
+            color: rgba(255,255,255,0.35); transition: color 0.2s; flex-shrink: 0;
+        }
+
+        .nav-link:hover { background: rgba(255,255,255,0.07); color: white; }
+        .nav-link:hover i { color: var(--teal); }
+
+        .nav-link.active {
+            background: rgba(14,165,160,0.15); color: white; font-weight: 500;
+        }
+
+        .nav-link.active i { color: var(--teal); }
+
+        .sidebar-footer {
+            margin-top: auto; padding: 12px 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .nav-link-danger:hover { background: rgba(244,63,94,0.12); color: #fca5a5; }
+        .nav-link-danger:hover i { color: #fca5a5; }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1; padding: 36px 40px; min-height: 100vh;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+        }
+
+        .page-eyebrow {
+            font-size: 11.5px; font-weight: 500;
+            color: var(--teal); text-transform: uppercase;
+            letter-spacing: 0.12em; margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px; font-weight: 700;
+            color: var(--text-dark); line-height: 1.2;
+        }
+
+        .btn-add-program {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 10px;
+            background: var(--navy); color: white; border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .btn-add-program:hover { background: var(--navy-mid); }
+
+        /* ── FLASH ── */
+        .flash-alert {
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 18px; border-radius: 12px;
+            font-size: 13.5px; margin-bottom: 24px;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .flash-alert.success { background: var(--green-light); color: #065f46; }
+
+        /* ── SECTION ── */
+        .program-section { margin-bottom: 36px; }
+
+        .section-head {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .section-title-row {
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .section-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+
+        .icon-upcoming  { background: var(--amber-light); color: #b45309; }
+        .icon-ongoing   { background: var(--blue-light);  color: #1d4ed8; }
+        .icon-completed { background: var(--green-light); color: #065f46; }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px; font-weight: 700; color: var(--text-dark);
+        }
+
+        .section-badge {
+            display: inline-block; padding: 3px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: var(--slate-light); color: var(--text-muted);
+        }
+
+        /* ── PROGRAM GRID ── */
+        .program-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .program-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 22px;
+            position: relative; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .program-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+        }
+
+        .program-card.upcoming::before  { background: var(--amber); }
+        .program-card.ongoing::before   { background: var(--blue); }
+        .program-card.completed::before { background: var(--green); }
+
+        .program-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+        }
+
+        .prog-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15.5px; font-weight: 700;
+            color: var(--text-dark); margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .prog-location {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12.5px; color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .prog-location i { font-size: 11px; color: var(--teal); }
+
+        .prog-desc {
+            font-size: 13px; color: var(--text-mid);
+            line-height: 1.6; margin-bottom: 16px;
+        }
+
+        .prog-dates {
+            display: flex; justify-content: space-between;
+            font-size: 12px; color: var(--text-muted);
+            margin-bottom: 14px; flex-wrap: wrap; gap: 4px;
+        }
+
+        .prog-status {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 11.5px; font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .prog-status::before {
+            content: ''; width: 6px; height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-upcoming  { background: var(--amber-light); color: #92400e; }
+        .status-upcoming::before  { background: var(--amber); }
+        .status-ongoing   { background: var(--blue-light);  color: #1e40af; }
+        .status-ongoing::before   { background: var(--blue); }
+        .status-completed { background: var(--green-light); color: #065f46; }
+        .status-completed::before { background: var(--green); }
+
+        .prog-actions { display: flex; gap: 6px; }
+
+        .prog-btn {
+            width: 30px; height: 30px; border-radius: 7px;
+            border: 1px solid var(--border); background: white;
+            color: var(--text-mid); font-size: 12px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.2s; text-decoration: none;
+        }
+
+        .prog-btn:hover { background: var(--navy); color: white; border-color: var(--navy); }
+        .prog-btn.del:hover { background: var(--rose); border-color: var(--rose); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 16px; text-align: center;
+            padding: 44px 20px; color: var(--text-muted);
+        }
+
+        .empty-icon-wrap {
+            width: 64px; height: 64px; border-radius: 18px;
+            background: var(--slate-light); display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 26px; color: var(--text-muted); margin-bottom: 14px;
+        }
+
+        .empty-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
+        .empty-sub   { font-size: 13px; }
+
+        /* ── MODAL ── */
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(13,27,42,0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500; display: none;
+            align-items: center; justify-content: center;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
+            background: white; border-radius: 18px;
+            width: 90%; max-width: 520px;
+            max-height: 90vh; overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+        }
+
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        @keyframes modalIn {
+            from { opacity:0; transform:translateY(20px) scale(0.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        .modal-head {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 12px;
+            position: sticky; top: 0; background: white;
+            border-radius: 18px 18px 0 0; z-index: 10;
+        }
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px; font-weight: 700; color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+        .modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border); background: var(--slate-light);
+            color: var(--text-muted); font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
+
+        .modal-body { padding: 18px 24px 24px; }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-label {
+            display: block; font-size: 11.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.07em;
+            color: var(--text-muted); margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%; padding: 9px 12px;
+            border: 1px solid var(--border); border-radius: 9px;
+            font-size: 13.5px; font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark); background: var(--slate-light);
+            transition: all 0.2s; outline: none;
+        }
+
+        .form-control:focus {
+            background: white; border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 90px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .modal-footer {
+            display: flex; justify-content: flex-end; gap: 10px;
+            padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px;
+        }
+
+        .btn-cancel {
+            padding: 9px 20px; border-radius: 9px;
+            border: 1px solid var(--border); background: var(--slate-light);
+            color: var(--text-mid); font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-submit {
+            padding: 9px 22px; border-radius: 9px; border: none;
+            background: var(--navy); color: white;
+            font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.danger { background: var(--rose); }
+        .btn-submit.danger:hover { background: #e11d48; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 28px; right: 28px;
+            background: var(--navy); color: white;
+            padding: 13px 20px; border-radius: 12px;
+            font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            z-index: 9999; transform: translateY(80px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: var(--teal); }
+
+        /* ── ANIMS ── */
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(14px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .anim    { animation: fadeUp 0.4s ease both; }
+        .delay-1 { animation-delay: 0.07s; }
+        .delay-2 { animation-delay: 0.13s; }
+        .delay-3 { animation-delay: 0.19s; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 22px 18px; }
+            .program-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">
-    <i class="fas fa-shield-alt"></i> 
-    <span>B-DEAMS</span>
-  </div>
-  
-  <!-- Main Navigation -->
-  <div class="nav-section">
-    <div class="nav-section-title">Main</div>
-    <nav class="nav-menu">
-      <a href="{{ route('resident.index') }}" class="nav-item">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="{{ route('program.index') }}" class="nav-item active">
-        <i class="fas fa-tasks"></i>
-        <span>Programs</span>
-      </a>
-    </nav>
-  </div>
-
-  <!-- Services Section -->
-  <div class="nav-section">
-    <div class="nav-section-title">Services</div>
-    <nav class="nav-menu">
-      <a href="{{ route('services') }}" class="nav-item">
-        <i class="fas fa-concierge-bell"></i>
-        <span>Services</span>
-      </a>
-      <a href="{{ route('tryall') }}" class="nav-item">
-        <i class="fas fa-sms"></i>
-        <span>SMS Alert</span>
-      </a>
-      <a href="{{ route('facilities') }}" class="nav-item">
-        <i class="fas fa-building"></i>
-        <span>Facilities</span>
-      </a>
-    </nav>
-  </div>
-
-  <!-- System Section -->
-  <div class="sidebar-footer">
-    <div class="nav-section">
-      <div class="nav-section-title">System</div>
-      <nav class="nav-menu">
-        <a href="{{ route('activity-logs.index') }}" class="nav-item">
-          <i class="fas fa-cog"></i>
-          <span>Activity Log</span>
-        </a>
-        <form id="logoutForm" method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        </form>
-      </nav>
-    </div>
-  </div>
-</div>
-
-<!-- Main Content -->
-<div class="main-content">
-  <div class="header">
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <a href="{{ url()->previous() }}" class="icon-btn">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <h1>Program Management</h1>
-    </div>
-    <div class="header-icons">
-      <button onclick="openAddProgramModal()" class="btn-add-program">
-        <i class="fas fa-plus"></i>
-        Add Program
-      </button>
-    </div>
-  </div>
-
-  @if(session('Success'))
-    <div class="alert" id="successAlert">{{ session('Success') }}</div>
-  @endif
-
-  <div class="container">
-    <!-- Upcoming Programs -->
-    <div class="program-section">
-      <div class="section-header">
-        <div class="section-title">
-          <div class="section-icon upcoming-icon">
-            <i class="fas fa-clock"></i>
-          </div>
-          Upcoming Programs
-        </div>
-        <div class="program-count">{{ $upcomingPrograms->count() }} Programs</div>
-      </div>
-      
-      @if($upcomingPrograms->count() > 0)
-        <div class="program-grid">
-          @foreach($upcomingPrograms as $program)
-            <div class="program-card">
-              <div class="program-title">{{ $program->title }}</div>
-              <div class="program-location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ $program->location }}
-              </div>
-              <div class="program-description">{{ $program->description }}</div>
-              <div class="program-dates">
-                <span>Start: {{ $program->start_date->format('M d, Y') }}</span>
-                @if($program->end_date)
-                  <span>End: {{ $program->end_date->format('M d, Y') }}</span>
-                @endif
-              </div>
-              <div class="program-status status-upcoming">
-                {{ $program->getStatusLabel() }}
-              </div>
-              <div class="program-actions">
-                <a href="#" onclick="editProgram({{ $program->id }})" class="btn-icon btn-edit">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this program?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn-icon btn-delete" style="background: none; border: none; cursor: pointer; padding: 5px; margin: 0 2px; border-radius: 4px; transition: all 0.2s;">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <div class="brand-name">B-DEAMS</div>
+                <div class="brand-sub">Evacuation Alert System</div>
             </div>
-          @endforeach
         </div>
-      @else
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-calendar-plus"></i>
-          </div>
-          <div class="empty-text">No upcoming programs</div>
-          <div class="empty-subtext">Add your first program to get started</div>
-        </div>
-      @endif
-    </div>
 
-    <!-- Ongoing Programs -->
-    <div class="program-section">
-      <div class="section-header">
-        <div class="section-title">
-          <div class="section-icon ongoing-icon">
-            <i class="fas fa-play-circle"></i>
-          </div>
-          On-Going Programs
+        <div class="nav-section">
+            <div class="nav-section-label">Main</div>
+            <a href="{{ route('resident.index') }}" class="nav-link"><i class="fas fa-gauge-high"></i> Dashboard</a>
+            <a href="{{ route('program.index') }}" class="nav-link active"><i class="fas fa-clipboard-list"></i> Programs</a>
         </div>
-        <div class="program-count">{{ $ongoingPrograms->count() }} Programs</div>
-      </div>
-      
-      @if($ongoingPrograms->count() > 0)
-        <div class="program-grid">
-          @foreach($ongoingPrograms as $program)
-            <div class="program-card">
-              <div class="program-title">{{ $program->title }}</div>
-              <div class="program-location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ $program->location }}
-              </div>
-              <div class="program-description">{{ $program->description }}</div>
-              <div class="program-dates">
-                <span>Started: {{ $program->start_date->format('M d, Y') }}</span>
-                @if($program->end_date)
-                  <span>Until: {{ $program->end_date->format('M d, Y') }}</span>
-                @endif
-              </div>
-              <div class="program-status status-ongoing">
-                {{ $program->getStatusLabel() }}
-              </div>
-              <div class="program-actions">
-                <a href="#" onclick="editProgram({{ $program->id }})" class="btn-icon btn-edit">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this program?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn-icon btn-delete" style="background: none; border: none; cursor: pointer; padding: 5px; margin: 0 2px; border-radius: 4px; transition: all 0.2s;">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Services</div>
+            <a href="{{ route('services') }}" class="nav-link"><i class="fas fa-concierge-bell"></i> Services</a>
+            <a href="{{ route('tryall') }}" class="nav-link"><i class="fas fa-sms"></i> SMS Alert</a>
+            <a href="{{ route('facilities') }}" class="nav-link"><i class="fas fa-building"></i> Facilities</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);padding:0 8px;margin-bottom:6px;">System</div>
+            <a href="{{ route('activity-logs.index') }}" class="nav-link"><i class="fas fa-scroll"></i> Activity Log</a>
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="button" class="nav-link nav-link-danger" onclick="openLogoutModal()">
+                    <i class="fas fa-right-from-bracket"></i> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main">
+
+        <!-- Header -->
+        <div class="page-header anim">
+            <div>
+                <p class="page-eyebrow">Administration</p>
+                <h1 class="page-title">Program Management</h1>
             </div>
-          @endforeach
+            <button class="btn-add-program" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add Program
+            </button>
         </div>
-      @else
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-hourglass-half"></i>
-          </div>
-          <div class="empty-text">No ongoing programs</div>
-          <div class="empty-subtext">Programs will appear here when their start date arrives</div>
-        </div>
-      @endif
-    </div>
 
-    <!-- Completed Programs -->
-    <div class="program-section">
-      <div class="section-header">
-        <div class="section-title">
-          <div class="section-icon completed-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          Completed Programs
+        @if(session('Success'))
+        <div class="flash-alert success anim" id="flashAlert">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ session('Success') }}</span>
         </div>
-        <div class="program-count">{{ $completedPrograms->count() }} Programs</div>
-      </div>
-      
-      @if($completedPrograms->count() > 0)
-        <div class="program-grid">
-          @foreach($completedPrograms as $program)
-            <div class="program-card">
-              <div class="program-title">{{ $program->title }}</div>
-              <div class="program-location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ $program->location }}
-              </div>
-              <div class="program-description">{{ $program->description }}</div>
-              <div class="program-dates">
-                <span>Completed: {{ $program->end_date ? $program->end_date->format('M d, Y') : $program->start_date->format('M d, Y') }}</span>
-              </div>
-              <div class="program-status status-completed">
-                {{ $program->getStatusLabel() }}
-              </div>
-              <div class="program-actions">
-                <a href="#" onclick="editProgram({{ $program->id }})" class="btn-icon btn-edit">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this program?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn-icon btn-delete" style="background: none; border: none; cursor: pointer; padding: 5px; margin: 0 2px; border-radius: 4px; transition: all 0.2s;">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
+        @endif
+
+        <!-- Upcoming -->
+        <div class="program-section anim delay-1">
+            <div class="section-head">
+                <div class="section-title-row">
+                    <div class="section-icon icon-upcoming"><i class="fas fa-clock"></i></div>
+                    <span class="section-title">Upcoming Programs</span>
+                </div>
+                <span class="section-badge">{{ $upcomingPrograms->count() }}</span>
             </div>
-          @endforeach
+
+            @if($upcomingPrograms->count() > 0)
+            <div class="program-grid">
+                @foreach($upcomingPrograms as $program)
+                <div class="program-card upcoming">
+                    <div class="prog-title">{{ $program->title }}</div>
+                    <div class="prog-location"><i class="fas fa-location-dot"></i> {{ $program->location ?? 'TBD' }}</div>
+                    @if($program->description)
+                    <div class="prog-desc">{{ $program->description }}</div>
+                    @endif
+                    <div class="prog-dates">
+                        <span><i class="fas fa-calendar-day" style="margin-right:4px;color:var(--teal);font-size:10px;"></i>Start: {{ $program->start_date->format('M d, Y') }}</span>
+                        @if($program->end_date)<span>End: {{ $program->end_date->format('M d, Y') }}</span>@endif
+                    </div>
+                    <div class="prog-status status-upcoming">{{ $program->getStatusLabel() }}</div>
+                    <div class="prog-actions">
+                        <button class="prog-btn" onclick="editProgram({{ $program->id }})" title="Edit"><i class="fas fa-pen"></i></button>
+                        <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this program?');">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="prog-btn del" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="empty-state">
+                <div class="empty-icon-wrap"><i class="fas fa-calendar-plus"></i></div>
+                <div class="empty-title">No upcoming programs</div>
+                <div class="empty-sub">Add a program with a future start date to see it here.</div>
+            </div>
+            @endif
         </div>
-      @else
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-flag-checkered"></i>
-          </div>
-          <div class="empty-text">No completed programs</div>
-          <div class="empty-subtext">Completed programs will appear here</div>
+
+        <!-- Ongoing -->
+        <div class="program-section anim delay-2">
+            <div class="section-head">
+                <div class="section-title-row">
+                    <div class="section-icon icon-ongoing"><i class="fas fa-play-circle"></i></div>
+                    <span class="section-title">Ongoing Programs</span>
+                </div>
+                <span class="section-badge">{{ $ongoingPrograms->count() }}</span>
+            </div>
+
+            @if($ongoingPrograms->count() > 0)
+            <div class="program-grid">
+                @foreach($ongoingPrograms as $program)
+                <div class="program-card ongoing">
+                    <div class="prog-title">{{ $program->title }}</div>
+                    <div class="prog-location"><i class="fas fa-location-dot"></i> {{ $program->location ?? 'TBD' }}</div>
+                    @if($program->description)
+                    <div class="prog-desc">{{ $program->description }}</div>
+                    @endif
+                    <div class="prog-dates">
+                        <span><i class="fas fa-calendar-day" style="margin-right:4px;color:var(--teal);font-size:10px;"></i>Started: {{ $program->start_date->format('M d, Y') }}</span>
+                        @if($program->end_date)<span>Until: {{ $program->end_date->format('M d, Y') }}</span>@endif
+                    </div>
+                    <div class="prog-status status-ongoing">{{ $program->getStatusLabel() }}</div>
+                    <div class="prog-actions">
+                        <button class="prog-btn" onclick="editProgram({{ $program->id }})" title="Edit"><i class="fas fa-pen"></i></button>
+                        <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this program?');">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="prog-btn del" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="empty-state">
+                <div class="empty-icon-wrap"><i class="fas fa-hourglass-half"></i></div>
+                <div class="empty-title">No ongoing programs</div>
+                <div class="empty-sub">Programs appear here once their start date has passed.</div>
+            </div>
+            @endif
         </div>
-      @endif
+
+        <!-- Completed -->
+        <div class="program-section anim delay-3">
+            <div class="section-head">
+                <div class="section-title-row">
+                    <div class="section-icon icon-completed"><i class="fas fa-circle-check"></i></div>
+                    <span class="section-title">Completed Programs</span>
+                </div>
+                <span class="section-badge">{{ $completedPrograms->count() }}</span>
+            </div>
+
+            @if($completedPrograms->count() > 0)
+            <div class="program-grid">
+                @foreach($completedPrograms as $program)
+                <div class="program-card completed">
+                    <div class="prog-title">{{ $program->title }}</div>
+                    <div class="prog-location"><i class="fas fa-location-dot"></i> {{ $program->location ?? 'TBD' }}</div>
+                    @if($program->description)
+                    <div class="prog-desc">{{ $program->description }}</div>
+                    @endif
+                    <div class="prog-dates">
+                        <span><i class="fas fa-calendar-check" style="margin-right:4px;color:var(--green);font-size:10px;"></i>
+                        Completed: {{ $program->end_date ? $program->end_date->format('M d, Y') : $program->start_date->format('M d, Y') }}</span>
+                    </div>
+                    <div class="prog-status status-completed">{{ $program->getStatusLabel() }}</div>
+                    <div class="prog-actions">
+                        <button class="prog-btn" onclick="editProgram({{ $program->id }})" title="Edit"><i class="fas fa-pen"></i></button>
+                        <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this program?');">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="prog-btn del" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="empty-state">
+                <div class="empty-icon-wrap"><i class="fas fa-flag-checkered"></i></div>
+                <div class="empty-title">No completed programs</div>
+                <div class="empty-sub">Finished programs will appear here.</div>
+            </div>
+            @endif
+        </div>
+
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toast-msg">Done!</span></div>
+
+    <!-- ══ ADD / EDIT PROGRAM MODAL ══ -->
+    <div class="modal-backdrop" id="programBackdrop">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title" id="modalTitle">Add New Program</div>
+                    <div class="modal-head-sub" id="modalSub">Fill in the details to create a program.</div>
+                </div>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="programForm" action="{{ route('program.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="_method" id="formMethod" value="POST">
+
+                    <div class="form-group">
+                        <label class="form-label">Program Title</label>
+                        <select name="title" id="programTitleSelect" class="form-control" required>
+                            <option value="">Select a program type…</option>
+                            <option value="Medical Mission">Medical Mission</option>
+                            <option value="Clean-up Drive">Clean-up Drive</option>
+                            <option value="Youth Sports League">Youth Sports League</option>
+                            <option value="Disaster Preparedness Training">Disaster Preparedness Training</option>
+                            <option value="Senior Citizens Outreach">Senior Citizens Outreach</option>
+                            <option value="Food Distribution Program">Food Distribution Program</option>
+                            <option value="Health and Wellness Campaign">Health and Wellness Campaign</option>
+                            <option value="Educational Assistance Program">Educational Assistance Program</option>
+                            <option value="Infrastructure Development">Infrastructure Development</option>
+                            <option value="Environmental Protection">Environmental Protection</option>
+                            <option value="Community Building Activity">Community Building Activity</option>
+                            <option value="Livelihood Training Program">Livelihood Training Program</option>
+                            <option value="Others">Others (custom)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="customGroup" style="display:none;">
+                        <label class="form-label">Custom Program Name</label>
+                        <input type="text" name="custom_title" id="customTitle" class="form-control" placeholder="Enter program name…">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Purok / Location</label>
+                        <select name="location" class="form-control">
+                            <option value="">Select Purok…</option>
+                            @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
+                            <option value="{{ $p }}">{{ $p }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" placeholder="Describe the program…"></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date (optional)</label>
+                            <input type="date" name="end_date" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fas fa-floppy-disk"></i> <span id="submitLabel">Add Program</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Add Program Modal -->
-<div class="modal-overlay" id="addProgramOverlay" onclick="closeAddProgramModal()"></div>
-<div class="modal" id="addProgramModal">
-  <div class="modal-header">
-    <h3 class="modal-title">Add New Program</h3>
-    <button onclick="closeAddProgramModal()" class="modal-close">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  
-  <form action="{{ route('program.store') }}" method="POST" id="programForm">
-    @csrf
-    <div class="form-group">
-      <label class="form-label">Program Title *</label>
-      <select name="title" class="form-input" required id="programTitleSelect">
-        <option value="">Select a program type...</option>
-        <option value="Medical Mission">Medical Mission</option>
-        <option value="Clean-up Drive">Clean-up Drive</option>
-        <option value="Youth Sports League">Youth Sports League</option>
-        <option value="Disaster Preparedness Training">Disaster Preparedness Training</option>
-        <option value="Senior Citizens Outreach">Senior Citizens Outreach</option>
-        <option value="Food Distribution Program">Food Distribution Program</option>
-        <option value="Health and Wellness Campaign">Health and Wellness Campaign</option>
-        <option value="Educational Assistance Program">Educational Assistance Program</option>
-        <option value="Infrastructure Development">Infrastructure Development</option>
-        <option value="Environmental Protection">Environmental Protection</option>
-        <option value="Community Building Activity">Community Building Activity</option>
-        <option value="Livelihood Training Program">Livelihood Training Program</option>
-        <option value="Others">Others</option>
-      </select>
+    <!-- ══ LOGOUT MODAL ══ -->
+    <div class="modal-backdrop" id="logoutBackdrop">
+        <div class="modal-box" style="max-width:380px;">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Confirm Logout</div>
+                    <div class="modal-head-sub">You will be signed out of B-DEAMS.</div>
+                </div>
+                <button class="modal-close" onclick="closeLogoutModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13.5px;color:var(--text-mid);line-height:1.6;">Are you sure you want to log out?</p>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeLogoutModal()">Stay</button>
+                    <button class="btn-submit danger" onclick="document.getElementById('logoutForm').submit()">
+                        <i class="fas fa-right-from-bracket"></i> Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <div class="form-group" id="customProgramGroup" style="display: none;">
-      <label class="form-label">Custom Program Name *</label>
-      <input type="text" name="custom_title" class="form-input" id="customProgramInput" placeholder="Enter custom program name...">
-    </div>
-    
-    <div class="form-group">
-      <label class="form-label">Purok (Optional)</label>
-      <select name="location" class="form-input">
-        <option value="">Select a Purok...</option>
-        <option value="Purok I">Purok I</option>
-        <option value="Purok II">Purok II</option>
-        <option value="Purok III">Purok III</option>
-        <option value="Purok IV">Purok IV</option>
-        <option value="Purok V">Purok V</option>
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label class="form-label">Description</label>
-      <textarea name="description" class="form-input form-textarea" placeholder="Describe the program details..."></textarea>
-    </div>
-    
-    <div class="form-group">
-      <label class="form-label">Start Date *</label>
-      <input type="date" name="start_date" class="form-input" required>
-    </div>
-    
-    <div class="form-group">
-      <label class="form-label">End Date (Optional)</label>
-      <input type="date" name="end_date" class="form-input">
-    </div>
-    
-    <div class="modal-footer">
-      <button type="button" onclick="closeAddProgramModal()" class="btn-cancel">Cancel</button>
-      <button type="submit" class="btn-submit" id="submitBtn" onclick="console.log('Form submitted - Action:', document.querySelector('#programForm').action); console.log('Method field:', document.querySelector('#programForm input[name="_method"]?.value);">Add Program</button>
-    </div>
-  </form>
-</div>
 
-<!-- Logout Confirmation Modal -->
-<div class="modal-overlay" id="logoutModalOverlay" onclick="closeLogoutModal()"></div>
-<div class="modal" id="logoutModal">
-  <div class="modal-header">
-    <h3 class="modal-title">Log Out</h3>
-    <button onclick="closeLogoutModal()" class="modal-close">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  <div class="modal-body">
-    <p>Are you sure you want to log out?</p>
-  </div>
-  <div class="modal-footer">
-    <button type="button" onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
-    <button type="button" class="btn-submit" style="background: #dc2626;" onclick="document.getElementById('logoutForm').submit()">Yes, Log Out</button>
-  </div>
-</div>
+    <script>
+        // ── Modal helpers ──
+        function openBD(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+        function closeBD(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
 
-<script>
-function openLogoutModal() {
-    document.getElementById('logoutModal').style.display = 'block';
-    document.getElementById('logoutModalOverlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutModal').style.display = 'none';
-    document.getElementById('logoutModalOverlay').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// Modal functions
-function openAddProgramModal() {
-    // Reset modal to add mode
-    document.querySelector('#addProgramModal .modal-title').textContent = 'Add New Program';
-    document.querySelector('#addProgramModal form').action = '{{ route("program.store") }}';
-    document.getElementById('submitBtn').textContent = 'Add Program';
-    
-    // Remove method field if exists
-    let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
-    if (methodField) {
-        methodField.remove();
-    }
-    
-    // Reset form
-    document.querySelector('#addProgramModal form').reset();
-    
-    document.getElementById('addProgramModal').style.display = 'block';
-    document.getElementById('addProgramOverlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function openEditProgramModal() {
-    // This function is called after editProgram has set up the modal
-    document.getElementById('addProgramModal').style.display = 'block';
-    document.getElementById('addProgramOverlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeAddProgramModal() {
-    document.getElementById('addProgramModal').style.display = 'none';
-    document.getElementById('addProgramOverlay').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    
-    // Reset to add mode when closing
-    document.querySelector('#addProgramModal .modal-title').textContent = 'Add New Program';
-    document.querySelector('#addProgramModal form').action = '{{ route("program.store") }}';
-    document.getElementById('submitBtn').textContent = 'Add Program';
-    
-    // Remove method field if exists
-    let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
-    if (methodField) {
-        methodField.remove();
-    }
-    
-    // Reset form
-    document.querySelector('#addProgramModal form').reset();
-}
-
-// Alert auto-hide
-setTimeout(() => {
-    const alert = document.getElementById('successAlert');
-    if (alert) {
-        alert.classList.add('hide');
-        setTimeout(() => alert.remove(), 500);
-    }
-}, 5000);
-
-// Program actions
-function editProgram(id) {
-    // Fetch program data from API
-    fetch(`/program/${id}`)
-        .then(response => response.json())
-        .then(program => {
-            // Populate edit modal fields
-            document.querySelector('#addProgramModal .modal-title').textContent = 'Edit Program';
-            document.querySelector('#addProgramModal form').action = `/program/${id}`;
-            document.getElementById('submitBtn').textContent = 'Update Program';
-            
-            // Add method field for PUT request
-            let methodField = document.querySelector('#addProgramModal form input[name="_method"]');
-            if (!methodField) {
-                methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                document.querySelector('#addProgramModal form').appendChild(methodField);
-            }
-            methodField.value = 'PUT';
-            
-            // Populate form fields
-            document.querySelector('select[name="title"]').value = program.title;
-            document.querySelector('select[name="location"]').value = program.location || '';
-            document.querySelector('textarea[name="description"]').value = program.description || '';
-            
-            // Format dates for input fields (YYYY-MM-DD format)
-            if (program.start_date) {
-                const startDate = new Date(program.start_date);
-                document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
-            }
-            
-            if (program.end_date) {
-                const endDate = new Date(program.end_date);
-                document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
-            } else {
-                document.querySelector('input[name="end_date"]').value = '';
-            }
-            
-            openEditProgramModal();
-        })
-        .catch(error => {
-            console.error('Error fetching program:', error);
-            alert('Error loading program data. Please try again.');
+        ['programBackdrop','logoutBackdrop'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if(e.target.id===id) closeBD(id); });
         });
-}
 
-// Remove old placeholder functions
-function deleteProgram(id) {
-    // This function is no longer needed as we use form submission
-}
+        function openLogoutModal()  { openBD('logoutBackdrop'); }
+        function closeLogoutModal() { closeBD('logoutBackdrop'); }
 
-function confirmLogout(button) {
-    if (confirm('Are you sure you want to logout?')) {
-        button.closest('form').submit();
-    }
-}
-
-// Auto-update statuses every minute
-setInterval(() => {
-    fetch('/program/update-statuses', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            'Content-Type': 'application/json'
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent  = 'Add New Program';
+            document.getElementById('modalSub').textContent    = 'Fill in the details to create a program.';
+            document.getElementById('submitLabel').textContent = 'Add Program';
+            document.getElementById('formMethod').value        = 'POST';
+            document.getElementById('programForm').action      = '{{ route("program.store") }}';
+            document.getElementById('programForm').reset();
+            document.getElementById('customGroup').style.display = 'none';
+            openBD('programBackdrop');
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Statuses updated:', data.message);
-        // Optionally refresh the page or update the UI
-        if (data.success) {
-            location.reload();
-        }
-    })
-    .catch(error => {
-        console.error('Error updating statuses:', error);
-    });
-}, 60000); // Update every minute
 
-// Handle Program Title dropdown change
-document.addEventListener('DOMContentLoaded', function() {
-    const programTitleSelect = document.getElementById('programTitleSelect');
-    const customProgramGroup = document.getElementById('customProgramGroup');
-    const customProgramInput = document.getElementById('customProgramInput');
-    
-    if (programTitleSelect && customProgramGroup) {
-        programTitleSelect.addEventListener('change', function() {
+        function closeModal() { closeBD('programBackdrop'); }
+
+        function editProgram(id) {
+            fetch(`/program/${id}`)
+                .then(r => r.json())
+                .then(p => {
+                    document.getElementById('modalTitle').textContent  = 'Edit Program';
+                    document.getElementById('modalSub').textContent    = 'Update the program details below.';
+                    document.getElementById('submitLabel').textContent = 'Save Changes';
+                    document.getElementById('formMethod').value        = 'PUT';
+                    document.getElementById('programForm').action      = `/program/${id}`;
+
+                    document.querySelector('select[name="title"]').value       = p.title;
+                    document.querySelector('select[name="location"]').value    = p.location || '';
+                    document.querySelector('textarea[name="description"]').value = p.description || '';
+                    document.querySelector('input[name="start_date"]').value   = p.start_date ? p.start_date.slice(0,10) : '';
+                    document.querySelector('input[name="end_date"]').value     = p.end_date   ? p.end_date.slice(0,10)   : '';
+                    document.getElementById('customGroup').style.display       = 'none';
+
+                    openBD('programBackdrop');
+                })
+                .catch(() => alert('Error loading program data.'));
+        }
+
+        // ── Custom title toggle ──
+        document.getElementById('programTitleSelect').addEventListener('change', function() {
+            const grp = document.getElementById('customGroup');
+            const inp = document.getElementById('customTitle');
             if (this.value === 'Others') {
-                customProgramGroup.style.display = 'block';
-                customProgramInput.required = true;
+                grp.style.display = 'block'; inp.required = true;
             } else {
-                customProgramGroup.style.display = 'none';
-                customProgramInput.required = false;
-                customProgramInput.value = '';
+                grp.style.display = 'none'; inp.required = false; inp.value = '';
             }
         });
-        
-        // Handle form submission to use custom title if "Others" is selected
-        const programForm = document.getElementById('programForm');
-        if (programForm) {
-            programForm.addEventListener('submit', function(e) {
-                if (programTitleSelect.value === 'Others' && customProgramInput.value.trim()) {
-                    // Create a hidden input for the custom title
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'title';
-                    hiddenInput.value = customProgramInput.value.trim();
-                    
-                    // Replace the original title select value
-                    programTitleSelect.name = 'title_original';
-                    programTitleSelect.removeAttribute('required');
-                    
-                    programForm.appendChild(hiddenInput);
-                }
-            });
-        }
-    }
-});
-</script>
 
+        // ── Handle custom title on submit ──
+        document.getElementById('programForm').addEventListener('submit', function(e) {
+            const sel = document.getElementById('programTitleSelect');
+            const inp = document.getElementById('customTitle');
+            if (sel.value === 'Others' && inp.value.trim()) {
+                const h = document.createElement('input');
+                h.type = 'hidden'; h.name = 'title'; h.value = inp.value.trim();
+                sel.name = 'title_original'; sel.removeAttribute('required');
+                this.appendChild(h);
+            }
+        });
+
+        // ── Flash auto-dismiss ──
+        document.addEventListener('DOMContentLoaded', () => {
+            const f = document.getElementById('flashAlert');
+            if (f) { setTimeout(() => { f.style.opacity='0'; f.style.transition='opacity 0.4s'; setTimeout(()=>f.remove(),400); }, 4500); }
+        });
+
+        // ── Auto-update statuses ──
+        setInterval(() => {
+            fetch('/program/update-statuses', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(d => { if (d.success) location.reload(); })
+            .catch(() => {});
+        }, 60000);
+    </script>
 </body>
 </html>

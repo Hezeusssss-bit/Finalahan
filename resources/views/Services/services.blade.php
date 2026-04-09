@@ -3,1138 +3,1447 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Barangay Officials</title>
+<meta name="csrf-token" content="{{ csrf_token() }}" />
+<title>Services — B-DEAMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; display: flex; }
-
-/* Sidebar */
-.sidebar { 
-    width: 280px; 
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
-    min-height: 100vh; 
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 0; 
-    position: fixed; 
-    left: 0; 
-    top: 0; 
-    display: flex; 
-    flex-direction: column;
-    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo { 
-    color: #fff; 
-    font-size: 28px; 
-    font-weight: 800; 
-    padding: 30px; 
-    margin-bottom: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.logo i { 
-    color: #3b82f6; 
-    font-size: 32px;
-    filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)); }
-    to { filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)); }
-}
-
-.nav-section {
-    margin-bottom: 25px;
-    padding: 0 20px;
-}
-
-.nav-section-title {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    padding: 0 15px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-section-title::before {
-    content: '';
-    width: 3px;
-    height: 3px;
-    background: #3b82f6;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.nav-menu { 
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-item { 
-    color: rgba(255, 255, 255, 0.8); 
-    padding: 14px 20px; 
-    text-decoration: none; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    cursor: pointer; 
-    font-size: 15px;
-    font-weight: 500;
-    position: relative;
-    margin: 3px 0;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.6s;
-}
-
-.nav-item:hover::before {
-    left: 100%;
-}
-
-.nav-item i { 
-    width: 24px; 
-    text-align: center; 
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.4s ease;
-}
-
-.nav-item:hover { 
-    background: rgba(59, 130, 246, 0.15); 
-    color: #fff;
-    transform: translateX(8px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-}
-
-.nav-item:hover i {
-    color: #60a5fa;
-    transform: scale(1.15) rotate(5deg);
-}
-
-.nav-item.active { 
-    color: #fff; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-    font-weight: 600;
-    transform: translateX(5px);
-}
-
-.nav-item.active::before {
-    display: none;
-}
-
-.nav-item.active i {
-    color: #fff;
-    transform: scale(1.1);
-}
-
-.sidebar-footer { 
-    margin-top: auto; 
-    padding: 25px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.sidebar-footer .nav-item {
-    margin: 3px 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.sidebar-footer .nav-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(5px);
-    box-shadow: none;
-}
-
-.sidebar-footer .nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: none;
-}
-
-/* Main Content */
-.main-content { 
-    margin-left: 280px; 
-    flex: 1; 
-    padding: 35px; 
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    min-height: 100vh;
-}
-
-/* Header */
-.header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 40px;
-    padding: 30px 35px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-}
-
-.header h1 { 
-    color: #1e293b; 
-    font-size: 36px; 
-    font-weight: 800;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-}
-
-/* Stats Cards */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent);
-}
-
-.stat-card h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    opacity: 0.9;
-}
-
-.stat-card .number {
-    font-size: 32px;
-    font-weight: 800;
-    margin-bottom: 5px;
-}
-
-.stat-card .icon {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 48px;
-    opacity: 0.2;
-}
-
-/* Container */
-.container { 
-    background: white; 
-    border-radius: 20px; 
-    padding: 30px; 
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); 
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    margin-bottom: 30px;
-}
-
-/* Officials Sections */
-.officials-section {
-    margin-bottom: 40px;
-}
-
-.section-header {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    padding: 20px 25px;
-    border-radius: 15px 15px 0 0;
-    font-size: 18px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 0;
-}
-
-.officials-list {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0 0 15px 15px;
-    padding: 20px;
-}
-
-.official-card {
-    display: flex;
-    align-items: center;
-    padding: 20px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-    background: #fafafa;
-}
-
-.official-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    background: white;
-}
-
-.official-photo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 20px;
-    overflow: hidden;
-}
-
-.official-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.official-photo .default-icon {
-    color: white;
-    font-size: 32px;
-}
-
-.official-info {
-    flex: 1;
-}
-
-.official-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 5px;
-}
-
-.official-position {
-    font-size: 14px;
-    color: #64748b;
-    margin-bottom: 8px;
-}
-
-.official-details {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 8px;
-}
-
-.official-details span {
-    font-size: 13px;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.official-details i {
-    color: #3b82f6;
-    width: 16px;
-}
-
-.official-status {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.status-active {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-inactive {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #6b7280;
-}
-
-.empty-state i {
-    font-size: 48px;
-    color: #d1d5db;
-    margin-bottom: 20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar { width: 70px; }
-    .logo span, .nav-item span { display: none; }
-    .main-content { margin-left: 70px; padding: 20px; }
-    .stats-grid { grid-template-columns: 1fr; }
-}
-
-/* Premium Modal Styles - Glassmorphism */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.modal-overlay.active {
-    display: flex;
-    opacity: 1;
-}
-
-.modal {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-    border-radius: 24px;
-    padding: 0;
-    width: 90%;
-    max-width: 650px;
-    max-height: 90vh;
-    overflow: hidden;
-    box-shadow: 
-        0 25px 80px rgba(0, 0, 0, 0.25),
-        0 10px 30px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    transform: scale(0.9) translateY(20px);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.modal-overlay.active .modal {
-    transform: scale(1) translateY(0);
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    padding: 28px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.modal-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-}
-
-.modal-header h2 {
-    color: white;
-    font-size: 26px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.modal-header h2::before {
-    content: '\f234';
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    font-size: 24px;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.close-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 24px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    padding: 0;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.close-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-    transform: rotate(90deg);
-}
-
-.modal form {
-    padding: 32px;
-    max-height: calc(90vh - 100px);
-    overflow-y: auto;
-}
-
-.form-group {
-    margin-bottom: 24px;
-}
-
-.form-group label {
-    display: block;
-    color: #374151;
-    font-weight: 600;
-    margin-bottom: 10px;
-    font-size: 14px;
-    letter-spacing: 0.3px;
-}
-
-.form-group input:not([type="checkbox"]),
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 14px 18px;
-    border: 2px solid #e5e7eb;
-    border-radius: 14px;
-    font-size: 15px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: inherit;
-    background: #fafafa;
-    color: #1f2937;
-}
-
-.form-group input:hover:not([type="checkbox"]),
-.form-group select:hover,
-.form-group textarea:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
-}
-
-.form-group input:focus:not([type="checkbox"]),
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.1);
-    transform: translateY(-1px);
-}
-
-.form-group select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 20px;
-    padding-right: 45px;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-    border-radius: 14px;
-    border: 2px solid #86efac;
-    transition: all 0.3s ease;
-}
-
-.checkbox-group:hover {
-    border-color: #4ade80;
-    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.15);
-}
-
-.checkbox-group input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    accent-color: #10b981;
-    border-radius: 6px;
-}
-
-.checkbox-group label {
-    margin: 0;
-    font-weight: 600;
-    color: #166534;
-    cursor: pointer;
-    user-select: none;
-}
-
-.form-actions {
-    display: flex;
-    gap: 14px;
-    justify-content: flex-end;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 2px solid #f3f4f6;
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    color: #4b5563;
-    border: 2px solid #d1d5db;
-    padding: 14px 28px;
-    border-radius: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-secondary:hover {
-    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-    border-color: #9ca3af;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.6s ease;
-}
-
-.btn-primary:hover::before {
-    left: 100%;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e3a8a 100%);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(0) scale(0.98);
-}
-
-.modal form::-webkit-scrollbar {
-    width: 8px;
-}
-
-.modal form::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-}
-
-.modal form::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-    border-radius: 4px;
-}
-
-.alert {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    padding: 18px 28px;
-    border-radius: 16px;
-    font-weight: 600;
-    z-index: 3000;
-    animation: slideInRight 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.alert::before {
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    font-size: 20px;
-}
-
-.alert-success {
-    background: linear-gradient(135deg, rgba(220, 252, 231, 0.95) 0%, rgba(187, 247, 208, 0.95) 100%);
-    color: #166534;
-    border-color: #86efac;
-}
-
-.alert-success::before {
-    content: '\f00c';
-    color: #22c55e;
-}
-
-.alert-error {
-    background: linear-gradient(135deg, rgba(254, 226, 226, 0.95) 0%, rgba(254, 202, 202, 0.95) 100%);
-    color: #991b1b;
-    border-color: #fca5a5;
-}
-
-.alert-error::before {
-    content: '\f071';
-    color: #ef4444;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%) scale(0.8);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0) scale(1);
-        opacity: 1;
-    }
-}
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --navy-light: #243447;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+            --sidebar-w: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--navy);
+            min-height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .sidebar-brand {
+            padding: 22px 24px 18px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            background: var(--teal);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 300;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .nav-section {
+            padding: 18px 16px 4px;
+        }
+
+        .nav-section-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            padding: 0 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .nav-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255,255,255,0.35);
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.07);
+            color: white;
+        }
+
+        .nav-link:hover i { color: var(--teal); }
+
+        .nav-link.active {
+            background: rgba(14, 165, 160, 0.15);
+            color: white;
+            font-weight: 500;
+        }
+
+        .nav-link.active i { color: var(--teal); }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 12px 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .nav-link-danger:hover {
+            background: rgba(244, 63, 94, 0.12);
+            color: #fca5a5;
+        }
+
+        .nav-link-danger:hover i { color: #fca5a5; }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 36px 40px;
+            min-height: 100vh;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-eyebrow {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        /* ── STAT CARDS ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 26px 28px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+
+        .stat-card.navy::before { background: var(--navy); }
+        .stat-card.teal::before  { background: var(--teal); }
+        .stat-card.green::before { background: var(--green); }
+        .stat-card.amber::before { background: var(--amber); }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .stat-row-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon-wrap {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-icon-wrap.navy { background: #e8ecf0; color: var(--navy); }
+        .stat-icon-wrap.teal { background: var(--teal-light); color: var(--teal); }
+        .stat-icon-wrap.green { background: var(--green-light); color: var(--green); }
+        .stat-icon-wrap.amber { background: var(--amber-light); color: var(--amber); }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .stat-link {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--teal);
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .panel-title i { color: var(--teal); font-size: 14px; }
+        .panel-body { padding: 20px 24px; }
+
+        .container {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        /* ── OFFICIALS SECTIONS ── */
+        .officials-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            background: var(--navy);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 15px 15px 0 0;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0;
+        }
+
+        .officials-list {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0 0 15px 15px;
+            padding: 20px;
+        }
+
+        .official-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: var(--slate-light);
+        }
+
+        .official-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .official-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            overflow: hidden;
+        }
+
+        .official-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .official-photo .default-icon {
+            color: white;
+            font-size: 32px;
+        }
+
+        .official-info {
+            flex: 1;
+        }
+
+        .official-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .official-position {
+            font-size: 14px;
+            color: var(--text-mid);
+            margin-bottom: 8px;
+        }
+
+        .official-details {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 8px;
+        }
+
+        .official-details span {
+            font-size: 13px;
+            color: var(--text-mid);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .official-details i {
+            color: var(--blue);
+            width: 16px;
+        }
+
+        .official-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: var(--green-light);
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background: var(--rose-light);
+            color: #9f1239;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--border);
+            margin-bottom: 20px;
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim       { animation: fadeUp 0.4s ease both; }
+        .delay-1    { animation-delay: 0.07s; }
+        .delay-2    { animation-delay: 0.13s; }
+        .delay-3    { animation-delay: 0.19s; }
+        .delay-4    { animation-delay: 0.25s; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 24px 20px; }
+            .stats-row { grid-template-columns: 1fr; }
+        }
+
+        /* ── MODAL ── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 27, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 88vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+        }
+
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-head {
+            padding: 22px 26px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 10;
+        }
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
+
+        .modal-body { padding: 20px 26px 26px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--slate-light);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 80px; }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-opt {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13.5px;
+            cursor: pointer;
+            color: var(--text-mid);
+        }
+
+        .radio-opt input { accent-color: var(--teal); }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-submit {
+            padding: 9px 24px;
+            border-radius: 10px;
+            border: none;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.green { background: var(--green); }
+        .btn-submit.green:hover { background: #059669; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--navy);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: var(--teal); }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">
-    <i class="fas fa-shield-alt"></i> 
-    <span>B-DEAMS</span>
-  </div>
-  
-  <div class="nav-section">
-    <div class="nav-section-title">Main</div>
-    <nav class="nav-menu">
-      <a href="{{ route('resident.index') }}" class="nav-item">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="{{ route('program.index') }}" class="nav-item">
-        <i class="fas fa-tasks"></i>
-        <span>Programs</span>
-      </a>
-    </nav>
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-section-title">Services</div>
-    <nav class="nav-menu">
-      <a href="{{ route('services') }}" class="nav-item active">
-        <i class="fas fa-concierge-bell"></i>
-        <span>Services</span>
-      </a>
-      <a href="{{ route('tryall') }}" class="nav-item">
-        <i class="fas fa-sms"></i>
-        <span>SMS Alert</span>
-      </a>
-      <a href="{{ route('facilities') }}" class="nav-item">
-        <i class="fas fa-building"></i>
-        <span>Facilities</span>
-      </a>
-    </nav>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="nav-section">
-      <div class="nav-section-title">System</div>
-      <nav class="nav-menu">
-        <a href="{{ route('activity-logs.index') }}" class="nav-item">
-          <i class="fas fa-cog"></i>
-          <span>Activity Log</span>
-        </a>
-        <form id="logoutForm" method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="openLogoutModal()">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        </form>
-      </nav>
-    </div>
-  </div>
-</div>
-
-<!-- Main Content -->
-<div class="main-content">
-  <div class="header">
-    <h1>Barangay Officials</h1>
-    <button onclick="openModal()" class="btn btn-primary">
-      <i class="fas fa-plus"></i> Add Official
-    </button>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h3>Total Officials</h3>
-      <div class="number">{{ $officials->count() }}</div>
-      <i class="fas fa-users icon"></i>
-    </div>
-    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-      <h3>Active Officials</h3>
-      <div class="number">{{ $officials->where('is_active', true)->count() }}</div>
-      <i class="fas fa-check-circle icon"></i>
-    </div>
-    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-      <h3>Barangay Captain</h3>
-      <div class="number">{{ $captains->count() }}</div>
-      <i class="fas fa-crown icon"></i>
-    </div>
-  </div>
-
-  <!-- Barangay Captain Section -->
-  <div class="container">
-    <div class="officials-section">
-      <div class="section-header">
-        <i class="fas fa-crown"></i> Barangay Captain
-      </div>
-      <div class="officials-list">
-        @forelse($captains as $official)
-          <div class="official-card">
-            <div class="official-photo">
-              @if($official->photo_path)
-                <img src="{{ asset('storage/' . $official->photo_path) }}" alt="{{ $official->full_name }}">
-              @else
-                <i class="fas fa-user default-icon"></i>
-              @endif
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <div class="brand-name">B-DEAMS</div>
+                <div class="brand-sub">Evacuation Alert System</div>
             </div>
-            <div class="official-info">
-              <div class="official-name">{{ $official->full_name }}</div>
-              <div class="official-position">Barangay Captain</div>
-              <div class="official-details">
-                <span><i class="fas fa-map-marker-alt"></i> {{ $official->purok ?: 'Not Assigned' }}</span>
-                @if($official->contact_number)
-                  <span><i class="fas fa-phone"></i> {{ $official->contact_number }}</span>
-                @endif
-              </div>
-              <div class="official-status {{ $official->is_active ? 'status-active' : 'status-inactive' }}">
-                {{ $official->is_active ? 'Active' : 'Inactive' }}
-              </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Main</div>
+            <a href="{{ route('resident.index') }}" class="nav-link">
+                <i class="fas fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="{{ route('program.index') }}" class="nav-link">
+                <i class="fas fa-clipboard-list"></i> Programs
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Services</div>
+            <a href="{{ route('services') }}" class="nav-link active">
+                <i class="fas fa-concierge-bell"></i> Services
+            </a>
+            <a href="{{ route('tryall') }}" class="nav-link">
+                <i class="fas fa-sms"></i> SMS Alert
+            </a>
+            <a href="{{ route('facilities') }}" class="nav-link">
+                <i class="fas fa-building"></i> Facilities
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);padding:0 8px;margin-bottom:6px;">System</div>
+            <a href="{{ route('activity-logs.index') }}" class="nav-link">
+                <i class="fas fa-scroll"></i> Activity Log
+            </a>
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="button" class="nav-link nav-link-danger" onclick="openLogoutModal()">
+                    <i class="fas fa-right-from-bracket"></i> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <main class="main">
+
+        <!-- Page Header -->
+        <div class="page-header anim">
+            <p class="page-eyebrow">Services</p>
+            <h1 class="page-title">Barangay Officials</h1>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row anim delay-1">
+            <div class="stat-card navy">
+                <div class="stat-row-inner">
+                    <div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-icon-wrap navy">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ $officials->count() }}</div>
+                <div class="stat-label">Total Officials</div>
             </div>
-          </div>
-        @empty
-          <div class="empty-state">
-            <i class="fas fa-crown"></i>
-            <h3>No Barangay Captain</h3>
-            <p>No captain has been added yet.</p>
-          </div>
-        @endforelse
-      </div>
-    </div>
 
-    <!-- Other Officials Section -->
-    <div class="officials-section">
-      <div class="section-header">
-        <i class="fas fa-users"></i> Other Officials
-      </div>
-      <div class="officials-list">
-        @forelse($otherOfficials as $official)
-          <div class="official-card">
-            <div class="official-photo">
-              @if($official->photo_path)
-                <img src="{{ asset('storage/' . $official->photo_path) }}" alt="{{ $official->full_name }}">
-              @else
-                <i class="fas fa-user default-icon"></i>
-              @endif
+            
+            <div class="stat-card amber">
+                <div class="stat-row-inner">
+                    <div>
+                        <div class="stat-label">Leadership</div>
+                    </div>
+                    <div class="stat-icon-wrap amber">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ $captains->count() }}/1</div>
+                <div class="stat-label">Barangay Captain</div>
             </div>
-            <div class="official-info">
-              <div class="official-name">{{ $official->full_name }}</div>
-              <div class="official-position">{{ $official->position }}</div>
-              <div class="official-details">
-                <span><i class="fas fa-map-marker-alt"></i> {{ $official->purok ?: 'Not Assigned' }}</span>
-                @if($official->contact_number)
-                  <span><i class="fas fa-phone"></i> {{ $official->contact_number }}</span>
-                @endif
-              </div>
-              <div class="official-status {{ $official->is_active ? 'status-active' : 'status-inactive' }}">
-                {{ $official->is_active ? 'Active' : 'Inactive' }}
-              </div>
+
+            <div class="stat-card amber">
+                <div class="stat-row-inner">
+                    <div>
+                        <div class="stat-label">Council</div>
+                    </div>
+                    <div class="stat-icon-wrap amber">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ $kagawads->count() }}/7</div>
+                <div class="stat-label">Kagawad Seats</div>
             </div>
-          </div>
-        @empty
-          <div class="empty-state">
-            <i class="fas fa-users"></i>
-            <h3>No Other Officials</h3>
-            <p>No other officials have been added yet.</p>
-          </div>
-        @endforelse
-      </div>
-    </div>
-  </div>
-</div>
+            </div>
+        </div>
 
-<!-- Add Official Modal -->
-<div id="addOfficialModal" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Add New Official</h2>
-      <button onclick="closeModal()" class="close-btn">&times;</button>
-    </div>
-    
-    <form id="addOfficialForm">
-      @csrf
-      <div class="form-row">
-        <div class="form-group">
-          <label for="first_name">First Name *</label>
-          <input type="text" id="first_name" name="first_name" required>
-        </div>
-        <div class="form-group">
-          <label for="last_name">Last Name *</label>
-          <input type="text" id="last_name" name="last_name" required>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="middle_name">Middle Name</label>
-        <input type="text" id="middle_name" name="middle_name">
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="position">Position *</label>
-          <select id="position" name="position" required>
-            <option value="">Select Position</option>
-            <option value="Captain">Captain</option>
-            <option value="Kagawad">Kagawad</option>
-            <option value="Secretary">Secretary</option>
-            <option value="Treasurer">Treasurer</option>
-            <option value="SK Chairman">SK Chairman</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="purok">Purok *</label>
-          <select id="purok" name="purok" required>
-            <option value="">Select Purok</option>
-            <option value="Purok I">Purok I</option>
-            <option value="Purok II">Purok II</option>
-            <option value="Purok III">Purok III</option>
-            <option value="Purok IV">Purok IV</option>
-            <option value="Purok V">Purok V</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="contact_number">Contact Number</label>
-          <input type="text" id="contact_number" name="contact_number">
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email">
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="term_start">Term Start *</label>
-          <input type="date" id="term_start" name="term_start" required>
-        </div>
-        <div class="form-group">
-          <label for="term_end">Term End *</label>
-          <input type="date" id="term_end" name="term_end" required>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="notes">Notes</label>
-        <textarea id="notes" name="notes" placeholder="Additional notes..."></textarea>
-      </div>
-      
-      <div class="form-group checkbox-group">
-        <input type="checkbox" id="is_active" name="is_active" checked>
-        <label for="is_active">Active</label>
-      </div>
-      
-      <div class="form-actions">
-        <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save"></i> Save Official
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+        <!-- Officials Panel -->
+        <div class="panel anim delay-2">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-users"></i> Barangay Officials Management
+                </div>
+                <button onclick="openAddOfficialModal()" class="btn-submit" style="padding: 8px 20px; font-size: 13px;">
+                    <i class="fas fa-plus"></i> Add Official
+                </button>
+            </div>
+            <div class="panel-body">
+                <!-- Barangay Captain Section -->
+                <div class="officials-section">
+                    <div class="section-header">
+                        <i class="fas fa-crown"></i> Barangay Captain
+                    </div>
+                    <div class="officials-list">
+                        @forelse($captains as $official)
+                          <div class="official-card">
+                            <div class="official-photo">
+                              @if($official->photo_path)
+                                <img src="{{ asset('storage/' . $official->photo_path) }}" alt="{{ $official->full_name }}">
+                              @else
+                                <i class="fas fa-user default-icon"></i>
+                              @endif
+                            </div>
+                            <div class="official-info">
+                              <div class="official-name">{{ $official->full_name }}</div>
+                              <div class="official-position">Barangay Captain</div>
+                              <div class="official-details">
+                                @if($official->contact_number)
+                                  <span><i class="fas fa-phone"></i> {{ $official->contact_number }}</span>
+                                @endif
+                              </div>
+                              <div class="official-status {{ $official->is_active ? 'status-active' : 'status-inactive' }}">
+                                {{ $official->is_active ? 'Active' : 'Inactive' }}
+                              </div>
+                              <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
+                                  <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="deleteOfficial({{ $official->id }}, '{{ $official->full_name }}')" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; background: var(--rose-light); color: var(--rose); border-color: var(--rose);">
+                                  <i class="fas fa-trash"></i> Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        @empty
+                          <div class="empty-state">
+                            <i class="fas fa-crown"></i>
+                            <h3>No Barangay Captain</h3>
+                            <p>No captain has been added yet.</p>
+                          </div>
+                        @endforelse
+                    </div>
+                </div>
 
-<!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Log Out</h2>
-      <button onclick="closeLogoutModal()" class="close-btn">&times;</button>
-    </div>
-    
-    <form style="padding: 32px;">
-      <p style="margin-bottom: 24px; font-size: 16px; color: #374151;">Are you sure you want to log out?</p>
-      
-      <div class="form-actions">
-        <button type="button" onclick="closeLogoutModal()" class="btn btn-secondary">Cancel</button>
-        <button type="button" class="btn btn-primary" style="background: #dc2626; border-color: #dc2626;" onclick="document.getElementById('logoutForm').submit()">Yes, Log Out</button>
-      </div>
-    </form>
-  </div>
-</div>
+                <!-- Kagawad Section -->
+                <div class="officials-section">
+                    <div class="section-header">
+                        <i class="fas fa-users"></i> Kagawad
+                    </div>
+                    <div class="officials-list">
+                        @forelse($kagawads as $official)
+                          <div class="official-card">
+                            <div class="official-photo">
+                              @if($official->photo_path)
+                                <img src="{{ asset('storage/' . $official->photo_path) }}" alt="{{ $official->full_name }}">
+                              @else
+                                <i class="fas fa-user default-icon"></i>
+                              @endif
+                            </div>
+                            <div class="official-info">
+                              <div class="official-name">{{ $official->full_name }}</div>
+                              <div class="official-position">{{ $official->position }}</div>
+                              <div class="official-details">
+                                @if($official->contact_number)
+                                  <span><i class="fas fa-phone"></i> {{ $official->contact_number }}</span>
+                                @endif
+                              </div>
+                              <div class="official-status {{ $official->is_active ? 'status-active' : 'status-inactive' }}">
+                                {{ $official->is_active ? 'Active' : 'Inactive' }}
+                              </div>
+                              <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
+                                  <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="deleteOfficial({{ $official->id }}, '{{ $official->full_name }}')" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; background: var(--rose-light); color: var(--rose); border-color: var(--rose);">
+                                  <i class="fas fa-trash"></i> Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        @empty
+                          <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>No Kagawad</h3>
+                            <p>No kagawad have been added yet.</p>
+                          </div>
+                        @endforelse
+                    </div>
+                </div>
 
-<!-- Alert Container -->
-<div id="alertContainer"></div>
+                <!-- Other Officials Section -->
+                <div class="officials-section">
+                    <div class="section-header">
+                        <i class="fas fa-users"></i> Other Officials
+                    </div>
+                    <div class="officials-list">
+                        @forelse($otherOfficials as $official)
+                          <div class="official-card">
+                            <div class="official-photo">
+                              @if($official->photo_path)
+                                <img src="{{ asset('storage/' . $official->photo_path) }}" alt="{{ $official->full_name }}">
+                              @else
+                                <i class="fas fa-user default-icon"></i>
+                              @endif
+                            </div>
+                            <div class="official-info">
+                              <div class="official-name">{{ $official->full_name }}</div>
+                              <div class="official-position">{{ $official->position }}</div>
+                              <div class="official-details">
+                                @if($official->contact_number)
+                                  <span><i class="fas fa-phone"></i> {{ $official->contact_number }}</span>
+                                @endif
+                              </div>
+                              <div class="official-status {{ $official->is_active ? 'status-active' : 'status-inactive' }}">
+                                {{ $official->is_active ? 'Active' : 'Inactive' }}
+                              </div>
+                              <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
+                                  <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="deleteOfficial({{ $official->id }}, '{{ $official->full_name }}')" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; background: var(--rose-light); color: var(--rose); border-color: var(--rose);">
+                                  <i class="fas fa-trash"></i> Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        @empty
+                          <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>No Other Officials</h3>
+                            <p>No other officials have been added yet.</p>
+                          </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ══ ADD OFFICIAL MODAL ══ -->
+    <div class="modal-backdrop" id="addOfficialModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Add New Official</div>
+                    <div class="modal-head-sub">Enter official details below</div>
+                </div>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addOfficialForm">
+                    @csrf
+                    <div class="form-group">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" id="first_name" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" id="last_name" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Middle Name</label>
+                        <input type="text" id="middle_name" name="middle_name" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Position *</label>
+                        <select id="position" name="position" class="form-control" required>
+                            <option value="">Select Position</option>
+                            <option value="Captain" {{ $currentCaptainsCount >= 1 ? 'disabled' : '' }}>Captain ({{ $currentCaptainsCount }}/1)</option>
+                            <option value="Kagawad" {{ $currentKagawadsCount >= 7 ? 'disabled' : '' }}>Kagawad ({{ $currentKagawadsCount }}/7)</option>
+                            <option value="Secretary">Secretary</option>
+                            <option value="Treasurer">Treasurer</option>
+                            <option value="SK Chairman">SK Chairman</option>
+                        </select>
+                    </div>
+                                        <div class="form-group">
+                        <label class="form-label">Contact Number</label>
+                        <input type="text" id="contact_number" name="contact_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Term Start *</label>
+                        <input type="date" id="term_start" name="term_start" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Term End *</label>
+                        <input type="date" id="term_end" name="term_end" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="notes" name="notes" class="form-control" placeholder="Additional notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-opt">
+                                <input type="radio" name="is_active" value="1" checked>
+                                Active
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="is_active" value="0">
+                                Inactive
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save"></i> Save Official
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ EDIT OFFICIAL MODAL ══ -->
+    <div class="modal-backdrop" id="editOfficialModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Edit Official</div>
+                    <div class="modal-head-sub">Update official details below</div>
+                </div>
+                <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="editOfficialForm">
+                    @csrf
+                    <input type="hidden" id="edit_official_id" name="official_id">
+                    <div class="form-group">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" id="edit_first_name" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" id="edit_last_name" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Middle Name</label>
+                        <input type="text" id="edit_middle_name" name="middle_name" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Position *</label>
+                        <select id="edit_position" name="position" class="form-control" required>
+                            <option value="">Select Position</option>
+                            <option value="Captain" {{ $currentCaptainsCount >= 1 ? 'disabled' : '' }}>Captain ({{ $currentCaptainsCount }}/1)</option>
+                            <option value="Kagawad" {{ $currentKagawadsCount >= 7 ? 'disabled' : '' }}>Kagawad ({{ $currentKagawadsCount }}/7)</option>
+                            <option value="Secretary">Secretary</option>
+                            <option value="Treasurer">Treasurer</option>
+                            <option value="SK Chairman">SK Chairman</option>
+                        </select>
+                    </div>
+                                        <div class="form-group">
+                        <label class="form-label">Contact Number</label>
+                        <input type="text" id="edit_contact_number" name="contact_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="edit_email" name="email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Term Start *</label>
+                        <input type="date" id="edit_term_start" name="term_start" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Term End *</label>
+                        <input type="date" id="edit_term_end" name="term_end" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="edit_notes" name="notes" class="form-control" placeholder="Additional notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-opt">
+                                <input type="radio" name="is_active" value="1" id="edit_active">
+                                Active
+                            </label>
+                            <label class="radio-opt">
+                                <input type="radio" name="is_active" value="0" id="edit_inactive">
+                                Inactive
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save"></i> Update Official
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ LOGOUT MODAL ══ -->
+    <div class="modal-backdrop" id="logoutBackdrop">
+        <div class="modal-box" style="max-width:400px;">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Confirm Logout</div>
+                    <div class="modal-head-sub">You will be signed out of system.</div>
+                </div>
+                <button class="modal-close" onclick="closeLogoutModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13.5px;color:var(--text-mid);line-height:1.6;margin-bottom:4px;">Are you sure you want to log out of B-DEAMS?</p>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeLogoutModal()">Stay</button>
+                    <button class="btn-submit" style="background:var(--rose);" onclick="document.getElementById('logoutForm').submit()">
+                        <i class="fas fa-right-from-bracket"></i> Yes, Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-circle-check"></i>
+        <span id="toast-msg">Done!</span>
+    </div>
 
 <script>
-// Logout Modal Functions
-function openLogoutModal() {
-  document.getElementById('logoutModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
+        // ── Modal helpers ──
+        function openModal(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+        ['logoutBackdrop'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
+        });
+
+        function openLogoutModal()    { openModal('logoutBackdrop'); }
+        function closeLogoutModal()   { closeModal('logoutBackdrop'); }
+
+// Add Official Modal Functions
+function openAddOfficialModal() {
+    document.getElementById('addOfficialModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
-function closeLogoutModal() {
-  document.getElementById('logoutModal').classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-// Modal Functions
-function openModal() {
-  document.getElementById('addOfficialModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('addOfficialModal').classList.remove('active');
-  document.body.style.overflow = '';
-  document.getElementById('addOfficialForm').reset();
+function closeAddOfficialModal() {
+    document.getElementById('addOfficialModal').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('addOfficialForm').reset();
 }
 
 // Close modal when clicking outside
 document.getElementById('addOfficialModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeModal();
-  }
+    if (e.target === this) {
+        closeAddOfficialModal();
+    }
 });
+
+// Toast Function
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    toastMsg.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
 
 // Form Submission
 document.getElementById('addOfficialForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const formData = new FormData(this);
-  const data = Object.fromEntries(formData.entries());
-  data.is_active = document.getElementById('is_active').checked;
-  
-  fetch('{{ route('services.officials.store') }}', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': '{{ csrf_token() }}'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      showAlert('success', result.message);
-      closeModal();
-      // Reload page after 1 second to show new official
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      showAlert('error', 'Error adding official. Please try again.');
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    showAlert('error', 'Error adding official. Please check your input.');
-  });
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('{{ route('services.officials.store') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast(result.message);
+            closeModal();
+            // Add new official to the list dynamically
+            addOfficialToList(result.official);
+        } else {
+            showToast('Error adding official. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error adding official. Please check your input.');
+    });
 });
 
-// Alert Function
-function showAlert(type, message) {
-  const container = document.getElementById('alertContainer');
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${type}`;
-  alert.textContent = message;
-  container.appendChild(alert);
-  
-  setTimeout(() => {
-    alert.remove();
-  }, 5000);
+// Edit Modal Functions
+function openEditModal() {
+    document.getElementById('editOfficialModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
-// Logout confirmation
-function confirmLogout(button) {
-  if (confirm('Are you sure you want to logout?')) {
-    button.closest('form').submit();
-  }
+function closeEditModal() {
+    document.getElementById('editOfficialModal').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('editOfficialForm').reset();
 }
+
+// Function to calculate term end (3 years after term start)
+function calculateTermEnd(termStartDate) {
+    if (!termStartDate) return '';
+    const startDate = new Date(termStartDate);
+    const endDate = new Date(startDate);
+    endDate.setFullYear(startDate.getFullYear() + 3);
+    return endDate.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+}
+
+// Add event listeners for automatic term end calculation
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Official Form
+    const termStartInput = document.getElementById('term_start');
+    const termEndInput = document.getElementById('term_end');
+    
+    if (termStartInput && termEndInput) {
+        termStartInput.addEventListener('change', function() {
+            if (this.value) {
+                termEndInput.value = calculateTermEnd(this.value);
+                termEndInput.min = this.value; // Set minimum date to term start
+            }
+        });
+    }
+    
+    // Edit Official Form
+    const editTermStartInput = document.getElementById('edit_term_start');
+    const editTermEndInput = document.getElementById('edit_term_end');
+    
+    if (editTermStartInput && editTermEndInput) {
+        editTermStartInput.addEventListener('change', function() {
+            if (this.value) {
+                editTermEndInput.value = calculateTermEnd(this.value);
+                editTermEndInput.min = this.value; // Set minimum date to term start
+            }
+        });
+    }
+});
+
+// Function to dynamically add official to the list
+function addOfficialToList(official) {
+    if (!official || !official.position) return;
+    
+    const officialCard = document.createElement('div');
+    officialCard.className = 'official-card anim';
+    officialCard.style.animation = 'fadeUp 0.4s ease both';
+    
+    // Determine official type
+    const isCaptain = official.position.toLowerCase().includes('captain');
+    const isKagawad = official.position.toLowerCase().includes('kagawad');
+    
+    officialCard.innerHTML = `
+        <div class="official-photo">
+            <i class="fas fa-user default-icon"></i>
+        </div>
+        <div class="official-info">
+            <div class="official-name">${official.first_name} ${official.middle_name || ''} ${official.last_name}</div>
+            <div class="official-position">${isCaptain ? 'Barangay Captain' : official.position}</div>
+            <div class="official-details">
+                ${official.contact_number ? `<span><i class="fas fa-phone"></i> ${official.contact_number}</span>` : ''}
+            </div>
+            <div class="official-status ${official.is_active ? 'status-active' : 'status-inactive'}">
+                ${official.is_active ? 'Active' : 'Inactive'}
+            </div>
+            <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                <button onclick="editOfficial(${official.id})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button onclick="deleteOfficial(${official.id}, '${official.first_name} ${official.middle_name || ''} ${official.last_name}')" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; background: var(--rose-light); color: var(--rose); border-color: var(--rose);">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add to the appropriate section
+    let targetList;
+    if (isCaptain) {
+        // Find captains section
+        targetList = document.querySelectorAll('.officials-section')[0]?.querySelector('.officials-list');
+        if (targetList?.querySelector('.empty-state')) {
+            targetList.innerHTML = '';
+        }
+    } else if (isKagawad) {
+        // Find kagawad section (second section)
+        targetList = document.querySelectorAll('.officials-section')[1]?.querySelector('.officials-list');
+        if (targetList?.querySelector('.empty-state')) {
+            targetList.innerHTML = '';
+        }
+    } else {
+        // Find other officials section (third section)
+        targetList = document.querySelectorAll('.officials-section')[2]?.querySelector('.officials-list');
+        if (targetList?.querySelector('.empty-state')) {
+            targetList.innerHTML = '';
+        }
+    }
+    
+    if (targetList) {
+        targetList.appendChild(officialCard);
+    }
+}
+
+// Function to dynamically remove official from DOM
+function removeOfficialFromDOM(officialId) {
+    // Find the official card by ID and remove it
+    const officialCards = document.querySelectorAll('.official-card');
+    officialCards.forEach(card => {
+        const editButton = card.querySelector(`button[onclick*="editOfficial(${officialId})"]`);
+        const deleteButton = card.querySelector(`button[onclick*="deleteOfficial(${officialId}"]`);
+        
+        if (editButton || deleteButton) {
+            card.style.animation = 'fadeUp 0.3s ease both reverse';
+            setTimeout(() => {
+                card.remove();
+                
+                // Check if section is now empty and show empty state
+                const section = card.closest('.officials-section');
+                const remainingCards = section.querySelectorAll('.official-card');
+                if (remainingCards.length === 0) {
+                    const officialsList = section.querySelector('.officials-list');
+                    officialsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-${section.querySelector('.section-header i').className.includes('crown') ? 'crown' : 'users'}"></i>
+                            <h3>No ${section.querySelector('.section-header').textContent.trim().replace('Barangay ', '')}</h3>
+                            <p>No ${section.querySelector('.section-header').textContent.trim().replace('Barangay ', '').toLowerCase()} have been added yet.</p>
+                        </div>
+                    `;
+                }
+            }, 300);
+            return;
+        }
+    });
+}
+
+// Edit Official Function
+function editOfficial(officialId) {
+    fetch(`{{ route('services.officials.get', ':id') }}`.replace(':id', officialId))
+        .then(response => response.json())
+        .then(official => {
+            // Populate the edit form with official data
+            document.getElementById('edit_official_id').value = official.id;
+            document.getElementById('edit_first_name').value = official.first_name || '';
+            document.getElementById('edit_last_name').value = official.last_name || '';
+            document.getElementById('edit_middle_name').value = official.middle_name || '';
+            document.getElementById('edit_position').value = official.position || '';
+            document.getElementById('edit_contact_number').value = official.contact_number || '';
+            document.getElementById('edit_email').value = official.email || '';
+            document.getElementById('edit_term_start').value = official.term_start || '';
+            document.getElementById('edit_term_end').value = official.term_end || '';
+            document.getElementById('edit_notes').value = official.notes || '';
+            
+            // Set active/inactive radio button
+            if (official.is_active) {
+                document.getElementById('edit_active').checked = true;
+            } else {
+                document.getElementById('edit_inactive').checked = true;
+            }
+            
+            openEditModal();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error loading official data.');
+        });
+}
+
+// Delete Official Function
+function deleteOfficial(officialId, officialName) {
+    if (confirm(`Are you sure you want to delete ${officialName}? This action cannot be undone.`)) {
+        fetch(`{{ route('services.officials.delete', ':id') }}`.replace(':id', officialId), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast(result.message, 'success');
+                // Remove official from DOM dynamically
+                removeOfficialFromDOM(officialId);
+            } else {
+                showToast('Error deleting official. Please try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error deleting official. Please try again.');
+        });
+    }
+}
+
+// Edit Form Submission
+document.getElementById('editOfficialForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const officialId = document.getElementById('edit_official_id').value;
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch(`{{ route('services.officials.update', ':id') }}`.replace(':id', officialId), {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast(result.message);
+            closeEditModal();
+            // Reload page after 1 second to show updated official
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast('Error updating official. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error updating official. Please check your input.');
+    });
+});
+
+// Close edit modal when clicking outside
+document.getElementById('editOfficialModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditModal();
+    }
+});
 </script>
 
 </body>

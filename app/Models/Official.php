@@ -15,7 +15,6 @@ class Official extends Model
         'middle_name',
         'last_name',
         'position',
-        'purok',
         'contact_number',
         'email',
         'term_start',

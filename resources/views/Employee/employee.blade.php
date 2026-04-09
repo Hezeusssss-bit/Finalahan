@@ -1,175 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Employee Management - MSWD</title>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Employee Management — B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --navy-light: #243447;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
         }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: #f5f5f5;
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        
+        
+        /* ── MAIN ── */
+        .main {
+            padding: 36px 40px;
             min-height: 100vh;
         }
         
-        .header {
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-eyebrow {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 20px 30px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 12px;
         }
         
-        .header h1 {
-            font-size: 24px;
-            color: #333;
-            margin: 0;
-        }
-        
-        .btn {
-            background: #1a1a2e;
-            color: white;
+        .btn { 
+            padding: 9px 20px; 
+            border-radius: 10px; 
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            transition: all 0.2s;
             text-decoration: none;
         }
+
+        .btn:hover { background: var(--navy-mid); }
+        .btn.green { background: var(--green); }
+        .btn.green:hover { background: #059669; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
+        /* ── PANEL ── */
         .panel {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 24px;
         }
+
+        .panel-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .panel-title i { color: var(--teal); font-size: 14px; }
+        .panel-body { padding: 20px 24px; }
         
+        /* ── TABLE ── */
         .table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--white);
         }
         
         .table th, .table td {
-            padding: 12px 15px;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
         }
         
         .table th {
-            background: #f8f9fa;
+            background: var(--slate-light);
             font-weight: 600;
-            color: #495057;
+            color: var(--text-dark);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         .table tr:hover {
-            background: #f8f9fa;
+            background: var(--slate-light);
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
         }
         
         .btn-icon {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
             margin: 0 2px;
-            border-radius: 4px;
+            border-radius: 8px;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
         }
         
         .btn-icon:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--slate-light);
+            transform: translateY(-1px);
         }
         
-        .modal-overlay {
+        .btn-icon.edit:hover i { color: var(--blue); }
+        .btn-icon.delete:hover i { color: var(--rose); }
+        .btn-icon.assign:hover i { color: var(--green); }
+        
+        /* ── MODAL ── */
+        .modal-backdrop {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            inset: 0;
+            background: rgba(13, 27, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500;
             display: none;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
             background: white;
-            border-radius: 8px;
-            padding: 25px;
-            z-index: 1001;
-            max-height: 90vh;
-            overflow-y: auto;
+            border-radius: 18px;
             width: 90%;
             max-width: 600px;
-            display: none;
+            max-height: 88vh;
+            overflow-y: auto;
             scrollbar-width: none;
-            -ms-overflow-style: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
         }
-        
-        .modal::-webkit-scrollbar {
-            display: none;
+
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        
-        .form-group {
-            margin-bottom: 15px;
+
+        .modal-head {
+            padding: 22px 26px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 10;
         }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-muted);
             font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
         }
-        
-        .form-actions {
+
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
+
+        .modal-body { padding: 20px 26px 26px; }
+
+        .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 18px;
         }
         
-        .btn-outline {
-            background: #fff;
-            border: 1px solid #dee2e6;
-            color: #6c757d;
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 7px;
         }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--slate-light);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 80px; }
         
-        .btn-outline:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
+        .btn-cancel {
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
         }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-submit {
+            padding: 9px 24px;
+            border-radius: 10px;
+            border: none;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.green { background: var(--green); }
+        .btn-submit.green:hover { background: #059669; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
         
         .pagination {
             display: flex;
@@ -177,219 +345,293 @@
             margin-top: 20px;
             gap: 10px;
         }
-        
+
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
         .back-button {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: 40px;
+            height: 40px;
+            background-color: var(--white);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: var(--text-dark);
+            font-size: 1.2rem;
             text-decoration: none;
-            color: #333;
-            transition: all 0.3s ease;
             margin-right: 15px;
             vertical-align: middle;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
         }
-        
+
         .back-button:hover {
+            background-color: var(--slate-light);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        
+
         .back-button i {
-            font-size: 18px;
-            color: #4A4A4A;
+            margin: 0;
         }
         
-        .alert {
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+        /* ── ALERT BANNER ── */
+        .flash-alert {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            padding: 13px 18px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.3s ease both;
         }
-        
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .flash-alert.success { background: var(--green-light); color: #065f46; }
+        .flash-alert.error   { background: var(--rose-light);  color: #9f1239; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim       { animation: fadeUp 0.4s ease both; }
+        .delay-1    { animation-delay: 0.07s; }
+        .delay-2    { animation-delay: 0.13s; }
+        .delay-3    { animation-delay: 0.19s; }
+        .delay-4    { animation-delay: 0.25s; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .quick-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .main { padding: 24px 20px; }
+            .stats-row { grid-template-columns: 1fr; }
+            .quick-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="header" style="display: flex; align-items: center; padding: 20px;">
-        <a href="{{ route('resident.index') }}" class="back-button">
-            <i class="fas fa-chevron-left"></i>
-        </a>
-    </div>
-<div class="main-content">
-    <div class="header">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <h1>Employee Management</h1>
-            <button class="btn" style="display: flex; align-items: center; gap: 8px;" onclick="openAddEmployeeModal()">
-                <i class="fas fa-user-plus"></i>
-                Add Employee
-            </button>
-        </div>
-    </div>
 
-    @if(session('success'))
-        <div class="alert success">
-            <i class="fas fa-check-circle"></i>
-            {{ session('success') }}
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <main class="main">
+        <!-- Page Header -->
+        <div class="page-header anim">
+            <p class="page-eyebrow">Administration</p>
+            <h1 class="page-title">
+                <a href="{{ route('resident.index') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <i class="fas fa-user-tie"></i>
+                Employee Management
+            </h1>
         </div>
-    @endif
-    
-    @if(session('error'))
-        <div class="alert" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ session('error') }}
+
+        <!-- Flash Messages -->
+        @if(session('success'))
+        <div class="flash-alert success anim">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ session('success') }}</span>
         </div>
-    @endif
-    
-    @if($errors->any())
-        <div class="alert" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
-            <i class="fas fa-exclamation-circle"></i>
-            <ul style="margin: 0; padding-left: 20px;">
+        @endif
+        
+        @if(session('error'))
+        <div class="flash-alert error anim">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+        @endif
+        
+        @if($errors->any())
+        <div class="flash-alert error anim">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>
                 @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
+                    {{ $error }}@if(!$loop->last), @endif
                 @endforeach
-            </ul>
+            </span>
         </div>
-    @endif
+        @endif
 
-    <div class="panel full" style="margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div style="font-weight: 700; color: #333; font-size: 16px;">Employee List</div>
-            <div style="position: relative; width: 300px;">
-                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
-                <input type="text" id="searchEmployee" placeholder="Search employees..." style="width: 100%; padding: 8px 15px 8px 40px; border: 1px solid #e9ecef; border-radius: 4px; font-size: 14px;">
+        <!-- Employee List Panel -->
+        <div class="panel anim delay-1">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-users"></i> Employee List
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="position: relative; width: 300px;">
+                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                        <input type="text" id="searchEmployee" placeholder="Search employees..." class="form-control" style="padding-left: 40px;">
+                    </div>
+                    <button class="btn" onclick="openAddEmployeeModal()">
+                        <i class="fas fa-user-plus"></i>
+                        Add Employee
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>Email</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        @forelse($employees as $employee)
+                        <tr>
+                            <td>{{ $employee->name }}</td>
+                            <td>{{ $employee->position }}</td>
+                            <td>{{ $employee->department }}</td>
+                            <td>{{ $employee->email }}</td>
+                            <td style="text-align: right;">
+                                <button onclick="editEmployee({{ $employee->id }});" class="btn-icon edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="openAssignmentModal({{ $employee->id }}, '{{ $employee->name }}')" class="btn-icon assign" title="Assign Task">
+                                    <i class="fas fa-user-check"></i>
+                                </button>
+                                <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-icon delete" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3;"></i>
+                                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No employees found</div>
+                                <div style="font-size: 14px; opacity: 0.7;">Click "Add Employee" to get started.</div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; color: var(--text-muted); font-size: 14px;">
+                    <div>Showing {{ $employees->count() }} employees</div>
+                </div>
             </div>
         </div>
 
-        <div class="table-responsive" style="background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
-                        <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057;">Name</th>
-                        <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057;">Position</th>
-                        <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057;">Department</th>
-                        <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057;">Email</th>
-                        <th style="padding: 12px 15px; text-align: right; font-weight: 600; color: #495057;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="employeeTableBody">
-                    @forelse($employees as $employee)
-                    <tr style="border-bottom: 1px solid #f1f1f1;">
-                        <td style="padding: 12px 15px;">{{ $employee->name }}</td>
-                        <td style="padding: 12px 15px;">{{ $employee->position }}</td>
-                        <td style="padding: 12px 15px;">{{ $employee->department }}</td>
-                        <td style="padding: 12px 15px;">{{ $employee->email }}</td>
-                        <td style="padding: 12px 15px; text-align: right; position: relative;">
-                            <button onclick="editEmployee({{ $employee->id }});" class="btn-icon" title="Edit">
-                                <i class="fas fa-edit" style="color: #4e73df;"></i>
-                            </button>
-                            <button onclick="openAssignmentModal({{ $employee->id }}, '{{ $employee->name }}')" class="btn-icon" title="Assign Task" style="background: #28a745; border: 1px solid #28a745;">
-                                <i class="fas fa-user-check" style="color: white;"></i>
-                            </button>
-                            <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-icon" title="Delete">
-                                    <i class="fas fa-trash-alt" style="color: #e74a3b;"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 20px; color: #6c757d;">
-                            No employees found. Click "Add Employee" to get started.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    </main>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; color: #6c757d; font-size: 14px;">
-            <div>Showing {{ $employees->count() }} of {{ $employees->count() }} employees</div>
+    <!-- ══ EMPLOYEE MODAL ══ -->
+    <div class="modal-backdrop" id="employeeModalOverlay">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title" id="modalTitle">Add New Employee</div>
+                    <div class="modal-head-sub">Fill in the employee details below</div>
+                </div>
+                <button class="modal-close" onclick="closeEmployeeModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm" action="{{ route('employee.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" id="employeeId" name="employee_id">
+                    <input type="hidden" id="formMethod" name="_method" value="POST">
+                    
+                    <div class="form-group">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" id="fullName" name="name" required class="form-control" placeholder="Enter full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" required class="form-control" placeholder="Enter email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" required class="form-control" placeholder="Enter password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password_confirmation" class="form-label">Confirm Password</label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" required class="form-control" placeholder="Confirm password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="position" class="form-label">Position</label>
+                        <select id="position" name="position" required class="form-control">
+                            <option value="">Select position</option>
+                            <option value="Administrator">Administrator</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Officer">Officer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" id="department" name="department" required class="form-control" placeholder="Enter department">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact_number" class="form-label">Contact Number</label>
+                        <input type="text" id="contact_number" name="contact_number" class="form-control" placeholder="Enter contact number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea id="address" name="address" class="form-control" placeholder="Enter address"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" required class="form-control">
+                            <option value="">Select status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="on_leave">On Leave</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hire_date" class="form-label">Hire Date</label>
+                        <input type="date" id="hire_date" name="hire_date" class="form-control">
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeEmployeeModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">Save Employee</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- Add/Edit Employee Modal -->
-<div class="modal-overlay" id="employeeModalOverlay" style="display: none;"></div>
-<div class="modal" id="employeeModal" style="display: none; max-width: 500px;">
-    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: #1a1a2e;" id="modalTitle">Add New Employee</h2>
-        <button onclick="closeEmployeeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-    </div>
-    <form id="employeeForm" action="{{ route('employee.store') }}" method="POST" style="margin-top: 20px;">
-        @csrf
-        <input type="hidden" id="employeeId" name="employee_id">
-        <input type="hidden" id="formMethod" name="_method" value="POST">
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="fullName" style="display: block; margin-bottom: 5px; font-weight: 500;">Full Name</label>
-            <input type="text" id="fullName" name="name" required class="form-control" placeholder="Enter full name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="email" style="display: block; margin-bottom: 5px; font-weight: 500;">Email</label>
-            <input type="email" id="email" name="email" required class="form-control" placeholder="Enter email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="password" style="display: block; margin-bottom: 5px; font-weight: 500;">Password</label>
-            <input type="password" id="password" name="password" required class="form-control" placeholder="Enter password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="password_confirmation" style="display: block; margin-bottom: 5px; font-weight: 500;">Confirm Password</label>
-            <input type="password" id="password_confirmation" name="password_confirmation" required class="form-control" placeholder="Confirm password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="position" style="display: block; margin-bottom: 5px; font-weight: 500;">Position</label>
-            <select id="position" name="position" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                <option value="">Select position</option>
-                <option value="Administrator">Administrator</option>
-                <option value="Staff">Staff</option>
-                <option value="Manager">Manager</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Officer">Officer</option>
-            </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="department" style="display: block; margin-bottom: 5px; font-weight: 500;">Department</label>
-            <input type="text" id="department" name="department" required class="form-control" placeholder="Enter department" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="contact_number" style="display: block; margin-bottom: 5px; font-weight: 500;">Contact Number</label>
-            <input type="text" id="contact_number" name="contact_number" class="form-control" placeholder="Enter contact number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="address" style="display: block; margin-bottom: 5px; font-weight: 500;">Address</label>
-            <textarea id="address" name="address" class="form-control" placeholder="Enter address" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
-        </div>
-        <div class="form-group" style="margin-bottom: 20px;">
-            <label for="hire_date" style="display: block; margin-bottom: 5px; font-weight: 500;">Hire Date</label>
-            <input type="date" id="hire_date" name="hire_date" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee;">
-            <button type="button" class="btn btn-outline" onclick="closeEmployeeModal()" style="background: #f8f9fa; border: 1px solid #ddd; color: #333; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancel</button>
-            <button type="submit" class="btn" style="background: #1a1a2e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;" onclick="console.log('Submit button clicked')">Save Employee</button>
-        </div>
-    </form>
-</div>
 
 <!-- Include any additional scripts here -->
 <script>
+    const csrf = () => document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // ── Modal helpers ──
+    function openModal(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+    ['employeeModalOverlay','assignmentModalOverlay'].forEach(id => {
+        document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
+    });
+
 // Employee CRUD operations
 function openAddEmployeeModal() {
     document.getElementById('modalTitle').textContent = 'Add New Employee';
@@ -405,15 +647,11 @@ function openAddEmployeeModal() {
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById('hire_date').value = `${yyyy}-${mm}-${dd}`;
 
-    document.getElementById('employeeModalOverlay').style.display = 'block';
-    document.getElementById('employeeModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
+    openModal('employeeModalOverlay');
 }
 
 function closeEmployeeModal() {
-    document.getElementById('employeeModalOverlay').style.display = 'none';
-    document.getElementById('employeeModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
+    closeModal('employeeModalOverlay');
 }
 
 function editEmployee(employeeId) {
@@ -435,9 +673,7 @@ function editEmployee(employeeId) {
             document.getElementById('address').value = employee.address || '';
             document.getElementById('hire_date').value = employee.hire_date || '';
             
-            document.getElementById('employeeModalOverlay').style.display = 'block';
-            document.getElementById('employeeModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
+            openModal('employeeModalOverlay');
         })
         .catch(error => {
             console.error('Error fetching employee:', error);
@@ -612,55 +848,60 @@ tr:hover {
         });
     </script>
     
-    <!-- Assignment Modal -->
-<div class="modal-overlay" id="assignmentModalOverlay" style="display: none;"></div>
-<div class="modal" id="assignmentModal" style="display: none; max-width: 500px;">
-    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: #1a1a2e; font-size: 24px; font-weight: 600;">Assign Employee to Evacuation Center</h2>
-        <button type="button" onclick="closeAssignmentModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+    <!-- ══ ASSIGNMENT MODAL ══ -->
+    <div class="modal-backdrop" id="assignmentModalOverlay">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Assign Employee to Evacuation Center</div>
+                    <div class="modal-head-sub">Assign an employee to manage residents at a specific evacuation center</div>
+                </div>
+                <button class="modal-close" onclick="closeAssignmentModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="assignmentForm" onsubmit="submitAssignment(event)">
+                    @csrf
+                    <input type="hidden" id="employeeId" name="employee_id">
+                    
+                    <div class="form-group">
+                        <label for="employeeName" class="form-label">Select Employee</label>
+                        <select id="employeeName" name="employee_name" required class="form-control">
+                            <option value="">Choose an employee...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="evacuationCenter" class="form-label">Evacuation Center</label>
+                        <select id="evacuationCenter" name="evacuation_center" required class="form-control">
+                            <option value="">Select evacuation center...</option>
+                            <option value="Barangay Hall Evacuation Center">Barangay Hall Evacuation Center</option>
+                            <option value="Community Center Evacuation">Community Center Evacuation</option>
+                            <option value="School Gymnasium">School Gymnasium</option>
+                            <option value="Sports Complex">Sports Complex</option>
+                            <option value="Multi-Purpose Hall">Multi-Purpose Hall</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="responsibilities" class="form-label">Responsibilities</label>
+                        <textarea id="responsibilities" name="responsibilities" class="form-control" placeholder="e.g., Organize residents, manage supplies, maintain order..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes" class="form-label">Additional Notes</label>
+                        <textarea id="notes" name="notes" class="form-control" placeholder="Any additional instructions or notes..."></textarea>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeAssignmentModal()">Cancel</button>
+                        <button type="submit" class="btn-submit green">Assign Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    
-    <p style="color: #666; margin-bottom: 25px; font-size: 14px; line-height: 1.5;">Assign an employee to manage and organize residents at a specific evacuation center.</p>
-    
-    <form id="assignmentForm" onsubmit="submitAssignment(event)">
-        @csrf
-        <input type="hidden" id="employeeId" name="employee_id">
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Select Employee</label>
-            <select id="employeeName" name="employee_name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
-                <option value="">Choose an employee...</option>
-            </select>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Evacuation Center</label>
-            <select id="evacuationCenter" name="evacuation_center" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
-                <option value="">Select evacuation center...</option>
-                <option value="Barangay Hall Evacuation Center">Barangay Hall Evacuation Center</option>
-                <option value="Community Center Evacuation">Community Center Evacuation</option>
-                <option value="School Gymnasium">School Gymnasium</option>
-                <option value="Sports Complex">Sports Complex</option>
-                <option value="Multi-Purpose Hall">Multi-Purpose Hall</option>
-            </select>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Responsibilities</label>
-            <textarea id="responsibilities" name="responsibilities" rows="4" placeholder="e.g., Organize residents, manage supplies, maintain order..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Additional Notes</label>
-            <textarea id="notes" name="notes" rows="3" placeholder="Any additional instructions or notes..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
-        </div>
-        
-        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
-            <button type="button" onclick="closeAssignmentModal()" class="btn btn-outline" style="background: #f8f9fa; border: 1px solid #ddd; color: #333; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
-            <button type="submit" class="btn" style="background: #28a745; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 500;">Assign Task</button>
-        </div>
-    </form>
-</div>
+
 
 <script>
 function openAssignmentModal(employeeId, employeeName) {
@@ -696,33 +937,21 @@ function openAssignmentModal(employeeId, employeeName) {
             alert('An error occurred while loading facilities. Please try again.');
         });
     
-    // Simple modal opening - just set display to block
-    const overlay = document.getElementById('assignmentModalOverlay');
-    const modal = document.getElementById('assignmentModal');
+    // Set employee ID and populate employee dropdown
+    document.getElementById('employeeId').value = employeeId;
     
-    if (overlay && modal) {
-        console.log('Elements found, opening modal');
-        document.getElementById('employeeId').value = employeeId;
-        
-        // Simple population of employee dropdown
-        const employeeSelect = document.getElementById('employeeName');
-        if (employeeSelect) {
-            employeeSelect.innerHTML = `<option value="${employeeId}" selected>${employeeName}</option>`;
-        }
-        
-        overlay.style.display = 'block';
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-        console.log('Modal should be visible now');
-    } else {
-        console.error('Modal elements not found!');
-        alert('Error: Modal not found');
+    // Simple population of employee dropdown
+    const employeeSelect = document.getElementById('employeeName');
+    if (employeeSelect) {
+        employeeSelect.innerHTML = `<option value="${employeeId}" selected>${employeeName}</option>`;
     }
+    
+    // Open modal
+    openModal('assignmentModalOverlay');
 }
 
 function closeAssignmentModal() {
-    document.getElementById('assignmentModalOverlay').style.display = 'none';
-    document.getElementById('assignmentModal').style.display = 'none';
+    closeModal('assignmentModalOverlay');
     document.getElementById('assignmentForm').reset();
 }
 

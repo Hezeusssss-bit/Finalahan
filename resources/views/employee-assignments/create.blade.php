@@ -242,12 +242,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   </div>
 </div>
 
-<script>
-function confirmLogout(button) {
-  if (confirm('Are you sure you want to logout?')) {
-    button.closest('form').submit();
-  }
-}
 
 // Set default values based on shift
 document.getElementById('shift').addEventListener('change', function() {

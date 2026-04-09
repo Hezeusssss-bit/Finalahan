@@ -295,14 +295,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <i class="fas fa-cog"></i>
           <span>Activity Log</span>
         </a>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="confirmLogout(this)">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        </form>
-      </nav>
+              </nav>
     </div>
   </div>
 </div>
@@ -424,12 +417,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
   </div>
 </div>
 
-<script>
-function confirmLogout(button) {
-  if (confirm('Are you sure you want to logout?')) {
-    button.closest('form').submit();
-  }
-}
 
 // Set default values based on shift
 document.getElementById('shift').addEventListener('change', function() {

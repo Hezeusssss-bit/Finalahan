@@ -1,685 +1,785 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8" />
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<title>Evacuee Program</title>
-
-<!-- Font Awesome -->
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-<!-- CSRF Token -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Evacuee Program Management - B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; }
-
-
-
-
-
-
-/* Main Content */
-
-.main-content { flex: 1; padding: 30px 40px; }
-
-
-
-/* Header */
-
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-
-.header h1 { color: #1a1a2e; font-size: 28px; font-weight: 700; }
-
-.header-icons { display: flex; gap: 12px; align-items: center; }
-
-.icon-btn { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-
-.icon-btn i { color: #333; font-size: 16px; }
-
-.icon-btn:hover { background: #f5f5f5; transform: translateY(-2px); }
-
-
-
-/* Back button */
-
-.btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid #e5e7eb; background: #fff; color: #1a1a2e; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform .15s ease, box-shadow .15s ease, background .15s ease; font-weight: 600; font-size: 14px; }
-
-.btn-back:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); background:#f9fafb; }
-
-.btn-back i { font-size: 14px; color:#1a1a2e; }
-
-
-
-/* Container */
-
-.container { background: #fff; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-
-
-
-/* Toolbar */
-
-.toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:20px; }
-
-.toolbar .select, .toolbar .search { border:1px solid #e5e7eb; background:#fff; color:#1a1a2e; border-radius:10px; padding:10px 12px; font-size:14px; }
-
-.toolbar .search { min-width: 240px; }
-
-.btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:12px; border:1px solid #e5e7eb; text-decoration:none; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
-
-.btn.add { background:#e9ecef; color:#1a1a2e; }
-
-.btn.export { background:#17002B; color:#fff; border-color:#17002B; }
-
-.btn.export i { font-size:13px; }
-
-
-
-/* Table */
-
-.table-wrap { margin-top:16px; border:1px solid #eee; border-radius:12px; overflow:hidden; }
-
-table { width:100%; border-collapse:collapse; background:#fff; }
-
-thead th { background:#fafafa; color:#6b7280; font-size:12px; letter-spacing:0.6px; text-transform:uppercase; text-align:left; padding:14px 16px; }
-
-tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-size:14px; }
-
-.actions { display:flex; align-items:center; gap:14px; }
-
-.actions a { color:#6b7280; text-decoration:none; font-size:16px; }
-
-.actions a:hover { color:#111827; }
-
-
-
-/* Modal Styles */
-
-.modal-overlay {
-
-  position: fixed;
-
-  top: 0;
-
-  left: 0;
-
-  right: 0;
-
-  bottom: 0;
-
-  background: rgba(0, 0, 0, 0.5);
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  z-index: 1000;
-
-  opacity: 0;
-
-  visibility: hidden;
-
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-
-  padding: 20px;
-
-  box-sizing: border-box;
-
-}
-
-
-
-.modal {
-
-  background: white;
-
-  border-radius: 12px;
-
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-
-  width: 100%;
-
-  max-width: 800px;
-
-  max-height: 90vh;
-
-  overflow-y: auto;
-
-  transform: translateY(20px) scale(0.98);
-
-  opacity: 0;
-
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-
-  position: relative;
-
-  margin: 0;
-
-  padding: 24px;
-
-  box-sizing: border-box;
-
-  will-change: transform, opacity;
-
-}
-
-
-
-.modal-overlay.active {
-
-  opacity: 1;
-
-  visibility: visible;
-
-}
-
-
-
-.modal-overlay.active .modal {
-
-  transform: translateY(0) scale(1);
-
-  opacity: 1;
-
-}
-
-
-
-/* Ensure modal is centered on all screen sizes */
-
-@media (max-width: 768px) {
-
-  .modal {
-
-    width: 95%;
-
-    max-height: 85vh;
-
-    padding: 16px;
-
-  }
-
-}
-
-
-
-/* Floating Alert */
-
-.alert { position: fixed; top: 20px; right: 20px; background-color: #17002B; color: #ffffff; padding: 15px 25px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px #17002B; z-index: 9999; opacity: 0; animation: slideIn 0.5s forwards; }
-
-.alert.success { background-color: #17002B; color: #fff; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-@keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
-
-@keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100px); } }
-
-.alert.hide { animation: slideOut 0.5s forwards; }
-
-
-
-/* Quick Actions Hover Effects */
-
-.quick-action { transition: all 0.3s ease; }
-
-.quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #1a1a2e !important; }
-
-
-
-/* Analytics Cards Hover */
-
-.analytics-card { transition: all 0.3s ease; }
-
-.analytics-card:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
-
-
-/* Activity Item Hover */
-
-.activity-item { transition: background 0.2s ease; }
-
-.activity-item:hover { background: #f8f9fa; border-radius: 6px; }
-
-
-
-/* Responsive */
-
-
-</style>
-
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --navy-light: #243447;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* MAIN */
+        .main {
+            width: 100%;
+            padding: 36px 40px;
+            min-height: 100vh;
+        }
+
+        /* PAGE HEADER */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        /* BACK BUTTON */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--navy-mid);
+            color: var(--white);
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .back-button i {
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover i {
+            transform: translateX(-2px);
+        }
+
+        .page-eyebrow {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        /* STAT CARDS */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 26px 28px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+
+        .stat-card.navy::before { background: var(--navy); }
+        .stat-card.teal::before  { background: var(--teal); }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .stat-row-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon-wrap {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-icon-wrap.navy { background: #e8ecf0; color: var(--navy); }
+        .stat-icon-wrap.teal { background: var(--teal-light); color: var(--teal); }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        /* PANEL */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .panel-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .panel-title i { color: var(--teal); font-size: 14px; }
+        .panel-body { padding: 20px 24px; }
+
+        /* Toolbar */
+        .toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+
+        .toolbar .select, .toolbar .search { border:1px solid var(--border); background:var(--white); color:var(--text-dark); border-radius:10px; padding:10px 12px; font-size:14px; }
+
+        .toolbar .search { min-width: 240px; }
+
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-decoration:none; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; transition:all 0.2s; }
+
+        .btn.add { background:var(--slate-light); color:var(--text-dark); }
+
+        .btn.export { background:var(--navy); color:var(--white); border-color:var(--navy); }
+
+        .btn.export i { font-size:13px; }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* Table */
+        .table-wrap { margin-top:16px; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+
+        table { width:100%; border-collapse:collapse; background:var(--white); }
+
+        thead th { background:var(--slate-light); color:var(--text-muted); font-size:12px; letter-spacing:0.6px; text-transform:uppercase; text-align:left; padding:14px 16px; }
+
+        tbody td { padding:14px 16px; border-top:1px solid var(--border); color:var(--text-dark); font-size:14px; }
+
+        .actions { display:flex; align-items:center; gap:14px; }
+
+        .actions a { color:var(--text-muted); text-decoration:none; font-size:16px; transition:color 0.2s; }
+
+        .actions a:hover { color:var(--text-dark); }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 27, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 88vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+        }
+
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-head {
+            padding: 22px 26px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 10;
+        }
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
+
+        .modal-body { padding: 20px 26px 26px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--slate-light);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 80px; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-submit {
+            padding: 9px 24px;
+            border-radius: 10px;
+            border: none;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.green { background: var(--green); }
+        .btn-submit.green:hover { background: #059669; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Flash Alert */
+        .flash-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 18px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .flash-alert.success { background: var(--green-light); color: #065f46; }
+        .flash-alert.error   { background: var(--rose-light);  color: #9f1239; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--navy);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: var(--teal); }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(100px); }
+        }
+
+        .anim       { animation: fadeUp 0.4s ease both; }
+        .delay-1    { animation-delay: 0.07s; }
+        .delay-2    { animation-delay: 0.13s; }
+        .delay-3    { animation-delay: 0.19s; }
+        .delay-4    { animation-delay: 0.25s; }
+
+        /* Floating Alert */
+        .alert { position: fixed; top: 20px; right: 20px; background-color: var(--navy); color: #ffffff; padding: 15px 25px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px var(--navy); z-index: 9999; opacity: 0; animation: slideIn 0.5s forwards; }
+
+        .alert.success { background-color: var(--green); color: #fff; }
+
+        .alert.hide { animation: slideOut 0.5s forwards; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .main { padding: 24px 20px; }
+            .stats-row { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar .search { min-width: auto; }
+        }
+    </style>
 </head>
 
 <body>
 
+    
+    <!-- MAIN CONTENT -->
+    <main class="main">
 
+        <!-- Page Header -->
+        <div class="page-header anim">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <p class="page-eyebrow">Program Management</p>
+                    <h1 class="page-title">Evacuee Program</h1>
+                </div>
+                <a href="{{ route('resident.index') }}" class="back-button">
+                    <i class="fas fa-chevron-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
 
-<!-- Main Content -->
+        <!-- Flash -->
+        @if(session('Success'))
+        <div class="flash-alert success anim">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ session('Success') }}</span>
+        </div>
+        @endif
 
-<div class="main-content">
+        <!-- Stats -->
+        <div class="stats-row anim delay-1">
+            <div class="stat-card navy">
+                <div class="stat-row-inner">
+                    <div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-icon-wrap navy">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ number_format($totalEvacuees) }}</div>
+                <div class="stat-label">Current Evacuees</div>
+            </div>
 
-  <div class="header">
+            <div class="stat-card teal">
+                <div class="stat-row-inner">
+                    <div>
+                        <div class="stat-label">Facilities</div>
+                    </div>
+                    <div class="stat-icon-wrap teal">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ number_format($totalShelters) }}</div>
+                <div class="stat-label">Available Shelters</div>
+            </div>
+        </div>
 
-    <div style="display: flex; align-items: center; gap: 15px;">
+        <!-- Main Panel -->
+        <div class="panel anim delay-2">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-users"></i> Evacuee Management
+                </div>
+            </div>
+            <div class="panel-body">
+                <p style="color:var(--text-muted); margin-bottom:20px;">Manage evacuees, track shelter capacity, and monitor evacuation status.</p>
 
-      <a href="{{ route('resident.index') }}" class="icon-btn" style="text-decoration: none;" title="Go back">
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <select class="select" id="evacuationAreaFilter" onchange="filterByEvacuationArea()">
+                        <option value="">EVACUATION AREA</option>
+                        @forelse($facilities as $facility)
+                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }} - {{ $facility['available_spaces'] }} Available</option>
+                        @empty
+                            <option value="Purok I">Purok I</option>
+                            <option value="Purok II">Purok II</option>
+                            <option value="Purok III">Purok III</option>
+                            <option value="Purok IV">Purok IV</option>
+                            <option value="Purok V">Purok V</option>
+                        @endforelse
+                    </select>
 
-        <i class="fas fa-arrow-left"></i>
+                    <input type="text" class="search" id="searchInput" placeholder="Search" onkeyup="searchEvacuees()" />
 
-      </a>
+                    <div style="margin-left:auto; display:flex; gap:10px;">
+                        <a href="#" class="btn add" onclick="openAddEvacueeModal()">ADD +</a>
+                        <a href="#" class="btn export" onclick="showExportPreview()"><i class="fas fa-download"></i> EXPORT</a>
+                    </div>
+                </div>
 
-      <h1> Total Evacuees</h1>
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fullname</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Evacuation Status</th>
+                                <th>Evacuation Area</th>
+                                <th>Room Number</th>
+                                <th>Evacuation Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if($evacuees->count() > 0)
+                                @foreach($evacuees as $evacuee)
+                                    <tr>
+                                        <td>{{ str_pad($evacuee['id'], 4, '0', STR_PAD_LEFT) }}</td>
+                                        <td>{{ $evacuee['fullname'] }}</td>
+                                        <td>{{ $evacuee['age'] }}</td>
+                                        <td>{{ $evacuee['gender'] }}</td>
+                                        <td>{{ $evacuee['evacuation_status'] }}</td>
+                                        <td>{{ $evacuee['evacuation_area'] }}</td>
+                                        <td>{{ $evacuee['room_number'] ?? '-' }}</td>
+                                        <td>{{ $evacuee['evacuation_date'] }}</td>
+                                        <td>
+                                            <div class="actions">
+                                                <a href="#" title="View" onclick="viewEvacueeDetails('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}')"><i class="fas fa-eye"></i></a>
+                                                <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="9" style="text-align:center; color:var(--text-muted); padding:12px 16px; font-size:12px;">No evacuees found. Add evacuees to see them here.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    </div>
-
-  </div>
-
-
-
-  <div class="container">
-
-    <h2 style="margin-bottom:10px;color:#1a1a2e;">Evacuee Management</h2>
-
-    <p style="color:#555;">Manage evacuees, track shelter capacity, and monitor evacuation status.</p>
-
-    <div style="margin-top:20px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px;">
-
-      <div class="analytics-card" style="background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;">
-
-        <div style="font-weight:700;color:#1a1a2e;margin-bottom:6px;">Total Evacuees</div>
-
-        <div style="font-size:28px;font-weight:800;color:#17002B;">{{ $totalEvacuees }}</div>
-
-      </div>
-
-      <div class="analytics-card" style="background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;">
-
-        <div style="font-weight:700;color:#1a1a2e;margin-bottom:6px;">Shelters</div>
-
-        <div style="font-size:28px;font-weight:800;color:#17002B;">{{ $totalShelters }}</div>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- Toolbar -->
-
-    <div class="toolbar">
-
-      <select class="select" id="evacuationAreaFilter" onchange="filterByEvacuationArea()">
-
-        <option value="">EVACUATION AREA</option>
-
-        @forelse($facilities as $facility)
-          <option value="{{ $facility->name }}">{{ $facility->name }}</option>
-        @empty
-          <option value="Purok I">Purok I</option>
-          <option value="Purok II">Purok II</option>
-          <option value="Purok III">Purok III</option>
-          <option value="Purok IV">Purok IV</option>
-          <option value="Purok V">Purok V</option>
-        @endforelse
-
-      </select>
-
-      <input type="text" class="search" id="searchInput" placeholder="Search" onkeyup="searchEvacuees()" />
-
-      <div style="margin-left:auto; display:flex; gap:10px;">
-
-        <a href="#" class="btn add" onclick="openAddEvacueeModal()">ADD +</a>
-
-        <a href="#" class="btn export" onclick="showExportPreview()"><i class="fas fa-download"></i> EXPORT</a>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- Table -->
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>ID</th>
-
-            <th>Fullname</th>
-
-            <th>Age</th>
-
-            <th>Gender</th>
-
-            <th>Evacuation Status</th>
-
-            <th>Evacuation Area</th>
-
-            <th>Room Number</th>
-
-            <th>Evacuation Date</th>
-
-            <th>Action</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-          @if($evacuees->count() > 0)
-            @foreach($evacuees as $evacuee)
-              <tr>
-                <td>{{ str_pad($evacuee['id'], 4, '0', STR_PAD_LEFT) }}</td>
-                <td>{{ $evacuee['fullname'] }}</td>
-                <td>{{ $evacuee['age'] }}</td>
-                <td>{{ $evacuee['gender'] }}</td>
-                <td>{{ $evacuee['evacuation_status'] }}</td>
-                <td>{{ $evacuee['evacuation_area'] }}</td>
-                <td>{{ $evacuee['room_number'] ?? '-' }}</td>
-                <td>{{ $evacuee['evacuation_date'] }}</td>
-                <td>
-                  <div class="actions">
-                    <a href="#" title="View" onclick="viewEvacueeDetails('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}')"><i class="fas fa-eye"></i></a>
-                    <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
-                  </div>
-                </td>
-              </tr>
-            @endforeach
-          @else
-            <tr>
-              <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">No evacuees found. Add evacuees to see them here.</td>
-            </tr>
-          @endif
-        </tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</div>
+    </main>
 
 
 
 <!-- Export Preview Modal -->
-
-<div class="modal-overlay" id="exportPreviewOverlay">
-
-  <div class="modal" id="exportPreviewModal">
-
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-
-      <h3 style="margin:0; color:#1a1a2e;">Export Evacuees Data</h3>
-
-      <button onclick="closeExportPreviewModal()" class="icon-btn" aria-label="Close" style="width:36px;height:36px;"><i class="fas fa-times"></i></button>
-
+<div class="modal-backdrop" id="exportPreviewOverlay">
+    <div class="modal-box" id="exportPreviewModal">
+        <div class="modal-head">
+            <div>
+                <div class="modal-head-title">Export Evacuees Data</div>
+                <div class="modal-head-sub">Download evacuee information in CSV format</div>
+            </div>
+            <button class="modal-close" onclick="closeExportPreviewModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div style="background:var(--slate-light); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                    <div style="background:var(--navy); color:var(--white); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-file-csv"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600; color:var(--text-dark); font-size:16px;">CSV Export Summary</div>
+                        <div style="color:var(--text-muted); font-size:14px;">Preview of data to be exported</div>
+                    </div>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:15px;">
+                    <div style="text-align:center; padding:15px; background:var(--white); border-radius:8px; border:1px solid var(--border);">
+                        <div id="totalEvacueesCount" style="font-size:24px; font-weight:700; color:var(--navy);">0</div>
+                        <div style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Total Evacuees</div>
+                    </div>
+                    <div style="text-align:center; padding:15px; background:var(--white); border-radius:8px; border:1px solid var(--border);">
+                        <div id="totalSheltersCount" style="font-size:24px; font-weight:700; color:var(--navy);">0</div>
+                        <div style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Shelters</div>
+                    </div>
+                </div>
+                
+                <div style="background:var(--white); border:1px solid var(--border); border-radius:8px; padding:15px;">
+                    <div style="font-weight:600; color:var(--text-dark); margin-bottom:10px; font-size:14px;">Data Fields Included:</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">ID</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Fullname</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Age</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Gender</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Status</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Area</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Room Number</span>
+                        <span style="background:var(--slate-light); color:var(--text-mid); padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Date</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeExportPreviewModal()">Cancel</button>
+                <button type="button" class="btn-submit" onclick="proceedWithExport()">
+                    <i class="fas fa-download"></i> Download CSV
+                </button>
+            </div>
+        </div>
     </div>
-
-    
-
-    <div style="background:#fafafa; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
-
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
-
-        <div style="background:#17002B; color:#fff; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-
-          <i class="fas fa-file-csv"></i>
-
-        </div>
-
-        <div>
-
-          <div style="font-weight:600; color:#1a1a2e; font-size:16px;">CSV Export Summary</div>
-
-          <div style="color:#6b7280; font-size:14px;">Preview of data to be exported</div>
-
-        </div>
-
-      </div>
-
-      
-
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:15px;">
-
-        <div style="text-align:center; padding:15px; background:#fff; border-radius:8px; border:1px solid #e5e7eb;">
-
-          <div id="totalEvacueesCount" style="font-size:24px; font-weight:700; color:#17002B;">0</div>
-
-          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">Total Evacuees</div>
-
-        </div>
-
-        <div style="text-align:center; padding:15px; background:#fff; border-radius:8px; border:1px solid #e5e7eb;">
-
-          <div id="totalSheltersCount" style="font-size:24px; font-weight:700; color:#17002B;">0</div>
-
-          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">Shelters</div>
-
-        </div>
-
-      </div>
-
-      
-
-      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px;">
-
-        <div style="font-weight:600; color:#1a1a2e; margin-bottom:10px; font-size:14px;">Data Fields Included:</div>
-
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">ID</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Fullname</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Age</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Gender</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Status</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Area</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Room Number</span>
-
-          <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;">Evacuation Date</span>
-
-        </div>
-
-      </div>
-
-    </div>
-
-    
-
-    <div style="display:flex; justify-content:flex-end; gap:10px;">
-
-      <button type="button" onclick="closeExportPreviewModal()" style="padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; background:#f5f5f5; cursor:pointer; font-weight:600;">Cancel</button>
-
-      <button type="button" onclick="proceedWithExport()" style="padding:10px 14px; border-radius:8px; border:1px solid #17002B; background:#17002B; color:white; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-
-        <i class="fas fa-download"></i> Download CSV
-
-      </button>
-
-    </div>
-
-  </div>
-
 </div>
 
 
 
 <!-- Add Evacuee Modal -->
-
-<div class="modal-overlay" id="addEvacueeOverlay">
-
-  <div class="modal" id="addEvacueeModal">
-
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-
-      <h3 style="margin:0; color:#1a1a2e;">Add New Evacuee</h3>
-
-      <button onclick="closeAddEvacueeModal()" class="icon-btn" aria-label="Close" style="width:36px;height:36px;"><i class="fas fa-times"></i></button>
-
-    </div>
+<div class="modal-backdrop" id="addEvacueeOverlay">
+    <div class="modal-box" id="addEvacueeModal">
+        <div class="modal-head">
+            <div>
+                <div class="modal-head-title">Add New Evacuee</div>
+                <div class="modal-head-sub">Register residents for evacuation</div>
+            </div>
+            <button class="modal-close" onclick="closeAddEvacueeModal()"><i class="fas fa-xmark"></i></button>
+        </div>
 
     
 
-    <div style="background:#fafafa; border:1px dashed #e5e7eb; border-radius:12px; padding:20px;">
+    <div class="modal-body">
+            <form id="addEvacueeForm" method="POST" action="{{ route('program.evacuee.store') }}" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                @csrf
 
-      <form id="addEvacueeForm" method="POST" action="{{ route('program.evacuee.store') }}" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-        @csrf
+                <div class="form-group">
+                    <label class="form-label">Purok <span style="color:var(--rose);">*</span></label>
+                    <select id="purokSelect" name="purok" required class="form-control" onchange="loadResidentsByPurok(); checkFormValidity()">
+                        <option value="" disabled selected>Select Purok</option>
+                        <option value="Purok I">Purok I</option>
+                        <option value="Purok II">Purok II</option>
+                        <option value="Purok III">Purok III</option>
+                        <option value="Purok IV">Purok IV</option>
+                        <option value="Purok V">Purok V</option>
+                    </select>
+                </div>
 
-        <div style="display:flex; flex-direction:column; gap:6px;">
+                <div class="form-group">
+                    <label class="form-label">Evacuation Status <span style="color:var(--rose);">*</span></label>
+                    <select name="status" required class="form-control" onchange="checkFormValidity()">
+                        <option value="" disabled selected>Select Status</option>
+                        <option value="Evacuated">Evacuated</option>
+                        <option value="Relocated">Relocated</option>
+                        <option value="Returned">Returned</option>
+                    </select>
+                </div>
 
-          <label>Purok <span style="color:#dc2626">*</span></label>
+                <div class="form-group">
+                    <label class="form-label">Evacuation Area <span style="color:var(--rose);">*</span></label>
+                    <select name="area" id="evacuationAreaSelect" required class="form-control" onchange="loadFacilityCapacity(); checkFormValidity()">
+                        <option value="" disabled selected>Select Area</option>
+                        @forelse($facilities as $facility)
+                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }} - {{ $facility['available_spaces'] }} Available</option>
+                        @empty
+                            <option value="Barangay Hall">Barangay Hall</option>
+                            <option value="Evacuation Center 1">Evacuation Center 1</option>
+                            <option value="Evacuation Center 2">Evacuation Center 2</option>
+                            <option value="School Gym">School Gym</option>
+                        @endforelse
+                    </select>
+                    <!-- Capacity Display -->
+                    <div id="capacityDisplay" style="display:none; margin-top:8px; padding:8px; border-radius:6px; font-size:12px;"></div>
+                </div>
 
-          <select id="purokSelect" name="purok" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadResidentsByPurok(); checkFormValidity()">
+                <div class="form-group">
+                    <label class="form-label">Room Number <span style="color:var(--rose);">*</span></label>
+                    <select name="room" required class="form-control" onchange="checkFormValidity()">
+                        <option value="" disabled selected>Select Room</option>
+                        <option value="Room 1A">Room 1A</option>
+                        <option value="Room 1B">Room 1B</option>
+                        <option value="Room 2A">Room 2A</option>
+                        <option value="Room 2B">Room 2B</option>
+                        <option value="Room 3A">Room 3A</option>
+                        <option value="Room 3B">Room 3B</option>
+                        <option value="Room 4A">Room 4A</option>
+                        <option value="Room 4B">Room 4B</option>
+                        <option value="Room 5A">Room 5A</option>
+                        <option value="Room 5B">Room 5B</option>
+                        <option value="Multipurpose Hall">Multipurpose Hall</option>
+                        <option value="Main Hall">Main Hall</option>
+                        <option value="Conference Room">Conference Room</option>
+                    </select>
+                </div>
 
-            <option value="" disabled selected>Select Purok</option>
+                <div class="form-group">
+                    <label class="form-label">Evacuation Date</label>
+                    <input type="date" name="evacuation_date" required class="form-control" onchange="checkFormValidity()" />
+                </div>
 
-            <option value="Purok I">Purok I</option>
+                <!-- Residents Preview Section -->
+                <div id="residentsPreview" style="grid-column: 1 / -1; display:none; margin-top:10px;">
+                    <div style="background:var(--white); border:1px solid var(--border); border-radius:8px; padding:15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label style="font-weight:600; color:var(--text-dark);">Residents to be Added:</label>
+                            <span id="residentCount" style="background:var(--navy); color:var(--white); padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600;">0 residents</span>
+                        </div>
+                        <div id="residentsList" style="max-height:150px; overflow-y:auto;">
+                            <!-- Residents will be listed here -->
+                        </div>
+                    </div>
+                </div>
 
-            <option value="Purok II">Purok II</option>
+                <input type="hidden" id="residentsData" name="residents_data" />
 
-            <option value="Purok III">Purok III</option>
-
-            <option value="Purok IV">Purok IV</option>
-
-            <option value="Purok V">Purok V</option>
-
-          </select>
-
+                <div class="modal-footer" style="grid-column: 1 / -1;">
+                    <button type="button" class="btn-cancel" onclick="closeAddEvacueeModal()">Cancel</button>
+                    <button type="submit" class="btn-submit" id="saveBtn" disabled>Save Evacuees</button>
+                </div>
+            </form>
         </div>
-
-        
-
-        <div style="display:flex; flex-direction:column; gap:6px;">
-
-          <label>Evacuation Status <span style="color:#dc2626">*</span></label>
-
-          <select name="status" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="checkFormValidity()">
-
-            <option value="" disabled selected>Select Status</option>
-
-            <option value="Evacuated">Evacuated</option>
-
-            <option value="Relocated">Relocated</option>
-
-            <option value="Returned">Returned</option>
-
-          </select>
-
-        </div>
-
-        
-
-        <div style="display:flex; flex-direction:column; gap:6px;">
-
-          <label>Evacuation Area <span style="color:#dc2626">*</span></label>
-
-          <select name="area" id="evacuationAreaSelect" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="loadFacilityCapacity(); checkFormValidity()">
-
-            <option value="" disabled selected>Select Area</option>
-
-            @forelse($facilities as $facility)
-              <option value="{{ $facility->name }}">{{ $facility->name }}</option>
-            @empty
-              <option value="Barangay Hall">Barangay Hall</option>
-              <option value="Evacuation Center 1">Evacuation Center 1</option>
-              <option value="Evacuation Center 2">Evacuation Center 2</option>
-              <option value="School Gym">School Gym</option>
-            @endforelse
-
-          </select>
-
-          <!-- Capacity Display -->
-          <div id="capacityDisplay" style="display:none; margin-top:8px; padding:8px; border-radius:6px; font-size:12px;">
-            
-          </div>
-
-        </div>
-
-        
-
-        <div style="display:flex; flex-direction:column; gap:6px;">
-
-          <label>Room Number <span style="color:#dc2626">*</span></label>
-
-          <input type="text" name="room" placeholder="e.g., Room 3B" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px;" onchange="checkFormValidity()" />
-
-        </div>
-
-        
-
-        <div style="display:flex; flex-direction:column; gap:6px;">
-
-          <label>Evacuation Date</label>
-
-          <input type="date" name="evacuation_date" required style="border:1px solid #d1d5db; border-radius:8px; padding:10px; font-size:14px; width:100%;" onchange="checkFormValidity()" />
-
-        </div>
-
-        
-
-        <!-- Residents Preview Section -->
-
-        <div id="residentsPreview" style="grid-column: 1 / -1; display:none; margin-top:10px;">
-
-          <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px;">
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-
-              <label style="font-weight:600; color:#1a1a2e;">Residents to be Added:</label>
-
-              <span id="residentCount" style="background:#17002B; color:#fff; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600;">0 residents</span>
-
-            </div>
-
-            <div id="residentsList" style="max-height:150px; overflow-y:auto;">
-
-              <!-- Residents will be listed here -->
-
-            </div>
-
-          </div>
-
-        </div>
-
-        
-
-        <input type="hidden" id="residentsData" name="residents_data" />
-
-        
-
-        <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
-
-          <button type="button" onclick="closeAddEvacueeModal()" style="padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; background:#f5f5f5; cursor:pointer; font-weight:600;">Cancel</button>
-
-          <button type="submit" id="saveBtn" style="padding:10px 14px; border-radius:8px; border:1px solid #17002B; background:#17002B; color:white; cursor:pointer; font-weight:600;" disabled>Save Evacuees</button>
-
-        </div>
-
-      </form>
 
     
 
@@ -687,28 +787,30 @@ tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#111827; font-
 
 @if(session('Success'))
 
-  <div class="alert success" id="successAlert">{{ session('Success') }}</div>
+  <div class="flash-alert success anim">
+    <i class="fas fa-circle-check"></i>
+    <span>{{ session('Success') }}</span>
+  </div>
 
 @endif
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-circle-check"></i>
+        <span id="toast-msg">Done!</span>
+    </div>
 
 
 
 <script>
 
 // Function to open the add evacuee modal
-
 function openAddEvacueeModal() {
-
   const modal = document.getElementById('addEvacueeModal');
-
   const overlay = document.getElementById('addEvacueeOverlay');
-
   
-
   // Show modal and overlay with animation
-
-  overlay.classList.add('active');
-
+  overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 
   
@@ -761,17 +863,11 @@ function openAddEvacueeModal() {
 }
 
 // Function to close the add evacuee modal
-
 function closeAddEvacueeModal() {
-
   const overlay = document.getElementById('addEvacueeOverlay');
-
-  overlay.classList.remove('active');
-
+  overlay.classList.remove('open');
   document.body.style.overflow = 'auto';
-
   document.getElementById('addEvacueeForm').reset();
-
 }
 
 
@@ -870,7 +966,7 @@ function checkFormValidity() {
   const status = document.querySelector('select[name="status"]').value;
   const area = document.getElementById('evacuationAreaSelect').value;
   const date = document.querySelector('input[name="evacuation_date"]').value;
-  const room = document.querySelector('input[name="room"]').value.trim();
+  const room = document.querySelector('select[name="room"]').value;
   const saveBtn = document.getElementById('saveBtn');
   
   // Enable button only if all required fields are filled AND there are residents AND capacity is available
@@ -1919,9 +2015,56 @@ function updateTotalEvacueesCount() {
     });
 }
 
+// Modern modal functions
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Export modal functions
+function showExportPreview() {
+  openModal('exportPreviewOverlay');
+  loadExportStatistics();
+}
+
+function closeExportPreviewModal() {
+  closeModal('exportPreviewOverlay');
+}
+
+// Toast notification function
+function showToast(msg, icon = 'fas fa-circle-check') {
+  const t = document.getElementById('toast');
+  t.querySelector('i').className = icon;
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// Update showAlert to use toast instead
+function showAlert(message, type = 'success') {
+  showToast(message, type === 'error' ? 'fas fa-triangle-exclamation' : 'fas fa-circle-check');
+}
+
+// Modal click outside handlers
+['exportPreviewOverlay', 'addEvacueeOverlay'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { 
+    if (e.target.id === id) closeModal(id); 
+  });
+});
+
+// Flash auto-dismiss
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.flash-alert').forEach(el => {
+    setTimeout(() => { 
+      el.style.opacity='0'; 
+      el.style.transition='opacity 0.4s'; 
+      setTimeout(()=>el.remove(),400); 
+    }, 4000);
+  });
+});
 </script>
-
-</body>
-
-</html>
-

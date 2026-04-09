@@ -59,6 +59,9 @@ Route::middleware('authCheck')->group(function () {
         return view('dashboard');
     })->name('dashboard');
     
+    // Main dashboard route - points to products.index
+    Route::get('/', [ProductController::class, 'index'])->name('dashboard.main');
+    
     // Evacuee Program Routes
     Route::get('/program/evacuee', [ProductController::class, 'evacueeProgram'])->name('program.evacuee');
     Route::post('/program/evacuee', [ProductController::class, 'storeEvacuees'])->name('program.evacuee.store');
@@ -191,6 +194,12 @@ Route::view('/sms/tryall', 'SMS.tryall')->name('sms.tryall');
 Route::get('/services', [ServiceController::class, 'index'])->name('services');
 
 Route::post('/services/officials', [ServiceController::class, 'storeOfficial'])->name('services.officials.store');
+
+Route::get('/services/officials/{official}', [ServiceController::class, 'getOfficial'])->name('services.officials.get');
+
+Route::put('/services/officials/{official}', [ServiceController::class, 'updateOfficial'])->name('services.officials.update');
+
+Route::delete('/services/officials/{official}', [ServiceController::class, 'deleteOfficial'])->name('services.officials.delete');
 
 
 

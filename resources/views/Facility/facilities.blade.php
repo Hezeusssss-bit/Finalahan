@@ -1,581 +1,891 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Facilities Management</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; min-height: 100vh; margin: 0; display: flex; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Facilities Management — B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-/* Sidebar */
-.sidebar { 
-    width: 280px; 
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
-    min-height: 100vh; 
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 0; 
-    position: fixed; 
-    left: 0; 
-    top: 0; 
-    display: flex; 
-    flex-direction: column;
-    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
+    <style>
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --navy-light: #243447;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+            --sidebar-w: 260px;
+        }
 
-.logo { 
-    color: #fff; 
-    font-size: 28px; 
-    font-weight: 800; 
-    padding: 30px; 
-    margin-bottom: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.logo i { 
-    color: #3b82f6; 
-    font-size: 32px;
-    filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
-    animation: glow 2s ease-in-out infinite alternate;
-}
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+        }
 
-@keyframes glow {
-    from { filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)); }
-    to { filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)); }
-}
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-.nav-section {
-    margin-bottom: 25px;
-    padding: 0 20px;
-}
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--navy);
+            min-height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
 
-.nav-section-title {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    padding: 0 15px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+        .sidebar-brand {
+            padding: 22px 24px 18px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
 
-.nav-section-title::before {
-    content: '';
-    width: 3px;
-    height: 3px;
-    background: #3b82f6;
-    border-radius: 50%;
-    display: inline-block;
-}
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            background: var(--teal);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: white;
+            flex-shrink: 0;
+        }
 
-.nav-menu { 
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.02em;
+        }
 
-.nav-item { 
-    color: rgba(255, 255, 255, 0.8); 
-    padding: 14px 20px; 
-    text-decoration: none; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    cursor: pointer; 
-    font-size: 15px;
-    font-weight: 500;
-    position: relative;
-    margin: 3px 0;
-    border-radius: 12px;
-    overflow: hidden;
-}
+        .brand-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 300;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
 
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.6s;
-}
+        .nav-section {
+            padding: 18px 16px 4px;
+        }
 
-.nav-item:hover::before {
-    left: 100%;
-}
+        .nav-section-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            padding: 0 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-.nav-item i { 
-    width: 24px; 
-    text-align: center; 
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.4s ease;
-}
+        .nav-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
 
-.nav-item:hover { 
-    background: rgba(59, 130, 246, 0.15); 
-    color: #fff;
-    transform: translateX(8px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-}
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            cursor: pointer;
+            text-align: left;
+        }
 
-.nav-item:hover i {
-    color: #60a5fa;
-    transform: scale(1.15) rotate(5deg);
-}
+        .nav-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255,255,255,0.35);
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
 
-.nav-item.active { 
-    color: #fff; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-    font-weight: 600;
-    transform: translateX(5px);
-}
+        .nav-link:hover {
+            background: rgba(255,255,255,0.07);
+            color: white;
+        }
 
-.nav-item.active::before {
-    display: none;
-}
+        .nav-link:hover i { color: var(--teal); }
 
-.nav-item.active i {
-    color: #fff;
-    transform: scale(1.1);
-}
+        .nav-link.active {
+            background: rgba(14, 165, 160, 0.15);
+            color: white;
+            font-weight: 500;
+        }
 
-.sidebar-footer { 
-    margin-top: auto; 
-    padding: 25px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.3);
-}
+        .nav-link.active i { color: var(--teal); }
 
-.sidebar-footer .nav-item {
-    margin: 3px 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-}
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 12px 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
 
-.sidebar-footer .nav-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(5px);
-    box-shadow: none;
-}
+        .nav-link-danger:hover {
+            background: rgba(244, 63, 94, 0.12);
+            color: #fca5a5;
+        }
 
-.sidebar-footer .nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: none;
-}
+        .nav-link-danger:hover i { color: #fca5a5; }
 
-/* Main Content */
-.main-content { 
-    margin-left: 280px; 
-    flex: 1; 
-    padding: 35px; 
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    min-height: 100vh;
-}
+        /* ── MAIN ── */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 36px 40px;
+            min-height: 100vh;
+        }
 
-/* Header */
-.header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 40px;
-    padding: 30px 35px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-}
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 32px;
+        }
 
-.header h1 { 
-    color: #1e293b; 
-    font-size: 36px; 
-    font-weight: 800;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-}
-.header-icons { display: flex; gap: 15px; align-items: center; }
-.icon-btn { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.icon-btn:hover { background: #f5f5f5; transform: translateY(-2px); }
-.icon-btn i { color: #333; font-size: 16px; }
+        .page-eyebrow {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
 
-/* Add Facility Button */
-.btn-add {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    font-size: 15px;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
 
-.btn-add:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-}
+        /* ── PANEL ── */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
 
-.btn-add i {
-    font-size: 16px;
-}
+        .panel-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
-    display: none;
-    backdrop-filter: blur(5px);
-}
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
 
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    z-index: 1001;
-    max-height: 90vh;
-    overflow-y: auto;
-    width: 90%;
-    max-width: 600px;
-    display: none;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+        .panel-title i { color: var(--teal); font-size: 14px; }
+        .panel-body { padding: 20px 24px; }
 
-.modal::-webkit-scrollbar {
-    width: 6px;
-}
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 27, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
 
-.modal::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
+        .modal-overlay.open { display: flex; }
 
-.modal::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
+        .modal {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 88vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 501;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
 
-.modal::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
+        .modal::-webkit-scrollbar { display: none; }
 
-.modal-header {
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 20px;
-    margin-bottom: 25px;
-}
+        @keyframes modalIn {
+            from { opacity: 0; transform: translate(-50%, -50%) translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translate(-50%, -50%) translateY(0) scale(1); }
+        }
 
-.modal-header button:hover {
-    background: #f0f0f0;
-    transform: rotate(90deg);
-}
+        @keyframes modalPopIn {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.3) rotate(-2deg); 
+                filter: blur(4px);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.05) rotate(1deg); 
+                filter: blur(0px);
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+                filter: blur(0px);
+            }
+        }
 
-input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
+        @keyframes backdropFadeIn {
+            from { 
+                opacity: 0; 
+                backdrop-filter: blur(0px); 
+            }
+            to { 
+                opacity: 1; 
+                backdrop-filter: blur(2px); 
+            }
+        }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar { width: 70px; }
-  .logo span, .nav-item span { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-  
-  .modal {
-    width: 95%;
-    padding: 20px;
-    margin: 10px;
-  }
-  
-  .btn-add {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-}
-.container { background: #fff; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .modal-header {
+            padding: 22px 26px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 10;
+        }
 
-.facility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-.facility-card { background: #f8f9fa; border-radius: 12px; padding: 20px; border: 2px solid #e9ecef; transition: all 0.3s ease; position: relative; }
-.facility-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #1a1a2e; }
-.facility-icon { font-size: 48px; color: #1a1a2e; margin-bottom: 15px; }
-.facility-title { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
-.facility-description { font-size: 14px; color: #666; line-height: 1.6; }
-.facility-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+        .modal-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
 
-.action-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
 
-.edit-btn:hover {
-    background: #2563eb !important;
-}
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
 
-.delete-btn:hover {
-    background: #dc2626 !important;
-}
-.status-available { background: #d4edda; color: #155724; }
-.status-maintenance { background: #fff3cd; color: #856404; }
+        /* ── MODAL BACKDROP (for logout modal) ── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 27, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: backdropFadeIn 0.2s ease-out both;
+        }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar { width: 70px; }
-  .logo span, .nav-item span { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-}
+        .modal-backdrop.open { 
+            display: flex;
+            animation: backdropFadeIn 0.2s ease-out both;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 88vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 501;
+            margin: auto;
+        }
+
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        .modal-head {
+            padding: 22px 26px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 10;
+        }
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+        .modal-body { padding: 20px 26px 26px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--slate-light);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 80px; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            color: var(--text-mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-add {
+            padding: 9px 24px;
+            border-radius: 10px;
+            border: none;
+            background: #0f172a;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-add:hover { background: #1e293b; }
+        .btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-submit {
+            padding: 9px 24px;
+            border-radius: 10px;
+            border: none;
+            background: var(--navy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.green { background: var(--green); }
+        .btn-submit.green:hover { background: #059669; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ── FACILITY GRID ── */
+        .facility-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .facility-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .facility-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-color: var(--teal);
+        }
+
+        .facility-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .facility-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .facility-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .facility-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .facility-capacity {
+            font-size: 13px;
+            color: var(--text-mid);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .facility-capacity i {
+            color: var(--blue);
+            font-size: 12px;
+        }
+
+        .facility-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .facility-card:hover .facility-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .edit-btn {
+            background: var(--blue);
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #2563eb;
+        }
+
+        .delete-btn {
+            background: var(--rose);
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .status-available { background: var(--green-light); color: #065f46; }
+        .status-maintenance { background: var(--amber-light); color: #92400e; }
+        .status-unavailable { background: var(--rose-light); color: #9f1239; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim       { animation: fadeUp 0.4s ease both; }
+        .delay-1    { animation-delay: 0.07s; }
+        .delay-2    { animation-delay: 0.13s; }
+        .delay-3    { animation-delay: 0.19s; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .facility-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 24px 20px; }
+            .facility-grid { grid-template-columns: 1fr; }
+        }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">
-    <i class="fas fa-shield-alt"></i> 
-    <span>B-DEAMS</span>
-  </div>
-  
-  <!-- Main Navigation -->
-  <div class="nav-section">
-    <div class="nav-section-title">Main</div>
-    <nav class="nav-menu">
-      <a href="{{ route('resident.index') }}" class="nav-item">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="{{ route('program.index') }}" class="nav-item">
-        <i class="fas fa-tasks"></i>
-        <span>Programs</span>
-      </a>
-    </nav>
-  </div>
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <div class="brand-name">B-DEAMS</div>
+                <div class="brand-sub">Evacuation Alert System</div>
+            </div>
+        </div>
 
-  <!-- Services Section -->
-  <div class="nav-section">
-    <div class="nav-section-title">Services</div>
-    <nav class="nav-menu">
-      <a href="{{ route('services') }}" class="nav-item">
-        <i class="fas fa-concierge-bell"></i>
-        <span>Services</span>
-      </a>
-      <a href="{{ route('tryall') }}" class="nav-item">
-        <i class="fas fa-sms"></i>
-        <span>SMS Alert</span>
-      </a>
-      <a href="{{ route('facilities') }}" class="nav-item active">
-        <i class="fas fa-building"></i>
-        <span>Facilities</span>
-      </a>
-    </nav>
-  </div>
+        <div class="nav-section">
+            <div class="nav-section-label">Main</div>
+            <a href="{{ route('resident.index') }}" class="nav-link">
+                <i class="fas fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="{{ route('program.index') }}" class="nav-link">
+                <i class="fas fa-clipboard-list"></i> Programs
+            </a>
+        </div>
 
-  <!-- System Section -->
-  <div class="sidebar-footer">
-    <div class="nav-section">
-      <div class="nav-section-title">System</div>
-      <nav class="nav-menu">
-        <a href="{{ route('activity-logs.index') }}" class="nav-item">
-          <i class="fas fa-cog"></i>
-          <span>Activity Log</span>
-        </a>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="button" class="nav-item" style="background:none;border:none;width:100%;text-align:left;" onclick="confirmLogout(this)">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        </form>
-      </nav>
+        <div class="nav-section">
+            <div class="nav-section-label">Services</div>
+            <a href="{{ route('services') }}" class="nav-link">
+                <i class="fas fa-concierge-bell"></i> Services
+            </a>
+            <a href="{{ route('tryall') }}" class="nav-link">
+                <i class="fas fa-sms"></i> SMS Alert
+            </a>
+            <a href="{{ route('facilities') }}" class="nav-link active">
+                <i class="fas fa-building"></i> Facilities
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);padding:0 8px;margin-bottom:6px;">System</div>
+            <a href="{{ route('activity-logs.index') }}" class="nav-link">
+                <i class="fas fa-scroll"></i> Activity Log
+            </a>
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="button" class="nav-link nav-link-danger" onclick="openLogoutModal()">
+                    <i class="fas fa-right-from-bracket"></i> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <main class="main-content">
+
+        <!-- Page Header -->
+        <div class="page-header anim">
+            <p class="page-eyebrow">Services</p>
+            <h1 class="page-title">Facility Management</h1>
+        </div>
+
+        <!-- Facilities Panel -->
+        <div class="panel anim delay-1">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-building"></i> Available Facilities
+                </div>
+                <button class="btn-add" onclick="openAddFacilityModal()">
+                    <i class="fas fa-plus"></i>
+                    Add Facility
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="facility-grid">
+                    @forelse($facilities as $facility)
+                        <div class="facility-card">
+                            <div class="facility-icon">
+                                <i class="{{ $facility->icon }}"></i>
+                            </div>
+                            <div class="facility-title">{{ $facility->name }}</div>
+                            <div class="facility-description">{{ $facility->description }}</div>
+                            <div class="facility-status status-{{ $facility->status }}">
+                                {{ $facility->status_label }}
+                            </div>
+                            <div class="facility-capacity">
+                                <i class="fas fa-users"></i>
+                                Capacity: {{ $facility->capacity ?? 'N/A' }}
+                            </div>
+                            <div class="facility-actions">
+                                <button onclick="editFacility({{ $facility->id }})" class="action-btn edit-btn" title="Edit Facility">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteFacility({{ $facility->id }}, '{{ $facility->name }}')" class="action-btn delete-btn" title="Delete Facility">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <i class="fas fa-building" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
+                            <h3 style="margin-bottom: 10px; color: var(--text-dark); font-family: 'Outfit', sans-serif;">No Facilities Yet</h3>
+                            <p>Click the "Add Facility" button to add your first facility.</p>
+                        </div>
+                    @endforelse
+
+                    <!-- Keep existing hardcoded facilities as fallback -->
+                    @if($facilities->count() === 0)
+                        <a href="{{ route('school') }}" class="facility-card" style="text-decoration: none; color: inherit;">
+                            <div class="facility-icon"><i class="fas fa-school"></i></div>
+                            <div class="facility-title">Schools</div>
+                            <div class="facility-description">For Evacuation and Emergency Response</div>
+                            <span class="facility-status status-available">Available</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ══ ADD FACILITY MODAL ══ -->
+    <div class="modal-overlay" id="facilityModalOverlay" style="display: none;"></div>
+    <div class="modal" id="facilityModal" style="display: none;">
+        <div class="modal-header">
+            <h2>Add New Facility</h2>
+            <button class="modal-close" onclick="closeFacilityModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="facilityForm" onsubmit="submitFacility(event)">
+                @csrf
+                <div class="form-group">
+                    <label class="form-label">Facility Name</label>
+                    <input type="text" id="facilityName" name="name" required class="form-control" placeholder="Enter facility name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="facilityStatus" name="status" required class="form-control">
+                        <option value="">Select status...</option>
+                        <option value="available">Available</option>
+                        <option value="maintenance">Under Maintenance</option>
+                        <option value="unavailable">Unavailable</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Capacity</label>
+                    <input type="number" id="facilityCapacity" name="capacity" required min="1" class="form-control" placeholder="Enter evacuation area capacity">
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeFacilityModal()">Cancel</button>
+                    <button type="submit" class="btn-add">
+                        <i class="fas fa-save"></i>
+                        Save Facility
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Main Content -->
-<div class="main-content">
-  <div class="header">
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-      <h1>Facility Management</h1>
-      <button class="btn-add" onclick="openAddFacilityModal()">
-        <i class="fas fa-plus"></i>
-        Add Facility
-      </button>
+    <!-- ══ EDIT FACILITY MODAL ══ -->
+    <div class="modal-overlay" id="editFacilityModalOverlay" style="display: none;"></div>
+    <div class="modal" id="editFacilityModal" style="display: none;">
+        <div class="modal-header">
+            <h2>Edit Facility</h2>
+            <button class="modal-close" onclick="closeEditFacilityModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="editFacilityForm" onsubmit="updateFacility(event)">
+                @csrf
+                <input type="hidden" id="editFacilityId" name="id">
+                
+                <div class="form-group">
+                    <label class="form-label">Facility Name</label>
+                    <input type="text" id="editFacilityName" name="name" required class="form-control" placeholder="Enter facility name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="editFacilityStatus" name="status" required class="form-control">
+                        <option value="">Select status...</option>
+                        <option value="available">Available</option>
+                        <option value="maintenance">Under Maintenance</option>
+                        <option value="unavailable">Unavailable</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Capacity</label>
+                    <input type="number" id="editFacilityCapacity" name="capacity" required min="1" class="form-control" placeholder="Enter evacuation area capacity">
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeEditFacilityModal()">Cancel</button>
+                    <button type="submit" class="btn-add">
+                        <i class="fas fa-save"></i>
+                        Update Facility
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <div class="container">
-    <h2 style="margin-bottom: 20px; color: #1a1a2e;">Available Facilities</h2>
-    
-    <div class="facility-grid">
-      @forelse($facilities as $facility)
-        <div class="facility-card" style="text-decoration: none; color: inherit; cursor: pointer; position: relative;">
-          <div class="facility-icon"><i class="{{ $facility->icon }}"></i></div>
-          <div class="facility-title">{{ $facility->name }}</div>
-          <div class="facility-description">{{ $facility->description }}</div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-            <span class="facility-status" style="background: {{ $facility->status_color }}; color: {{ $facility->status_text_color }};">
-              {{ $facility->status_label }}
-            </span>
-            <span class="facility-capacity" style="font-size: 14px; color: #555; font-weight: 600;">
-                <i class="fas fa-users" style="margin-right: 5px; color: #3b82f6;"></i>
-                Capacity: {{ $facility->capacity ?? 'N/A' }}
-            </span>
-          </div>
-          <div class="facility-actions" style="display: flex; gap: 8px; opacity: 1; transition: all 0.3s ease; margin-top: 10px;">
-            <button onclick="editFacility({{ $facility->id }})" class="action-btn edit-btn" title="Edit Facility" style="background: #3b82f6; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
-              <i class="fas fa-edit" style="font-size: 12px;"></i>
-            </button>
-            <button onclick="deleteFacility({{ $facility->id }}, '{{ $facility->name }}')" class="action-btn delete-btn" title="Delete Facility" style="background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
-              <i class="fas fa-trash" style="font-size: 12px;"></i>
-            </button>
-          </div>
+    <!-- ══ LOGOUT MODAL ══ -->
+    <div class="modal-backdrop" id="logoutBackdrop">
+        <div class="modal-box" style="max-width:400px;">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Confirm Logout</div>
+                    <div class="modal-head-sub">You will be signed out of the system.</div>
+                </div>
+                <button class="modal-close" onclick="closeLogoutModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13.5px;color:var(--text-mid);line-height:1.6;margin-bottom:4px;">Are you sure you want to log out of B-DEAMS?</p>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeLogoutModal()">Stay</button>
+                    <button class="btn-submit" style="background:var(--rose);" onclick="document.getElementById('logoutForm').submit()">
+                        <i class="fas fa-right-from-bracket"></i> Yes, Log Out
+                    </button>
+                </div>
+            </div>
         </div>
-      @empty
-        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">
-          <i class="fas fa-building" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
-          <h3 style="margin-bottom: 10px; color: #333;">No Facilities Yet</h3>
-          <p>Click the "Add Facility" button to add your first facility.</p>
-        </div>
-      @endforelse
-
-      <!-- Keep existing hardcoded facilities as fallback -->
-      @if($facilities->count() === 0)
-        <a href="{{ route('school') }}" class="facility-card" style="text-decoration: none; color: inherit;">
-          <div class="facility-icon"><i class="fas fa-school"></i></div>
-          <div class="facility-title">Schools</div>
-          <div class="facility-description">For Evacuation and Emergency Response</div>
-          <span class="facility-status status-available">Available</span>
-        </a>
-      @endif
     </div>
-  </div>
-</div>
-
-<!-- Add Facility Modal -->
-<div class="modal-overlay" id="facilityModalOverlay" style="display: none;"></div>
-<div class="modal" id="facilityModal" style="display: none; max-width: 600px;">
-    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #1e293b; font-size: 24px; font-weight: 700;">Add New Facility</h2>
-        <button type="button" onclick="closeFacilityModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #666; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;">&times;</button>
-    </div>
-    
-    <form id="facilityForm" onsubmit="submitFacility(event)">
-        @csrf
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Facility Name</label>
-            <input type="text" id="facilityName" name="name" required style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter facility name">
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Status</label>
-            <select id="facilityStatus" name="status" required style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; background: white; transition: all 0.3s ease;">
-                <option value="">Select status...</option>
-                <option value="available">Available</option>
-                <option value="maintenance">Under Maintenance</option>
-                <option value="unavailable">Unavailable</option>
-            </select>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Capacity</label>
-            <input type="number" id="facilityCapacity" name="capacity" required min="1" style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter evacuation area capacity">
-        </div>
-        
-        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <button type="button" onclick="closeFacilityModal()" style="background: #f8f9fa; border: 2px solid #e5e7eb; color: #333; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s ease;">Cancel</button>
-            <button type="submit" class="btn-add" style="padding: 12px 28px;">
-                <i class="fas fa-save"></i>
-                Save Facility
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- Edit Facility Modal -->
-<div class="modal-overlay" id="editFacilityModalOverlay" style="display: none;"></div>
-<div class="modal" id="editFacilityModal" style="display: none; max-width: 600px;">
-    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #1e293b; font-size: 24px; font-weight: 700;">Edit Facility</h2>
-        <button type="button" onclick="closeEditFacilityModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #666; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;">&times;</button>
-    </div>
-    
-    <form id="editFacilityForm" onsubmit="updateFacility(event)">
-        @csrf
-        <input type="hidden" id="editFacilityId" name="id">
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Facility Name</label>
-            <input type="text" id="editFacilityName" name="name" required style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter facility name">
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Status</label>
-            <select id="editFacilityStatus" name="status" required style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; background: white; transition: all 0.3s ease;">
-                <option value="">Select status...</option>
-                <option value="available">Available</option>
-                <option value="maintenance">Under Maintenance</option>
-                <option value="unavailable">Unavailable</option>
-            </select>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Capacity</label>
-            <input type="number" id="editFacilityCapacity" name="capacity" required min="1" style="width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease;" placeholder="Enter evacuation area capacity">
-        </div>
-        
-        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <button type="button" onclick="closeEditFacilityModal()" style="background: #f8f9fa; border: 2px solid #e5e7eb; color: #333; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s ease;">Cancel</button>
-            <button type="submit" class="btn-add" style="padding: 12px 28px;">
-                <i class="fas fa-save"></i>
-                Update Facility
-            </button>
-        </div>
-    </form>
-</div>
 
 <script>
-function confirmLogout(button) {
-  if (confirm('Are you sure you want to logout?')) {
-    button.closest('form').submit();
-  }
-}
+// Logout Modal Functions
+function openLogoutModal()    { openModal('logoutBackdrop'); }
+function closeLogoutModal()   { closeModal('logoutBackdrop'); }
 
 // Facility Modal Functions
 function openAddFacilityModal() {
-    document.getElementById('facilityModalOverlay').style.display = 'block';
+    document.getElementById('facilityModalOverlay').classList.add('open');
     document.getElementById('facilityModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
     
@@ -584,7 +894,7 @@ function openAddFacilityModal() {
 }
 
 function closeFacilityModal() {
-    document.getElementById('facilityModalOverlay').style.display = 'none';
+    document.getElementById('facilityModalOverlay').classList.remove('open');
     document.getElementById('facilityModal').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
@@ -644,64 +954,30 @@ function submitFacility(event) {
 
 function showSuccessMessage(message) {
     const successDiv = document.createElement('div');
-    successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-        z-index: 2000;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        animation: slideIn 0.3s ease;
-    `;
-    successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    successDiv.className = 'toast show';
+    successDiv.innerHTML = `<i class="fas fa-circle-check"></i><span>${message}</span>`;
     
     document.body.appendChild(successDiv);
     
     // Remove after 3 seconds
     setTimeout(() => {
-        successDiv.style.animation = 'slideOut 0.3s ease';
+        successDiv.classList.remove('show');
         setTimeout(() => {
             successDiv.remove();
         }, 300);
     }, 3000);
 }
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
 // Close modal when clicking overlay
 document.getElementById('facilityModalOverlay').addEventListener('click', closeFacilityModal);
+document.getElementById('editFacilityModalOverlay').addEventListener('click', closeEditFacilityModal);
+
+// Add logout backdrop click handler
+document.getElementById('logoutBackdrop').addEventListener('click', e => { if (e.target.id === 'logoutBackdrop') closeModal('logoutBackdrop'); });
+
+// Modal helpers
+function openModal(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
 
 // Edit Facility Function
 function editFacility(facilityId) {
@@ -739,7 +1015,7 @@ function editFacility(facilityId) {
             addEditFormListeners();
             
             // Open edit modal
-            document.getElementById('editFacilityModalOverlay').style.display = 'block';
+            document.getElementById('editFacilityModalOverlay').classList.add('open');
             document.getElementById('editFacilityModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
         } else {
@@ -785,7 +1061,7 @@ function addEditFormListeners() {
 
 // Close Edit Facility Modal
 function closeEditFacilityModal() {
-    document.getElementById('editFacilityModalOverlay').style.display = 'none';
+    document.getElementById('editFacilityModalOverlay').classList.remove('open');
     document.getElementById('editFacilityModal').style.display = 'none';
     document.body.style.overflow = 'auto';
 }

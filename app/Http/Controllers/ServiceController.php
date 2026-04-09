@@ -11,7 +11,7 @@ class ServiceController extends Controller
 {
     public function index()
     {
-        $officials = Official::withTrashed()
+        $officials = Official::query()
             ->orderByRaw("CASE 
                 WHEN position = 'Captain' THEN 1 
                 WHEN position = 'Secretary' THEN 2 
@@ -34,7 +34,18 @@ class ServiceController extends Controller
             return !str_contains($official->position, 'Captain') && !str_contains($official->position, 'Kagawad');
         });
         
-        return view('Services.services', compact('officials', 'captains', 'kagawads', 'otherOfficials'));
+        // Get current counts for validation display
+        $currentCaptainsCount = $captains->count();
+        $currentKagawadsCount = $kagawads->count();
+        
+        return view('Services.services', compact(
+            'officials', 
+            'captains', 
+            'kagawads', 
+            'otherOfficials',
+            'currentCaptainsCount',
+            'currentKagawadsCount'
+        ));
     }
 
     public function storeOfficial(Request $request)
@@ -44,7 +55,6 @@ class ServiceController extends Controller
             'last_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'position' => 'required|string|max:255',
-            'purok' => 'required|string|max:255',
             'contact_number' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'term_start' => 'required|date',
@@ -53,12 +63,32 @@ class ServiceController extends Controller
             'notes' => 'nullable|string'
         ]);
 
+        // Check limits
+        if ($request->position === 'Captain') {
+            $existingCaptains = Official::where('position', 'Captain')->whereNull('deleted_at')->count();
+            if ($existingCaptains >= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only 1 Barangay Captain is allowed. There is already an active captain.'
+                ], 422);
+            }
+        }
+
+        if ($request->position === 'Kagawad') {
+            $existingKagawads = Official::where('position', 'Kagawad')->whereNull('deleted_at')->count();
+            if ($existingKagawads >= 7) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only 7 Kagawad officials are allowed. Maximum limit reached.'
+                ], 422);
+            }
+        }
+
         $official = Official::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'middle_name' => $request->middle_name,
             'position' => $request->position,
-            'purok' => $request->purok,
             'contact_number' => $request->contact_number,
             'email' => $request->email,
             'term_start' => $request->term_start,
@@ -140,5 +170,84 @@ class ServiceController extends Controller
         return response()->json([
             'services' => $services
         ]);
+    }
+
+    public function updateOfficial(Request $request, Official $official)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'position' => 'required|string|max:255',
+            'contact_number' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'term_start' => 'required|date',
+            'term_end' => 'required|date|after:term_start',
+            'is_active' => 'boolean',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Check limits for position changes
+        if ($request->position !== $official->position) {
+            if ($request->position === 'Captain') {
+                $existingCaptains = Official::where('position', 'Captain')
+                    ->where('id', '!=', $official->id)
+                    ->whereNull('deleted_at')
+                    ->count();
+                if ($existingCaptains >= 1) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Only 1 Barangay Captain is allowed. There is already an active captain.'
+                    ], 422);
+                }
+            }
+
+            if ($request->position === 'Kagawad') {
+                $existingKagawads = Official::where('position', 'Kagawad')
+                    ->where('id', '!=', $official->id)
+                    ->whereNull('deleted_at')
+                    ->count();
+                if ($existingKagawads >= 7) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Only 7 Kagawad officials are allowed. Maximum limit reached.'
+                    ], 422);
+                }
+            }
+        }
+
+        $official->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'position' => $request->position,
+            'contact_number' => $request->contact_number,
+            'email' => $request->email,
+            'term_start' => $request->term_start,
+            'term_end' => $request->term_end,
+            'is_active' => $request->has('is_active'),
+            'notes' => $request->notes
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Official updated successfully!',
+            'official' => $official
+        ]);
+    }
+
+    public function deleteOfficial(Official $official)
+    {
+        $official->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Official deleted successfully!'
+        ]);
+    }
+
+    public function getOfficial(Official $official)
+    {
+        return response()->json($official);
     }
 }

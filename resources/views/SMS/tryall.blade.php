@@ -1,7 +1,6 @@
 <?php
 
 // Check if form was submitted
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
     $message = $_POST['message'];
@@ -27,11 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     }
 
     // Debug: Check how many residents we found
-
     $residentCount = $result->num_rows;
 
     echo "<div class='output-container'>";
-    echo "<div class='output-header'>📡 SMS Transmission Log</div>";
+    echo "<div class='output-header'>? SMS Transmission Log</div>";
     echo "<pre class='output-content'>";
     echo "Found {$residentCount} residents with contact numbers.\n";
     
@@ -40,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     }
 
     while($row = $result->fetch_assoc()){
-
         $phone = $row['contact_number']; // Fixed: use contact_number instead of phone
         
         echo "Processing phone: {$phone}\n";
@@ -76,41 +73,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         sleep(1); // prevents API blocking
     }
 
-    echo "\n✅ All messages sent successfully.";
+    echo "\n? All messages sent successfully.";
     echo "</pre>";
     echo "</div>";
 
     echo "<style>
         .output-container {
-            background: #f0f2f5; /* Light grey background from dashboard */
+            background: #f0f4f8;
             padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Softer shadow */
+            border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             overflow: hidden;
+            margin: 20px;
         }
         
-        .output-header.sidebar { 
-            width: 280px; 
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
-            min-height: 100vh; 
-            max-height: 100vh;
-            overflow-y: auto;
-            padding: 0; 
-            position: fixed; 
-            left: 0; 
-            top: 0; 
-            display: flex; 
-            flex-direction: column;
-            box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        .output-header {
+            background: var(--navy);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
         }
         
         .output-content {
             padding: 20px;
             font-size: 14px;
             font-family: 'Consolas', 'Monaco', monospace;
-            color: #333;
+            color: var(--text-dark);
+            background: white;
+            margin: 0;
         }
     </style>";
 
@@ -133,324 +124,372 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
     ?>
 
-    <!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>SMS Alert - B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <html>
+    <style>
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --navy-light: #243447;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+            --sidebar-w: 260px;
+        }
 
-    <head>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        <title>Send SMS to All Residents</title>
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            
-            body { 
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                margin: 0; 
-                padding: 20px;
-                background: #f0f2f5; /* Light grey background from dashboard */
-                min-height: 100vh;
-            }
-            
-            .container { 
-                max-width: 800px; 
-                margin: 0 auto; 
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Softer shadow */
-                overflow: hidden;
-            }
-            
-            .header {
-                background: linear-gradient(45deg, #4a007c, #7b1fa2); /* Darker purple gradient */
-                color: white;
-                padding: 30px;
-                text-align: center;
-                position: relative;
-            }
-            
-            .back-btn {
-                position: absolute;
-                left: 30px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                padding: 10px 15px;
-                border-radius: 8px;
-                text-decoration: none;
-                font-size: 14px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .back-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-                transform: translateY(-50%) translateY(-2px);
-                text-decoration: none;
-                color: white;
-            }
-            
-            .header h2 {
-                font-size: 28px;
-                font-weight: 600;
-                margin-bottom: 10px;
-            }
-            
-            .header p {
-                opacity: 0.9;
-                font-size: 14px;
-            }
-            
-            .form-container {
-                padding: 40px;
-            }
-            
-            .form-group {
-                margin-bottom: 25px;
-            }
-            
-            .purok-selector {
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 25px;
-                border: 1px solid #e1e5e9;
-            }
-            
-            select {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #e1e5e9;
-                border-radius: 8px;
-                font-size: 14px;
-                font-family: inherit;
-                background: white;
-                transition: all 0.3s ease;
-            }
-            
-            select:focus {
-                outline: none;
-                border-color: #7b1fa2;
-                box-shadow: 0 0 0 3px rgba(123, 31, 162, 0.1);
-            }
-            
-            .residents-display {
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 25px;
-                border: 1px solid #e1e5e9;
-                max-height: 300px;
-                overflow-y: auto;
-            }
-            
-            .resident-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px;
-                background: white;
-                border-radius: 8px;
-                margin-bottom: 10px;
-                border: 1px solid #e1e5e9;
-                transition: all 0.3s ease;
-            }
-            
-            .resident-item:hover {
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transform: translateY(-1px);
-            }
-            
-            .resident-info {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-            
-            .resident-avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background: linear-gradient(45deg, #4a007c, #7b1fa2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
-            }
-            
-            .resident-details h4 {
-                margin: 0;
-                font-size: 14px;
-                color: #333;
-                font-weight: 600;
-            }
-            
-            .resident-details p {
-                margin: 4px 0 0 0;
-                font-size: 12px;
-                color: #666;
-            }
-            
-            .evacuation-status {
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 600;
-                text-transform: uppercase;
-            }
-            
-            .status-evacuated {
-                background: #fee2e2;
-                color: #dc2626;
-            }
-            
-            .status-not-evacuated {
-                background: #dcfce7;
-                color: #16a34a;
-            }
-            
-            label {
-                display: block;
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 8px;
-                font-size: 14px;
-            }
-            
-            textarea { 
-                width: 100%; 
-                height: 150px;
-                padding: 15px;
-                border: 1px solid #e1e5e9;
-                border-radius: 10px;
-                font-size: 14px;
-                font-family: inherit;
-                resize: vertical;
-                transition: all 0.3s ease;
-            }
-            
-            textarea:focus {
-                outline: none;
-                border-color: #7b1fa2; /* Purple accent from dashboard */
-                box-shadow: 0 0 0 3px rgba(123, 31, 162, 0.1);
-            }
-            
-            textarea::placeholder {
-                color: #999;
-            }
-            
-            .quick-actions {
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 25px;
-                border: 1px solid #e1e5e9;
-            }
-            
-            .quick-actions strong {
-                display: block;
-                margin-bottom: 15px;
-                color: #333;
-                font-size: 14px;
-            }
-            
-            .alert-btn { 
-                padding: 12px 20px; 
-                margin: 5px; 
-                background: linear-gradient(45deg, #4a007c, #7b1fa2); /* Purple gradient matching dashboard */
-                color: white; 
-                border: none; 
-                cursor: pointer; 
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 13px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(123, 31, 162, 0.3);
-            }
-            
-            .alert-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(123, 31, 162, 0.4);
-            }
-            
-            .submit-btn {
-                width: 100%;
-                padding: 15px;
-                background: linear-gradient(45deg, #4a007c, #7b1fa2); /* Matching purple gradient */
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 10px 25px rgba(123, 31, 162, 0.3);
-            }
-            
-            .submit-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 15px 35px rgba(123, 31, 162, 0.4);
-            }
-            
-            .emergency-indicator {
-                display: inline-block;
-                background: #4a007c; /* Dark purple matching sidebar */
-                color: white;
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                margin-bottom: 20px;
-                animation: pulse 2s infinite;
-            }
-            
-            @keyframes pulse {
-                0% { opacity: 1; }
-                50% { opacity: 0.7; }
-                100% { opacity: 1; }
-            }
-        </style>
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    </head>
 
-    <body>
+        /* MAIN */
+        .main {
+            padding: 36px 40px;
+            min-height: 100vh;
+        }
 
-        <div class="container">
-            <div class="header">
-                <a href="{{ route('resident.index') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Dashboard
+        /* PAGE HEADER */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-eyebrow {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--teal);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        /* PANEL */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .panel-title i { color: var(--teal); font-size: 14px; }
+        .panel-body { padding: 24px; }
+
+        /* FORM COMPONENTS */
+        .form-group { margin-bottom: 20px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--slate-light);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
+        }
+
+        textarea.form-control { resize: vertical; min-height: 120px; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 9px 20px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--navy-mid); }
+
+        .btn-teal {
+            background: var(--teal);
+            color: white;
+        }
+
+        .btn-teal:hover { background: #0d8780; }
+
+        .btn-rose {
+            background: var(--rose);
+            color: white;
+        }
+
+        .btn-rose:hover { background: #e11d48; }
+
+        .btn-amber {
+            background: var(--amber);
+            color: white;
+        }
+
+        .btn-amber:hover { background: #d97706; }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+
+        /* QUICK ACTIONS GRID */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        /* RESIDENTS DISPLAY */
+        .residents-display {
+            background: var(--slate-light);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .residents-display::-webkit-scrollbar { display: none; }
+
+        .resident-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .resident-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .resident-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .resident-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .resident-details h4 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .resident-details p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .evacuation-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-evacuated {
+            background: var(--rose-light);
+            color: #be123c;
+        }
+
+        .status-not-evacuated {
+            background: var(--green-light);
+            color: #059669;
+        }
+
+        /* EMERGENCY INDICATOR */
+        .emergency-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--rose);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim       { animation: fadeUp 0.4s ease both; }
+        .delay-1    { animation-delay: 0.07s; }
+        .delay-2    { animation-delay: 0.13s; }
+        .delay-3    { animation-delay: 0.19s; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main { padding: 24px 20px; }
+            .quick-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- Page Header -->
+        <div class="page-header anim">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div>
+                    <p class="page-eyebrow">Emergency Services</p>
+                    <h1 class="page-title">SMS Alert System</h1>
+                </div>
+                <a href="{{ route('services') }}" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                    <i class="fas fa-arrow-left"></i> Back
                 </a>
-                <h2>Emergency SMS System</h2>
-                <p>Send critical alerts to all residents instantly</p>
             </div>
-            
-            <div class="form-container">
-                <div class="emergency-indicator">🚨 EMERGENCY MODE</div>
+        </div>
+
+        <!-- SMS Alert Panel -->
+        <div class="panel anim delay-1">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-sms"></i> Emergency SMS Broadcasting
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="emergency-indicator">
+                    <i class="fas fa-exclamation-triangle"></i> EMERGENCY MODE
+                </div>
                 
-                <div class="purok-selector">
-                    <label for="purok">Select Purok:</label>
-                    <select id="purok" name="purok" onchange="loadResidents()">
-                        <option value="">Choose a Purok...</option>
+                <div class="form-group">
+                    <label class="form-label" for="purok">Target Purok</label>
+                    <select id="purok" class="form-control" name="purok" onchange="loadResidents()">
+                        <option value="">All Puroks (Global Alert)</option>
                         <?php foreach($puroks as $purok): ?>
                             <option value="<?php echo htmlspecialchars($purok); ?>"><?php echo htmlspecialchars($purok); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                
+
                 <div class="residents-display" id="residentsDisplay" style="display: none;">
-                    <h3 style="margin-bottom: 15px; color: #333; font-size: 16px;">Residents in Selected Purok</h3>
+                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-size: 14px;">
+                        <i class="fas fa-users" style="color: var(--teal); margin-right: 6px;"></i>
+                        Residents in Selected Purok
+                    </div>
                     <div id="residentsList">
                         <!-- Residents will be loaded here via JavaScript -->
                     </div>
@@ -461,26 +500,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     <input type="hidden" name="purok" id="selectedPurok" value="">
                     
                     <div class="form-group">
-                        <label for="message">Emergency Message:</label>
-                        <textarea name="message" id="message" required placeholder="Type your emergency message here...">Advisory: Please prepare for a possible disaster. Ensure your emergency kits are ready (water, food, first aid, batteries). Be ready for possible evacuation anytime.</textarea>
+                        <label class="form-label" for="message">Emergency Message Content</label>
+                        <textarea name="message" id="message" class="form-control" required placeholder="Type your emergency message here...">Advisory: Please prepare for a possible disaster. Ensure your emergency kits are ready (water, food, first aid, batteries). Be ready for possible evacuation anytime.</textarea>
                     </div>
                     
-                    <div class="quick-actions">
-                        <strong>Quick Alert Templates:</strong>
-                        <button type="button" class="alert-btn" onclick="setEarlyEvacuationMessage()">🚨 EARLY EVACUATION ALERT</button>
-                        <button type="button" class="alert-btn" onclick="setPurok1Message()">📍 PUROK 1</button>
-                        <button type="button" class="alert-btn" onclick="setPurok2Message()">📍 PUROK 2</button>
-                        <button type="button" class="alert-btn" onclick="setPurok3Message()">📍 PUROK 3</button>
-                        <button type="button" class="alert-btn" onclick="setPurok4Message()">📍 PUROK 4</button>
-                        <button type="button" class="alert-btn" onclick="setPurok5Message()">📍 PUROK 5</button>
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-size: 14px;">
+                            <i class="fas fa-bolt" style="color: var(--amber); margin-right: 6px;"></i>
+                            Quick Alert Templates
+                        </div>
+                        <div class="quick-grid">
+                            <button type="button" class="btn btn-rose" onclick="setEarlyEvacuationMessage()">
+                                <i class="fas fa-exclamation-triangle"></i> Early Evacuation
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setPurok1Message()">
+                                <i class="fas fa-map-marker-alt"></i> Purok 1
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setPurok2Message()">
+                                <i class="fas fa-map-marker-alt"></i> Purok 2
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setPurok3Message()">
+                                <i class="fas fa-map-marker-alt"></i> Purok 3
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setPurok4Message()">
+                                <i class="fas fa-map-marker-alt"></i> Purok 4
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setPurok5Message()">
+                                <i class="fas fa-map-marker-alt"></i> Purok 5
+                            </button>
+                        </div>
                     </div>
 
-                    <button type="submit" class="submit-btn">📡 SEND EMERGENCY SMS TO ALL RESIDENTS</button>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-paper-plane"></i>
+                        <span id="submitBtnText">? SEND EMERGENCY SMS TO ALL RESIDENTS</span>
+                    </button>
                 </form>
             </div>
         </div>
-        
-        <script>
+
+    </main>
+    
+    <script>
         function updateMessage(template) {
             const messageField = document.getElementById('message');
             const messages = {
@@ -546,16 +607,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             const residentsDisplay = document.getElementById('residentsDisplay');
             const residentsList = document.getElementById('residentsList');
             const selectedPurokHidden = document.getElementById('selectedPurok');
-            const submitBtn = document.querySelector('.submit-btn');
+            const submitBtnText = document.getElementById('submitBtnText');
             
             const selectedPurok = purokSelect.value;
             
             // Update hidden field and button text
             selectedPurokHidden.value = selectedPurok;
             if (selectedPurok) {
-                submitBtn.textContent = `📡 SEND EMERGENCY SMS TO ${selectedPurok.toUpperCase()}`;
+                submitBtnText.textContent = `? SEND EMERGENCY SMS TO ${selectedPurok.toUpperCase()}`;
             } else {
-                submitBtn.textContent = '📡 SEND EMERGENCY SMS TO ALL RESIDENTS';
+                submitBtnText.textContent = '? SEND EMERGENCY SMS TO ALL RESIDENTS';
             }
             
             if (selectedPurok === '') {
@@ -565,7 +626,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             
             // Show loading state
             residentsDisplay.style.display = 'block';
-            residentsList.innerHTML = '<p style="text-align: center; color: #666;">Loading residents...</p>';
+            residentsList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Loading residents...</p>';
             
             // Create AJAX request to get residents for selected purok using Laravel route
             const xhr = new XMLHttpRequest();
@@ -582,20 +643,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                         if (response.residents) {
                             displayResidents(response.residents);
                         } else {
-                            residentsList.innerHTML = '<p style="text-align: center; color: #dc2626;">Invalid response format</p>';
+                            residentsList.innerHTML = '<p style="text-align: center; color: var(--rose);">Invalid response format</p>';
                         }
                     } catch (e) {
                         console.error('JSON parse error:', e);
-                        residentsList.innerHTML = '<p style="text-align: center; color: #dc2626;">Error parsing response</p>';
+                        residentsList.innerHTML = '<p style="text-align: center; color: var(--rose);">Error parsing response</p>';
                     }
                 } else {
-                    residentsList.innerHTML = '<p style="text-align: center; color: #dc2626;">Error loading residents (Status: ' + xhr.status + ')</p>';
+                    residentsList.innerHTML = '<p style="text-align: center; color: var(--rose);">Error loading residents (Status: ' + xhr.status + ')</p>';
                 }
             };
             
             xhr.onerror = function() {
                 console.error('Network error occurred');
-                residentsList.innerHTML = '<p style="text-align: center; color: #dc2626;">Network error</p>';
+                residentsList.innerHTML = '<p style="text-align: center; color: var(--rose);">Network error</p>';
             };
             
             console.log('Requesting residents for purok:', selectedPurok);
@@ -606,7 +667,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             const residentsList = document.getElementById('residentsList');
             
             if (residents.length === 0) {
-                residentsList.innerHTML = '<p style="text-align: center; color: #666;">No residents found in this purok</p>';
+                residentsList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No residents found in this purok</p>';
                 return;
             }
             
@@ -634,11 +695,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             
             residentsList.innerHTML = html;
         }
-        </script>
+    </script>
 
-    </body>
+</body>
 
-    </html>
+</html>
 
     <?php
 

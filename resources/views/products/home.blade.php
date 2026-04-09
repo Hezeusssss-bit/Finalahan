@@ -1,1058 +1,1173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Residents List</title>
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
-body { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-    height: 100vh; 
-    margin: 0; 
-    padding: 0;
-    overflow: hidden;
-    width: 100%;
-}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Residents List — B-DEAMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-/* Full Screen Container */
-.fullscreen-container {
-    width: 100%;
-    height: 100vh;
-    background: white;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    margin: 0;
-}
+    <style>
+        :root {
+            --navy: #0d1b2a;
+            --navy-mid: #1b2e42;
+            --teal: #0ea5a0;
+            --teal-light: #e0f7f6;
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --rose: #f43f5e;
+            --rose-light: #ffe4e6;
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --slate-light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-mid: #475569;
+            --text-muted: #94a3b8;
+        }
 
-/* Header */
-.header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 25px 40px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-    position: relative;
-    flex-shrink: 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.header h1 { 
-    color: #1e293b; 
-    font-size: 36px; 
-    font-weight: 800;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-}
+        body {
+            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
 
-/* Back Button */
-.back-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 28px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    text-decoration: none;
-    border-radius: 14px;
-    font-weight: 600;
-    font-size: 15px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
-    position: relative;
-    overflow: hidden;
-}
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-.back-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.6s;
-}
+        /* ── TOP NAV ── */
+        .topnav {
+            background: var(--navy);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-.back-btn:hover::before {
-    left: 100%;
-}
+        .topnav-left { display: flex; align-items: center; gap: 16px; }
 
-.back-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35);
-}
+        .brand-badge {
+            width: 36px; height: 36px;
+            background: var(--teal);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: white;
+        }
 
-.back-btn i {
-    font-size: 18px;
-    transition: transform 0.3s ease;
-}
+        .brand-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px; font-weight: 600;
+            color: white; letter-spacing: 0.01em;
+        }
 
-.back-btn:hover i {
-    transform: translateX(-3px);
-}
+        .brand-sub {
+            font-size: 11px; color: rgba(255,255,255,0.4);
+            font-weight: 300; letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
 
-/* Circular Back Button */
-.circular-back-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    background: white;
-    border-radius: 50%;
-    text-decoration: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    border: 2px solid #f0f0f0;
-    margin-right: 20px;
-}
+        .nav-divider {
+            width: 1px; height: 28px;
+            background: rgba(255,255,255,0.12);
+        }
 
-.circular-back-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    border-color: #e0e0e0;
-}
+        .page-crumb {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 500;
+            color: rgba(255,255,255,0.5);
+            display: flex; align-items: center; gap: 8px;
+        }
 
-.circular-back-btn i {
-    font-size: 20px;
-    color: #333;
-    transition: transform 0.3s ease;
-}
+        .page-crumb span { color: white; }
 
-.circular-back-btn:hover i {
-    transform: translateX(-2px);
-}
+        .nav-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+            text-decoration: none; font-size: 13.5px; font-weight: 500;
+            transition: all 0.2s;
+        }
 
-/* Header Title Container */
-.header-title-container {
-    display: flex;
-    align-items: center;
-}
+        .nav-back:hover { background: rgba(255,255,255,0.14); color: white; }
 
-/* Main Content */
-.main-content { 
-    padding: 30px 40px; 
-    flex: 1; 
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-    overflow-y: auto;
-}
+        /* ── PAGE ── */
+        .page { max-width: 1400px; margin: 0 auto; padding: 32px 40px; }
 
-/* Filter Section */
-.filter-section { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 30px; 
-    flex-wrap: wrap;
-    gap: 20px;
-}
+        /* ── STAT STRIP ── */
+        .stat-strip {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
 
-.filter-left { 
-    display: flex; 
-    gap: 20px; 
-    align-items: center; 
-    flex-wrap: wrap;
-}
+        .stat-chip {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex; align-items: center; gap: 10px;
+            transition: box-shadow 0.2s;
+        }
 
-.filter-btn { 
-    padding: 14px 24px; 
-    border-radius: 14px; 
-    border: 1px solid #e2e8f0; 
-    background: white; 
-    font-size: 14px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    position: relative;
-    overflow: hidden;
-}
+        .stat-chip:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
 
-.filter-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.6s;
-}
+        .chip-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px; font-weight: 700; color: var(--text-dark);
+            line-height: 1;
+        }
 
-.filter-btn:hover::before {
-    left: 100%;
-}
+        .chip-lbl { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
-.filter-btn:hover { 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    color: #fff; 
-    border-color: transparent;
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.3);
-}
+        .chip-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
 
-.filter-btn i {
-    transition: all 0.4s ease;
-}
+        /* ── PANEL ── */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
 
-.filter-btn:hover i {
-    transform: rotate(180deg);
-}
+        .panel-toolbar {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
 
-.dropdown { 
-    position: relative; 
-}
+        .toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .toolbar-right { display: flex; align-items: center; gap: 10px; }
 
-.dropdown-menu { 
-    position: absolute; 
-    top: 110%; 
-    left: 0; 
-    background: white; 
-    border: 1px solid #e2e8f0; 
-    border-radius: 16px; 
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15); 
-    min-width: 220px; 
-    padding: 16px; 
-    display: none; 
-    z-index: 50;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-}
+        /* ── FILTER DROPDOWN ── */
+        .filter-dropdown { position: relative; }
 
-.dropdown.open .dropdown-menu { display: block; }
+        .filter-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 16px; border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--slate-light);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-mid); cursor: pointer;
+            transition: all 0.2s;
+        }
 
-.dropdown-item { 
-    padding: 14px 18px; 
-    border-radius: 12px; 
-    font-size: 14px; 
-    color: #475569; 
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
-}
+        .filter-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .filter-btn.active { background: var(--teal-light); border-color: var(--teal); color: #0f5e5c; }
 
-.dropdown-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.05), transparent);
-    transition: left 0.4s;
-}
+        .filter-btn i { font-size: 11px; transition: transform 0.2s; }
+        .filter-dropdown.open .filter-btn i.fa-chevron-down { transform: rotate(180deg); }
 
-.dropdown-item:hover::before {
-    left: 100%;
-}
+        .dropdown-panel {
+            position: absolute;
+            top: calc(100% + 6px); left: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+            min-width: 200px;
+            padding: 8px;
+            z-index: 200;
+            display: none;
+        }
 
-.dropdown-item:hover { 
-    background: #f8fafc; 
-    color: #3b82f6;
-    transform: translateX(8px);
-}
+        .filter-dropdown.open .dropdown-panel { display: block; }
 
-.search-container { 
-    position: relative; 
-    display: flex; 
-    align-items: center; 
-}
+        .dropdown-opt {
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-mid);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
 
-.search-container i { 
-    position: absolute; 
-    left: 18px; 
-    color: #94a3b8; 
-    font-size: 18px;
-    transition: all 0.3s ease;
-}
+        .dropdown-opt:hover { background: var(--slate-light); color: var(--text-dark); }
+        .dropdown-opt.selected { background: var(--teal-light); color: #0f5e5c; font-weight: 500; }
 
-.search-container input { 
-    padding: 14px 18px 14px 50px; 
-    border-radius: 14px; 
-    border: 1px solid #e2e8f0; 
-    font-size: 14px; 
-    width: 320px; 
-    transition: all 0.4s ease;
-    background: white;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    font-weight: 500;
-}
+        /* ── SEARCH ── */
+        .search-wrap { position: relative; }
 
-.search-container input:focus { 
-    outline: none; 
-    border-color: #3b82f6; 
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    transform: translateY(-2px);
-}
+        .search-wrap i {
+            position: absolute; left: 13px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted); font-size: 13px;
+        }
 
-.search-container input:focus + i {
-    color: #3b82f6;
-    transform: scale(1.1);
-}
+        .search-input {
+            padding: 9px 14px 9px 36px;
+            border: 1px solid var(--border); border-radius: 10px;
+            font-size: 13.5px; font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark); background: var(--slate-light);
+            transition: all 0.2s; outline: none; width: 260px;
+        }
 
-.filter-right { 
-    display: flex; 
-    gap: 15px; 
-}
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus {
+            background: white; border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+        }
 
-.btn-add { 
-    padding: 14px 24px; 
-    border-radius: 14px; 
-    background: white; 
-    border: 1px solid #e2e8f0; 
-    font-size: 14px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    text-decoration: none; 
-    color: #475569; 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    position: relative;
-    overflow: hidden;
-}
+        /* ── TOOLBAR BUTTONS ── */
+        .btn-add {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 18px; border-radius: 10px;
+            background: var(--green); color: white; border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
 
-.btn-add::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
-    transition: left 0.6s;
-}
+        .btn-add:hover { background: #059669; }
 
-.btn-add:hover::before {
-    left: 100%;
-}
+        .btn-export {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 18px; border-radius: 10px;
+            background: var(--navy); color: white; border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
 
-.btn-add:hover { 
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
-    color: #fff; 
-    border-color: transparent;
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 35px rgba(34, 197, 94, 0.3);
-}
+        .btn-export:hover { background: var(--navy-mid); }
 
-.btn-add i {
-    transition: all 0.4s ease;
-}
+        /* ── TABLE ── */
+        .table-wrap { overflow-x: auto; }
 
-.btn-add:hover i {
-    transform: rotate(90deg);
-}
+        table.data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
-.btn-export { 
-    padding: 14px 24px; 
-    border-radius: 14px; 
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
-    border: none; 
-    color: #fff; 
-    font-size: 14px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
-    position: relative;
-    overflow: hidden;
-}
+        .data-table thead th {
+            padding: 11px 16px;
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.09em;
+            color: var(--text-muted); background: var(--slate-light);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap; text-align: left;
+        }
 
-.btn-export::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.6s;
-}
+        .data-table thead th.sortable { cursor: pointer; user-select: none; }
+        .data-table thead th.sortable:hover { color: var(--teal); }
 
-.btn-export:hover::before {
-    left: 100%;
-}
+        .data-table tbody tr {
+            border-bottom: 1px solid #f1f5f9; transition: background 0.15s;
+        }
 
-.btn-export:hover { 
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 15px 45px rgba(59, 130, 246, 0.4);
-}
+        .data-table tbody tr:hover { background: #f8fafc; }
+        .data-table tbody tr:last-child { border-bottom: none; }
 
-/* Table */
-.table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid #e5e5e5; }
-table { width: 100%; border-collapse: collapse; }
-thead { background: #fafafa; border-bottom: 2px solid #e5e5e5; }
-th { padding: 15px; text-align: left; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
-th.sortable { cursor: pointer; user-select: none; }
-th.sortable:hover { background: #f0f0f0; }
-td { padding: 18px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; }
-tbody tr { transition: background 0.2s ease; }
-tbody tr:hover { background: #fafafa; }
-.actions { display: flex; gap: 10px; justify-content: flex-start; }
-.btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; padding: 6px; border-radius: 6px; transition: all 0.3s ease; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-.btn-icon.view { color: #666; }
-.btn-icon.view:hover { background: #f0f0f0; color: #1a1a2e; }
-.btn-icon.edit { color: #666; }
-.btn-icon.edit:hover { background: #e3f2fd; color: #2196f3; }
-.btn-icon.delete { color: #666; }
-.btn-icon.delete:hover { background: #ffebee; color: #f44336; }
+        .data-table td { padding: 13px 16px; color: var(--text-dark); vertical-align: middle; }
 
-/* Pagination */
-.pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; }
-.per-page-selector { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #666; }
-.per-page-selector select { padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e5e5; background: #fff; font-size: 14px; cursor: pointer; transition: all 0.3s ease; }
-.per-page-selector select:focus { outline: none; border-color: #1a1a2e; box-shadow: 0 0 0 3px rgba(26, 26, 46, 0.1); }
-.per-page-selector select:hover { border-color: #1a1a2e; }
-.pagination { display: flex; gap: 5px; list-style: none; padding: 0; margin: 0; }
-.pagination li { display: inline-block; }
-.pagination .page-link { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 10px; border-radius: 6px; background: #fff; color: #333; border: 1px solid #ddd; text-decoration: none; font-weight: 500; font-size: 13px; transition: all 0.3s ease; }
-.pagination .page-link:hover { background: #f5f5f5; border-color: #999; }
-.pagination .active .page-link { background: #1a1a2e; color: #fff; border-color: #1a1a2e; pointer-events: none; }
-.pagination .disabled .page-link { opacity: 0.4; pointer-events: none; cursor: not-allowed; }
+        .td-id { font-family: 'Outfit', sans-serif; font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
 
-/* Delete & Add Modal */
-.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 400px; max-width: 90%; padding: 30px; display: none; z-index: 2000; }
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1999; }
-.modal h2 { margin: 0 0 10px; font-size: 22px; color: #1a1a2e; }
-.modal p { margin-bottom: 25px; color: #666; font-size: 15px; }
-.modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
-.modal-buttons button { padding: 10px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 14px; }
-.btn-cancel { background: #f5f5f5; color: #333; }
-.btn-cancel:hover { background: #e5e5e5; }
-.btn-confirm { background: #f44336; color: #fff; }
-.btn-confirm:hover { background: #d32f2f; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3); }
+        .td-name { font-weight: 500; }
 
-/* Modal form inputs */
-.modal form div { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.modal label { font-size: 13px; color: #555; font-weight: 700; }
-.modal input[type="text"],
-.modal input[type="number"],
-.modal input[type="email"],
-.modal input[type="password"] {
-  padding: 12px 14px;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  background: #fafafa;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s ease;
-}
-.modal select {
-  padding: 12px 14px;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  background: #fafafa;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s ease;
-}
-.modal input[type="text"]:focus,
-.modal input[type="number"]:focus,
-.modal input[type="email"]:focus,
-.modal input[type="password"]:focus {
-  outline: none;
-  border-color: #1a1a2e;
-  box-shadow: 0 0 0 3px rgba(26, 26, 46, 0.1);
-  background: #fff;
-}
-.modal select:focus {
-  outline: none;
-  border-color: #1a1a2e;
-  box-shadow: 0 0 0 3px rgba(26, 26, 46, 0.1);
-  background: #fff;
-}
-.error-message { color: #f44336; font-size: 12px; }
+        .gender-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 12px; font-weight: 500;
+        }
 
-/* Resident Details Modal */
-.resident-details { margin: 20px 0; }
-.detail-row { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 12px 0; 
-  border-bottom: 1px solid #f0f0f0; 
-}
-.detail-row:last-child { border-bottom: none; }
-.detail-row label { 
-  font-weight: 600; 
-  color: #333; 
-  font-size: 14px; 
-  min-width: 120px; 
-}
-.detail-row span { 
-  color: #666; 
-  font-size: 14px; 
-  text-align: right; 
-  flex: 1; 
-  margin-left: 20px; 
-}
+        .gender-pill.male   { background: var(--blue-light); color: #1e40af; }
+        .gender-pill.female { background: #fce7f3; color: #9d174d; }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar { width: 70px; }
-  .logo span, .nav-item span { display: none; }
-  .main-content { margin-left: 70px; padding: 20px; }
-  .filter-section { flex-direction: column; align-items: stretch; }
-  .search-container input { width: 100%; }
-}
-</style>
+        .action-btn {
+            width: 30px; height: 30px; border-radius: 7px;
+            border: 1px solid var(--border); background: white;
+            color: var(--text-mid); font-size: 12px;
+            cursor: pointer; display: inline-flex;
+            align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover { background: var(--navy); color: white; border-color: var(--navy); }
+        .action-btn.edit:hover  { background: var(--blue); border-color: var(--blue); }
+        .action-btn.delete:hover { background: var(--rose); border-color: var(--rose); }
+
+        .action-btns { display: flex; gap: 5px; }
+
+        /* ── PAGINATION ── */
+        .panel-footer {
+            padding: 14px 24px;
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center;
+            justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+
+        .per-page {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-muted);
+        }
+
+        .per-page select {
+            padding: 6px 10px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark); background: var(--slate-light);
+            outline: none; cursor: pointer;
+        }
+
+        .per-page select:focus { border-color: var(--teal); }
+
+        /* ── EMPTY ── */
+        .empty-state { text-align: center; padding: 52px 20px; }
+        .empty-icon {
+            width: 68px; height: 68px; border-radius: 18px;
+            background: var(--slate-light); display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 26px; color: var(--text-muted); margin-bottom: 14px;
+        }
+        .empty-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+        .empty-msg   { font-size: 13.5px; color: var(--text-muted); }
+
+        /* ── MODAL SYSTEM ── */
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(13,27,42,0.55);
+            backdrop-filter: blur(2px);
+            z-index: 500; display: none;
+            align-items: center; justify-content: center;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
+            background: white; border-radius: 18px;
+            width: 90%; max-width: 480px;
+            max-height: 90vh; overflow-y: auto;
+            scrollbar-width: none;
+            animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+        }
+
+        .modal-box.sm { max-width: 400px; }
+        .modal-box.lg { max-width: 560px; }
+        .modal-box::-webkit-scrollbar { display: none; }
+
+        @keyframes modalIn {
+            from { opacity:0; transform:translateY(20px) scale(0.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        .modal-head {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 12px;
+            position: sticky; top: 0; background: white;
+            border-radius: 18px 18px 0 0; z-index: 10;
+        }
+
+        .modal-head-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px; font-weight: 700; color: var(--text-dark);
+        }
+
+        .modal-head-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+        .modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border); background: var(--slate-light);
+            color: var(--text-muted); font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--rose-light); color: var(--rose); border-color: var(--rose); }
+
+        .modal-body { padding: 18px 24px 24px; }
+
+        /* ── FORM ── */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-grid .span2 { grid-column: span 2; }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+        .form-label {
+            font-size: 11.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.07em;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            padding: 9px 12px; border: 1px solid var(--border);
+            border-radius: 9px; font-size: 13.5px;
+            font-family: 'DM Sans', sans-serif; color: var(--text-dark);
+            background: var(--slate-light); transition: all 0.2s; outline: none;
+        }
+
+        .form-control:focus {
+            background: white; border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+        }
+
+        .error-msg { font-size: 11.5px; color: var(--rose); }
+
+        .modal-footer {
+            display: flex; justify-content: flex-end; gap: 10px;
+            padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px;
+        }
+
+        .btn-cancel {
+            padding: 9px 20px; border-radius: 9px;
+            border: 1px solid var(--border); background: var(--slate-light);
+            color: var(--text-mid); font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+
+        .btn-cancel:hover { background: var(--border); }
+
+        .btn-submit {
+            padding: 9px 22px; border-radius: 9px; border: none;
+            background: var(--navy); color: white;
+            font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover { background: var(--navy-mid); }
+        .btn-submit.danger { background: var(--rose); }
+        .btn-submit.danger:hover { background: #e11d48; }
+
+        /* ── VIEW DETAILS ── */
+        .detail-grid { display: flex; flex-direction: column; gap: 0; }
+
+        .detail-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 11px 0; border-bottom: 1px solid #f1f5f9;
+            font-size: 13.5px;
+        }
+
+        .detail-row:last-child { border-bottom: none; }
+        .detail-lbl { color: var(--text-muted); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+        .detail-val { color: var(--text-dark); font-weight: 500; text-align: right; }
+
+        /* ── FLASH ── */
+        .flash-alert {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 10px;
+            font-size: 13.5px; margin-bottom: 18px;
+        }
+
+        .flash-alert.success { background: var(--green-light); color: #065f46; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 28px; right: 28px;
+            background: var(--navy); color: white;
+            padding: 13px 20px; border-radius: 12px;
+            font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            z-index: 9999; transform: translateY(80px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: var(--teal); }
+
+        /* ── ANIM ── */
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(14px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .anim     { animation: fadeUp 0.4s ease both; }
+        .delay-1  { animation-delay: 0.07s; }
+        .delay-2  { animation-delay: 0.13s; }
+
+        @media (max-width: 768px) {
+            .topnav { padding: 0 20px; }
+            .page { padding: 22px 18px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .span2 { grid-column: span 1; }
+            .search-input { width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- Full Screen Container -->
-<div class="fullscreen-container">
-    <!-- Header with Back Button -->
-    <div class="header">
-        <div class="header-title-container">
-            <a href="{{ route('resident.index') }}" class="circular-back-btn">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1>Total Residents</h1>
+    <!-- TOP NAV -->
+    <nav class="topnav">
+        <div class="topnav-left">
+            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <div class="brand-text">B-DEAMS</div>
+                <div class="brand-sub">Evacuation Alert System</div>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="page-crumb">
+                <i class="fas fa-users" style="font-size:12px;"></i>
+                <span>Residents</span>
+            </div>
+        </div>
+        <a href="{{ route('resident.index') }}" class="nav-back">
+            <i class="fas fa-chevron-left"></i> Dashboard
+        </a>
+    </nav>
+
+    <!-- PAGE -->
+    <div class="page">
+
+        @if(session('Success'))
+        <div class="flash-alert success anim" id="flashAlert">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ session('Success') }}</span>
+        </div>
+        @endif
+
+        <!-- Stat Strip -->
+        <div class="stat-strip anim delay-1">
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:var(--navy);"></div>
+                <div>
+                    <div class="chip-val">{{ number_format($totalResidents) }}</div>
+                    <div class="chip-lbl">Total Residents</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:var(--blue);"></div>
+                <div>
+                    <div class="chip-val">{{ isset($maleCount) ? number_format($maleCount) : 0 }}</div>
+                    <div class="chip-lbl">Male</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:#ec4899;"></div>
+                <div>
+                    <div class="chip-val">{{ isset($femaleCount) ? number_format($femaleCount) : 0 }}</div>
+                    <div class="chip-lbl">Female</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:var(--amber);"></div>
+                <div>
+                    <div class="chip-val">{{ isset($seniorMale) ? number_format($seniorMale) : 0 }}</div>
+                    <div class="chip-lbl">Senior Male</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:#f97316;"></div>
+                <div>
+                    <div class="chip-val">{{ isset($seniorFemale) ? number_format($seniorFemale) : 0 }}</div>
+                    <div class="chip-lbl">Senior Female</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:var(--green);"></div>
+                <div>
+                    <div class="chip-val">{{ isset($childMale) ? number_format($childMale) : 0 }}</div>
+                    <div class="chip-lbl">Child Male</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:var(--teal);"></div>
+                <div>
+                    <div class="chip-val">{{ isset($childFemale) ? number_format($childFemale) : 0 }}</div>
+                    <div class="chip-lbl">Child Female</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div class="panel anim delay-2">
+            <!-- Toolbar -->
+            <div class="panel-toolbar">
+                <div class="toolbar-left">
+                    <!-- Purok Filter -->
+                    <div class="filter-dropdown" id="purokDropdown">
+                        <button type="button" class="filter-btn" id="purokBtn">
+                            <i class="fas fa-map-pin" style="font-size:11px;color:var(--teal);"></i>
+                            Purok <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-panel">
+                            <div class="dropdown-opt selected" data-value="ALL">All Purok</div>
+                            <div class="dropdown-opt" data-value="Purok I">Purok I</div>
+                            <div class="dropdown-opt" data-value="Purok II">Purok II</div>
+                            <div class="dropdown-opt" data-value="Purok III">Purok III</div>
+                            <div class="dropdown-opt" data-value="Purok IV">Purok IV</div>
+                            <div class="dropdown-opt" data-value="Purok V">Purok V</div>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="filter-dropdown" id="categoryDropdown">
+                        <button type="button" class="filter-btn" id="categoryBtn">
+                            <i class="fas fa-filter" style="font-size:11px;color:var(--teal);"></i>
+                            Category <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-panel">
+                            <div class="dropdown-opt selected" data-value="ALL">All Residents</div>
+                            <div class="dropdown-opt" data-value="SENIOR MALE">Senior Male</div>
+                            <div class="dropdown-opt" data-value="SENIOR FEMALE">Senior Female</div>
+                            <div class="dropdown-opt" data-value="MALE">Male</div>
+                            <div class="dropdown-opt" data-value="FEMALE">Female</div>
+                            <div class="dropdown-opt" data-value="CHILD MALE">Child Male</div>
+                            <div class="dropdown-opt" data-value="CHILD FEMALE">Child Female</div>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="search-wrap">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" class="search-input"
+                               placeholder="Search residents…"
+                               value="{{ request('search') }}"
+                               oninput="refreshFilters()" />
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <button class="btn-add" onclick="openAddModal()">
+                        <i class="fas fa-user-plus"></i> Add Resident
+                    </button>
+                    <button class="btn-export" onclick="exportToCSV()">
+                        <i class="fas fa-file-csv"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+                <table class="data-table" id="residentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="sortable" onclick="sortTable(1,'string')">Last Name <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(2,'string')">First Name <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Address</th>
+                            <th>Contact</th>
+                            <th>Added On</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($residents as $resident)
+                        <tr data-gender="{{ $resident->gender ?? '' }}">
+                            <td class="td-id">{{ str_pad($resident->id, 4, '0', STR_PAD_LEFT) }}</td>
+                            <td class="td-name">{{ $resident->qty }}</td>
+                            <td>{{ $resident->name }}</td>
+                            <td>{{ $resident->price }}</td>
+                            <td>
+                                @if($resident->gender)
+                                <span class="gender-pill {{ strtolower($resident->gender) === 'male' ? 'male' : 'female' }}">
+                                    <i class="fas fa-{{ strtolower($resident->gender) === 'male' ? 'mars' : 'venus' }}" style="font-size:10px;"></i>
+                                    {{ $resident->gender }}
+                                </span>
+                                @else
+                                <span style="color:var(--text-muted);">—</span>
+                                @endif
+                            </td>
+                            <td style="color:var(--text-mid);">{{ $resident->description ?? '—' }}</td>
+                            <td style="color:var(--text-mid);font-size:13px;">{{ $resident->contact_number ?? '—' }}</td>
+                            <td style="color:var(--text-muted);font-size:12.5px;">{{ $resident->created_at->format('M d, Y') }}</td>
+                            <td>
+                                <div class="action-btns" style="justify-content:flex-end;">
+                                    <button class="action-btn" onclick="openViewModal({{ $resident->id }})" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit" title="Edit"
+                                        onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}')">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="action-btn delete" title="Delete"
+                                        onclick="openDeleteModal('{{ route('resident.destroy', $resident->id) }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <div class="empty-icon"><i class="fas fa-users"></i></div>
+                                    <div class="empty-title">No Residents Found</div>
+                                    <div class="empty-msg">Add your first resident using the button above.</div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer / Pagination -->
+            <div class="panel-footer">
+                <div class="per-page">
+                    <span>Show</span>
+                    <select onchange="changePerPage(this.value)">
+                        <option value="10"  {{ request('per_page')==10  ?'selected':'' }}>10</option>
+                        <option value="25"  {{ request('per_page')==25  ?'selected':'' }}>25</option>
+                        <option value="50"  {{ request('per_page')==50  ?'selected':'' }}>50</option>
+                        <option value="100" {{ request('per_page')==100 ?'selected':'' }}>100</option>
+                    </select>
+                    <span>per page</span>
+                </div>
+                <div style="font-size:12.5px;color:var(--text-muted);">
+                    {{ $residents->appends(request()->query())->links('pagination::bootstrap-4') }}
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page -->
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-circle-check"></i>
+        <span id="toast-msg">Done!</span>
+    </div>
+
+    <!-- ══ ADD RESIDENT MODAL ══ -->
+    <div class="modal-backdrop" id="addBackdrop">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Add New Resident</div>
+                    <div class="modal-head-sub">Fill in the details to register a resident.</div>
+                </div>
+                <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ route('resident.store') }}">
+                    @csrf
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Maria" value="{{ old('name') }}">
+                            @error('name')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="qty" class="form-control" placeholder="e.g. Santos" value="{{ old('qty') }}">
+                            @error('qty')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Age</label>
+                            <input type="text" name="price" class="form-control" placeholder="e.g. 34" value="{{ old('price') }}">
+                            @error('price')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" class="form-control">
+                                <option value="" disabled selected>Select…</option>
+                                <option value="Male"   {{ old('gender')=='Male'?'selected':'' }}>Male</option>
+                                <option value="Female" {{ old('gender')=='Female'?'selected':'' }}>Female</option>
+                            </select>
+                            @error('gender')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address (Purok)</label>
+                            <select name="description" class="form-control">
+                                <option value="" disabled selected>Select Purok…</option>
+                                @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
+                                <option value="{{ $p }}" {{ old('description')==$p?'selected':'' }}>{{ $p }}</option>
+                                @endforeach
+                            </select>
+                            @error('description')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" name="contact_number" class="form-control" placeholder="e.g. 09..." value="{{ old('contact_number') }}">
+                            @error('contact_number')<div class="error-msg">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-floppy-disk"></i> Save Resident
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-
-  @if(session('Success'))
-    <div class="alert success" id="successAlert">{{ session('Success') }}</div>
-  @endif
-
-    <!-- Filter & Search -->
-    <div class="filter-section">
-      <div class="filter-left">
-        <div class="dropdown" id="purokDropdown">
-          <button type="button" class="filter-btn" id="purokBtn">PUROK <i class="fas fa-chevron-down"></i></button>
-          <div class="dropdown-menu">
-            <div class="dropdown-item" data-value="ALL">ALL PUROK</div>
-            <div class="dropdown-item" data-value="Purok I">Purok I</div>
-            <div class="dropdown-item" data-value="Purok II">Purok II</div>
-            <div class="dropdown-item" data-value="Purok III">Purok III</div>
-            <div class="dropdown-item" data-value="Purok IV">Purok IV</div>
-            <div class="dropdown-item" data-value="Purok V">Purok V</div>
-          </div>
+    <!-- ══ EDIT RESIDENT MODAL ══ -->
+    <div class="modal-backdrop" id="editBackdrop">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Edit Resident</div>
+                    <div class="modal-head-sub">Update the resident's information below.</div>
+                </div>
+                <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="editResidentForm" method="POST" onsubmit="return confirmEdit(event)">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="qty" id="edit_qty" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Age</label>
+                            <input type="text" name="price" id="edit_price" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" id="edit_gender" class="form-control">
+                                <option value="" disabled>Select…</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address (Purok)</label>
+                            <select name="description" id="edit_description" class="form-control">
+                                <option value="" disabled>Select Purok…</option>
+                                @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
+                                <option value="{{ $p }}">{{ $p }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" name="contact_number" id="edit_contact_number" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-floppy-disk"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="dropdown" id="categoryDropdown">
-          <button type="button" class="filter-btn" id="categoryBtn">RESIDENTS<i class="fas fa-chevron-down"></i></button>
-          <div class="dropdown-menu">
-            <div class="dropdown-item" data-value="ALL">ALL RESIDENTS</div>
-            <div class="dropdown-item" data-value="SENIOR MALE">SENIOR MALE</div>
-            <div class="dropdown-item" data-value="SENIOR FEMALE">SENIOR FEMALE</div>
-            <div class="dropdown-item" data-value="MALE">MALE</div>
-            <div class="dropdown-item" data-value="FEMALE">FEMALE</div>
-            <div class="dropdown-item" data-value="CHILD MALE">CHILD MALE</div>
-            <div class="dropdown-item" data-value="CHILD FEMALE">CHILD FEMALE</div>
-          </div>
+    </div>
+
+    <!-- ══ CONFIRM EDIT MODAL ══ -->
+    <div class="modal-backdrop" id="confirmBackdrop">
+        <div class="modal-box sm">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Confirm Changes</div>
+                    <div class="modal-head-sub">Please verify the details before saving.</div>
+                </div>
+                <button class="modal-close" onclick="closeConfirmModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-row"><span class="detail-lbl">First Name</span><span class="detail-val" id="confirm_name">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Last Name</span><span class="detail-val" id="confirm_qty">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Age</span><span class="detail-val" id="confirm_price">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Address</span><span class="detail-val" id="confirm_desc">—</span></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeConfirmModal()">Back</button>
+                    <button class="btn-submit" onclick="submitEditForm()">
+                        <i class="fas fa-check"></i> Confirm & Save
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="search-container">
-          <i class="fas fa-search"></i>
-          <input type="text" id="searchInput" placeholder="Search" value="{{ request('search') }}" onkeyup="liveSearch()" />
+    </div>
+
+    <!-- ══ VIEW RESIDENT MODAL ══ -->
+    <div class="modal-backdrop" id="viewBackdrop">
+        <div class="modal-box sm">
+            <div class="modal-head">
+                <div class="modal-head-title">Resident Details</div>
+                <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-row"><span class="detail-lbl">ID</span><span class="detail-val" id="view_id">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">First Name</span><span class="detail-val" id="view_name">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Last Name</span><span class="detail-val" id="view_qty">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Age</span><span class="detail-val" id="view_price">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Address</span><span class="detail-val" id="view_description">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Contact</span><span class="detail-val" id="view_contact_number">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Added On</span><span class="detail-val" id="view_created">—</span></div>
+                    <div class="detail-row"><span class="detail-lbl">Last Updated</span><span class="detail-val" id="view_updated">—</span></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeViewModal()">Close</button>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="filter-right">
-        <button class="btn-add" onclick="openAddModal()">ADD <i class="fas fa-plus"></i></button>
-        <button class="btn-export">EXPORT <i class="fas fa-download"></i></button>
-      </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-wrapper">
-      <table id="residentsTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th class="sortable" onclick="sortTable(1,'string')">LASTNAME <i class="fas fa-sort sort-arrow"></i></th>
-            <th class="sortable" onclick="sortTable(2,'string')">FIRSTNAME <i class="fas fa-sort sort-arrow"></i></th>
-            <th>AGE</th>
-            <th>GENDER</th>
-            <th>ADDRESS</th>
-            <th>CONTACT NUMBER</th>
-            <th>ADDED ON</th>
-            <th>ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse($residents as $resident)
-          <tr data-gender="{{ $resident->gender ?? '' }}">
-            <td>{{ $resident->id }}</td>
-            <td>{{ $resident->qty }}</td>
-            <td>{{ $resident->name }}</td>
-            <td>{{ $resident->price }}</td>
-            <td>{{ $resident->gender ?? '-' }}</td>
-            <td>{{ $resident->description }}</td>
-            <td>{{ $resident->contact_number ?? '-' }}</td>
-            <td>{{ $resident->created_at->format('M d, Y') }}</td>
-            <td>
-              <div class="actions">
-                <button type="button" class="btn-icon view" onclick="openViewModal({{ $resident->id }})"><i class="fas fa-eye"></i></button>
-                <button type="button" class="btn-icon edit" onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}')"><i class="fas fa-edit"></i></button>
-                <button type="button" class="btn-icon delete" onclick="openDeleteModal('{{ route('resident.destroy', $resident->id) }}')"><i class="fas fa-trash"></i></button>
-              </div>
-            </td>
-          </tr>
-          @empty
-          <tr>
-            <td colspan="9" style="text-align:center;color:#999;">No residents found.</td>
-          </tr>
-          @endforelse
-        </tbody>
-      </table>
+    <!-- ══ DELETE MODAL ══ -->
+    <div class="modal-backdrop" id="deleteBackdrop">
+        <div class="modal-box sm">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Delete Resident</div>
+                    <div class="modal-head-sub">This action cannot be undone.</div>
+                </div>
+                <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13.5px;color:var(--text-mid);line-height:1.6;margin-bottom:4px;">
+                    Are you sure you want to permanently delete this resident?
+                </p>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                    <form id="deleteForm" method="POST" style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-submit danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="pagination-container">
-      <div class="per-page-selector">
-        <span>Show</span>
-        <select onchange="changePerPage(this.value)">
-          <option value="10" {{ request('per_page')==10?'selected':'' }}>10</option>
-          <option value="25" {{ request('per_page')==25?'selected':'' }}>25</option>
-          <option value="50" {{ request('per_page')==50?'selected':'' }}>50</option>
-          <option value="100" {{ request('per_page')==100?'selected':'' }}>100</option>
-        </select>
-        <span>per page</span>
-        <span style="margin-left:16px;color:#666;">Total Residents: <strong>{{ number_format($totalResidents) }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Male: <strong>{{ isset($maleCount) ? number_format($maleCount) : '0' }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Female: <strong>{{ isset($femaleCount) ? number_format($femaleCount) : '0' }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Senior Male: <strong>{{ isset($seniorMale) ? number_format($seniorMale) : '0' }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Senior Female: <strong>{{ isset($seniorFemale) ? number_format($seniorFemale) : '0' }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Child Male: <strong>{{ isset($childMale) ? number_format($childMale) : '0' }}</strong></span>
-        <span style="margin-left:16px;color:#666;">Child Female: <strong>{{ isset($childFemale) ? number_format($childFemale) : '0' }}</strong></span>
-      </div>
-      {{ $residents->appends(request()->query())->links('pagination::bootstrap-4') }}
-    </div>
-  </div>
-</div>
+    <script>
+        // ── Modal helpers ──
+        function openModal(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
 
-<!-- Add Resident Modal -->
-<div class="modal-overlay" id="addResidentOverlay"></div>
-<div class="modal" id="addResidentModal">
-  <h2>Create New Resident</h2>
-  <form method="POST" action="{{ route('resident.store') }}">
-    @csrf
-    <div>
-      <label>Firstname  </label>
-      <input type="text" name="name" placeholder="First name" value="{{ old('name') }}">
-      @error('name')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label>Lastname</label>
-      <input type="text" name="qty" placeholder="Lastname" value="{{ old('qty') }}">
-      @error('qty')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label>Age</label>
-      <input type="text" name="price" placeholder="Age" value="{{ old('price') }}">
-      @error('price')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label>Address</label>
-      <select name="description">
-        <option value="" disabled {{ old('description') ? '' : 'selected' }}>Select Purok</option>
-        <option value="Purok I" {{ old('description') == 'Purok I' ? 'selected' : '' }}>Purok I</option>
-        <option value="Purok II" {{ old('description') == 'Purok II' ? 'selected' : '' }}>Purok II</option>
-        <option value="Purok III" {{ old('description') == 'Purok III' ? 'selected' : '' }}>Purok III</option>
-        <option value="Purok IV" {{ old('description') == 'Purok IV' ? 'selected' : '' }}>Purok IV</option>
-        <option value="Purok V" {{ old('description') == 'Purok V' ? 'selected' : '' }}>Purok V</option>
-      </select>
-      @error('description')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label>Gender</label>
-      <select name="gender">
-        <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
-        <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-        <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-      </select>
-      @error('gender')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label>Contact Number</label>
-      <input type="text" name="contact_number" placeholder="Contact Number" value="{{ old('contact_number') }}">
-      @error('contact_number')<div class="error-message">{{ $message }}</div>@enderror
-    </div>
-    <div class="modal-buttons" style="margin-top:15px;">
-      <button type="submit" class="btn-add">Save</button>
-      <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
-    </div>
-  </form>
-</div>
+        ['addBackdrop','editBackdrop','confirmBackdrop','viewBackdrop','deleteBackdrop'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if (e.target.id===id) closeModal(id); });
+        });
 
-  <!-- Edit Resident Modal (same design as Add) -->
-  <div class="modal-overlay" id="editResidentOverlay" onclick="closeEditModal()"></div>
-  <div class="modal" id="editResidentModal">
-    <h2>Update Resident</h2>
-    <form id="editResidentForm" method="POST" onsubmit="return confirmEdit()">
-      @csrf
-      @method('PUT')
-      <div>
-        <label>Firstname</label>
-        <input type="text" name="name" id="edit_name" placeholder="First name" required>
-        @error('name')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label>Lastname</label>
-        <input type="text" name="qty" id="edit_qty" placeholder="Lastname" required>
-        @error('qty')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label>Age</label>
-        <input type="text" name="price" id="edit_price" placeholder="Age" required>
-        @error('price')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label>Address</label>
-        <select name="description" id="edit_description">
-          <option value="" disabled>Select Purok</option>
-          <option value="Purok I">Purok I</option>
-          <option value="Purok II">Purok II</option>
-          <option value="Purok III">Purok III</option>
-          <option value="Purok IV">Purok IV</option>
-          <option value="Purok V">Purok V</option>
-        </select>
-        @error('description')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label>Gender</label>
-        <select name="gender" id="edit_gender">
-          <option value="" disabled>Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        @error('gender')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label>Contact Number</label>
-        <input type="text" name="contact_number" id="edit_contact_number" placeholder="Contact Number" value="">
-        @error('contact_number')<div class="error-message">{{ $message }}</div>@enderror
-      </div>
-      <div class="modal-buttons" style="margin-top:15px;">
-        <button type="submit" class="btn-add">Save Changes</button>
-        <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-      </div>
-    </form>
-  </div>
+        function openAddModal()       { openModal('addBackdrop'); }
+        function closeAddModal()      { closeModal('addBackdrop'); }
+        function closeEditModal()     { closeModal('editBackdrop'); }
+        function closeConfirmModal()  { closeModal('confirmBackdrop'); }
+        function closeViewModal()     { closeModal('viewBackdrop'); }
+        function closeDeleteModal()   { closeModal('deleteBackdrop'); }
 
-<!-- View Details Modal -->
-<div class="modal-overlay" id="viewResidentOverlay"></div>
-<div class="modal" id="viewResidentModal">
-  <h2>Resident Details</h2>
-  <div class="resident-details">
-    <div class="detail-row">
-      <label>ID:</label>
-      <span id="view_id">-</span>
-    </div>
-    <div class="detail-row">
-      <label>First Name:</label>
-      <span id="view_name">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Last Name:</label>
-      <span id="view_qty">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Age:</label>
-      <span id="view_price">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Address:</label>
-      <span id="view_description">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Contact Number:</label>
-      <span id="view_contact_number">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Created:</label>
-      <span id="view_created">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Last Updated:</label>
-      <span id="view_updated">-</span>
-    </div>
-  </div>
-  <div class="modal-buttons">
-    <button class="btn-cancel" onclick="closeViewModal()">Close</button>
-  </div>
-</div>
+        function openDeleteModal(action) {
+            document.getElementById('deleteForm').action = action;
+            openModal('deleteBackdrop');
+        }
 
-<!-- Delete Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeDeleteModal()"></div>
-<div class="modal" id="deleteModal">
-  <h2>Delete Resident</h2>
-  <p>Are you sure you want to delete this resident? This action cannot be undone.</p>
-  <div class="modal-buttons">
-    <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-    <form id="deleteForm" method="POST" style="display:inline;">
-      @csrf
-      @method('DELETE')
-      <button type="submit" class="btn-confirm">Delete</button>
-    </form>
-  </div>
-</div>
+        function openEditModal(action, name, qty, price, description, gender, contact='') {
+            document.getElementById('editResidentForm').action = action;
+            document.getElementById('edit_name').value           = name;
+            document.getElementById('edit_qty').value            = qty;
+            document.getElementById('edit_price').value          = price;
+            document.getElementById('edit_description').value    = description;
+            document.getElementById('edit_gender').value         = gender || '';
+            document.getElementById('edit_contact_number').value = contact;
+            openModal('editBackdrop');
+        }
 
-<!-- Edit Confirmation Modal -->
-<div class="modal-overlay" id="editConfirmOverlay" onclick="closeEditConfirmModal()"></div>
-<div class="modal" id="editConfirmModal">
-  <h2>Confirm Changes</h2>
-  <p style="margin-bottom: 15px;">Please confirm the following details are correct:</p>
-  <div class="resident-details">
-    <div class="detail-row">
-      <label>Firstname:</label>
-      <span id="confirm_name">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Lastname:</label>
-      <span id="confirm_qty">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Age:</label>
-      <span id="confirm_price">-</span>
-    </div>
-    <div class="detail-row">
-      <label>Address:</label>
-      <span id="confirm_description">-</span>
-    </div>
-  </div>
-  <div class="modal-buttons" style="margin-top: 20px;">
-    <button class="btn-cancel" onclick="closeEditConfirmModal()">Cancel</button>
-    <button class="btn-add" onclick="submitEditForm()">Save Changes</button>
-  </div>
-</div>
+        function confirmEdit(e) {
+            e.preventDefault();
+            document.getElementById('confirm_name').textContent  = document.getElementById('edit_name').value;
+            document.getElementById('confirm_qty').textContent   = document.getElementById('edit_qty').value;
+            document.getElementById('confirm_price').textContent = document.getElementById('edit_price').value;
+            document.getElementById('confirm_desc').textContent  = document.getElementById('edit_description').value || '—';
+            openModal('confirmBackdrop');
+            return false;
+        }
 
-<script>
-function openDeleteModal(action) {
-  document.getElementById('deleteForm').action = action;
-  document.getElementById('modalOverlay').style.display = 'block';
-  document.getElementById('deleteModal').style.display = 'block';
-}
-function closeDeleteModal() {
-  document.getElementById('modalOverlay').style.display = 'none';
-  document.getElementById('deleteModal').style.display = 'none';
-}
-function openAddModal() {
-  document.getElementById('addResidentOverlay').style.display = 'block';
-  document.getElementById('addResidentModal').style.display = 'block';
-}
-function closeAddModal() {
-  document.getElementById('addResidentOverlay').style.display = 'none';
-  document.getElementById('addResidentModal').style.display = 'none';
-}
-function openEditModal(action, name, qty, price, description, gender, contactNumber = '') {
-  document.getElementById('editResidentOverlay').style.display = 'block';
-  document.getElementById('editResidentModal').style.display = 'block';
-  const form = document.getElementById('editResidentForm');
-  form.action = action;
-  document.getElementById('edit_name').value = name;
-  document.getElementById('edit_qty').value = qty;
-  document.getElementById('edit_price').value = price;
-  document.getElementById('edit_description').value = description;
-  document.getElementById('edit_contact_number').value = contactNumber || '';
-  if (gender) { document.getElementById('edit_gender').value = gender; }
-}
-function closeEditModal() {
-  document.getElementById('editResidentOverlay').style.display = 'none';
-  document.getElementById('editResidentModal').style.display = 'none';
-}
-function confirmEdit() {
-  // Prevent default form submission
-  event.preventDefault();
-  
-  // Get form values
-  const firstname = document.getElementById('edit_name').value;
-  const lastname = document.getElementById('edit_qty').value;
-  const age = document.getElementById('edit_price').value;
-  const address = document.getElementById('edit_description').value || 'Not specified';
-  
-  // Populate confirmation modal
-  document.getElementById('confirm_name').textContent = firstname;
-  document.getElementById('confirm_qty').textContent = lastname;
-  document.getElementById('confirm_price').textContent = age;
-  document.getElementById('confirm_description').textContent = address;
-  
-  // Show confirmation modal
-  document.getElementById('editConfirmOverlay').style.display = 'block';
-  document.getElementById('editConfirmModal').style.display = 'block';
-  
-  return false;
-}
-function closeEditConfirmModal() {
-  document.getElementById('editConfirmOverlay').style.display = 'none';
-  document.getElementById('editConfirmModal').style.display = 'none';
-}
-function submitEditForm() {
-  // Close confirmation modal
-  closeEditConfirmModal();
-  // Submit the form
-  document.getElementById('editResidentForm').submit();
-}
-function openViewModal(residentId) {
-  // Fetch resident details via AJAX
-  fetch(`/residents/${residentId}`)
-    .then(response => response.json())
-    .then(data => {
-      document.getElementById('view_id').textContent = data.id;
-      document.getElementById('view_name').textContent = data.name;
-      document.getElementById('view_qty').textContent = data.qty;
-      document.getElementById('view_price').textContent = data.price;
-      document.getElementById('view_description').textContent = data.description || '-';
-      document.getElementById('view_contact_number').textContent = data.contact_number || '-';
-      document.getElementById('view_created').textContent = data.created_at;
-      document.getElementById('view_updated').textContent = data.updated_at;
-      
-      document.getElementById('viewResidentOverlay').style.display = 'block';
-      document.getElementById('viewResidentModal').style.display = 'block';
-    })
-    .catch(error => {
-      console.error('Error fetching resident details:', error);
-      alert('Error loading resident details');
-    });
-}
-function closeViewModal() {
-  document.getElementById('viewResidentOverlay').style.display = 'none';
-  document.getElementById('viewResidentModal').style.display = 'none';
-}
-function confirmLogout(button) {
-  if(confirm('Are you sure you want to log out?')) button.closest('form').submit();
-}
-setTimeout(()=>{
-  const alert = document.getElementById('successAlert') || document.getElementById('welcomeAlert');
-  if(alert){ alert.classList.add('hide'); setTimeout(()=>alert.remove(),500); }
-},3000);
-let currentPurokFilter = 'ALL';
-let currentCategoryFilter = 'ALL';
-function refreshFilters(){
-  const input = document.getElementById('searchInput').value.toLowerCase();
-  const tbody = document.getElementById('residentsTable').getElementsByTagName('tbody')[0];
-  const rows = tbody.getElementsByTagName('tr');
-  for(let row of rows){
-    let matchesSearch = false;
-    for(let cell of row.getElementsByTagName('td')){
-      if(cell.textContent.toLowerCase().includes(input)) { matchesSearch = true; break; }
-    }
-    const purokText = row.children[5]?.textContent.trim() || '';
-    const matchesPurok = currentPurokFilter === 'ALL' || purokText === currentPurokFilter;
-    // Category filter (requires age and optionally gender in data-gender)
-    const ageText = row.children[3]?.textContent.trim() || '';
-    const age = parseInt(ageText, 10);
-    const gender = (row.getAttribute('data-gender') || '').toUpperCase();
-    const isChild = !isNaN(age) && age < 18;
-    const isSenior = !isNaN(age) && age >= 60;
-    const isMale = gender === 'MALE' || gender === 'M';
-    const isFemale = gender === 'FEMALE' || gender === 'F';
+        function submitEditForm() {
+            closeConfirmModal();
+            document.getElementById('editResidentForm').submit();
+        }
 
-    let matchesCategory = true; // default when ALL
-    switch(currentCategoryFilter){
-      case 'SENIOR MALE': matchesCategory = isSenior && isMale; break;
-      case 'SENIOR FEMALE': matchesCategory = isSenior && isFemale; break;
-      case 'MALE': matchesCategory = isMale; break;
-      case 'FEMALE': matchesCategory = isFemale; break;
-      case 'CHILD MALE': matchesCategory = isChild && isMale; break;
-      case 'CHILD FEMALE': matchesCategory = isChild && isFemale; break;
-      default: matchesCategory = true; // ALL
-    }
-    row.style.display = (matchesSearch && matchesPurok) ? '' : 'none';
-    if(row.style.display !== 'none' && !matchesCategory){ row.style.display = 'none'; }
-  }
-}
-function liveSearch(){
-  refreshFilters();
-}
+        function openViewModal(id) {
+            fetch(`/residents/${id}`)
+                .then(r => r.json())
+                .then(d => {
+                    document.getElementById('view_id').textContent           = d.id;
+                    document.getElementById('view_name').textContent         = d.name;
+                    document.getElementById('view_qty').textContent          = d.qty;
+                    document.getElementById('view_price').textContent        = d.price;
+                    document.getElementById('view_description').textContent  = d.description || '—';
+                    document.getElementById('view_contact_number').textContent = d.contact_number || '—';
+                    document.getElementById('view_created').textContent      = d.created_at;
+                    document.getElementById('view_updated').textContent      = d.updated_at;
+                    openModal('viewBackdrop');
+                })
+                .catch(() => alert('Error loading resident details.'));
+        }
 
-document.addEventListener('DOMContentLoaded', function(){
-  const dropdown = document.getElementById('purokDropdown');
-  const btn = document.getElementById('purokBtn');
-  btn.addEventListener('click', function(e){
-    e.stopPropagation();
-    dropdown.classList.toggle('open');
-  });
-  document.addEventListener('click', function(){
-    dropdown.classList.remove('open');
-  });
-  dropdown.querySelectorAll('.dropdown-item').forEach(function(item){
-    item.addEventListener('click', function(e){
-      e.stopPropagation();
-      const value = this.getAttribute('data-value');
-      currentPurokFilter = value;
-      btn.innerHTML = value + ' <i class="fas fa-chevron-down"></i>';
-      dropdown.classList.remove('open');
-      refreshFilters();
-    });
-  });
-});
+        // ── Filter dropdowns ──
+        let currentPurok    = 'ALL';
+        let currentCategory = 'ALL';
 
-document.addEventListener('DOMContentLoaded', function(){
-  const dropdown = document.getElementById('categoryDropdown');
-  const btn = document.getElementById('categoryBtn');
-  btn.addEventListener('click', function(e){
-    e.stopPropagation();
-    dropdown.classList.toggle('open');
-  });
-  document.addEventListener('click', function(){
-    dropdown.classList.remove('open');
-  });
-  dropdown.querySelectorAll('.dropdown-item').forEach(function(item){
-    item.addEventListener('click', function(e){
-      e.stopPropagation();
-      const value = this.getAttribute('data-value');
-      currentCategoryFilter = value;
-      btn.innerHTML = value + ' <i class="fas fa-chevron-down"></i>';
-      dropdown.classList.remove('open');
-      refreshFilters();
-    });
-  });
-});
+        function setupDropdown(dropdownId, btnId, onSelect) {
+            const dd  = document.getElementById(dropdownId);
+            const btn = document.getElementById(btnId);
+            btn.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+            document.addEventListener('click', () => dd.classList.remove('open'));
+            dd.querySelectorAll('.dropdown-opt').forEach(opt => {
+                opt.addEventListener('click', e => {
+                    e.stopPropagation();
+                    dd.querySelectorAll('.dropdown-opt').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    onSelect(opt.getAttribute('data-value'), opt.textContent.trim());
+                    dd.classList.remove('open');
+                });
+            });
+        }
 
-function changePerPage(value){
-  const params = new URLSearchParams(window.location.search);
-  params.set('per_page', value);
-  window.location.search = params.toString();
-}
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDropdown('purokDropdown', 'purokBtn', (val, label) => {
+                currentPurok = val;
+                document.getElementById('purokBtn').innerHTML =
+                    `<i class="fas fa-map-pin" style="font-size:11px;color:var(--teal);"></i> ${label} <i class="fas fa-chevron-down"></i>`;
+                const btn = document.getElementById('purokBtn');
+                btn.classList.toggle('active', val !== 'ALL');
+                refreshFilters();
+            });
 
-// Sort table by column index and type ('string' or 'number')
-function sortTable(columnIndex, type){
-  const table = document.getElementById('residentsTable');
-  const tbody = table.tBodies[0];
-  const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
-  const current = table.getAttribute('data-sort-col');
-  const dir = current == columnIndex && table.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
-  rows.sort((a,b)=>{
-    const av = a.children[columnIndex].textContent.trim();
-    const bv = b.children[columnIndex].textContent.trim();
-    if(type==='number'){
-      const an = parseFloat(av) || 0; const bn = parseFloat(bv) || 0;
-      return dir==='asc' ? an-bn : bn-an;
-    }
-    return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-  });
-  rows.forEach(r=>tbody.appendChild(r));
-  table.setAttribute('data-sort-col', columnIndex);
-  table.setAttribute('data-sort-dir', dir);
-}
-</script>
-</div>
+            setupDropdown('categoryDropdown', 'categoryBtn', (val, label) => {
+                currentCategory = val;
+                document.getElementById('categoryBtn').innerHTML =
+                    `<i class="fas fa-filter" style="font-size:11px;color:var(--teal);"></i> ${label} <i class="fas fa-chevron-down"></i>`;
+                const btn = document.getElementById('categoryBtn');
+                btn.classList.toggle('active', val !== 'ALL');
+                refreshFilters();
+            });
+
+            // Flash auto-dismiss
+            const flash = document.getElementById('flashAlert');
+            if (flash) { setTimeout(() => { flash.style.opacity='0'; flash.style.transition='opacity 0.4s'; setTimeout(()=>flash.remove(),400); }, 4000); }
+        });
+
+        function refreshFilters() {
+            const q    = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#residentsTable tbody tr');
+            rows.forEach(row => {
+                if (!row.cells[1]) return;
+                let matchSearch = false;
+                for (let c of row.cells) { if (c.textContent.toLowerCase().includes(q)) { matchSearch = true; break; } }
+
+                const purokTxt = row.cells[5]?.textContent.trim() || '';
+                const matchPurok = currentPurok === 'ALL' || purokTxt === currentPurok;
+
+                const age    = parseInt(row.cells[3]?.textContent.trim(), 10);
+                const gender = (row.getAttribute('data-gender') || '').toUpperCase();
+                const isMale   = gender === 'MALE';
+                const isFemale = gender === 'FEMALE';
+                const isChild  = !isNaN(age) && age < 18;
+                const isSenior = !isNaN(age) && age >= 60;
+
+                let matchCat = true;
+                switch(currentCategory) {
+                    case 'SENIOR MALE':   matchCat = isSenior && isMale;   break;
+                    case 'SENIOR FEMALE': matchCat = isSenior && isFemale; break;
+                    case 'MALE':          matchCat = isMale;               break;
+                    case 'FEMALE':        matchCat = isFemale;             break;
+                    case 'CHILD MALE':    matchCat = isChild && isMale;    break;
+                    case 'CHILD FEMALE':  matchCat = isChild && isFemale;  break;
+                }
+
+                row.style.display = (matchSearch && matchPurok && matchCat) ? '' : 'none';
+            });
+        }
+
+        function changePerPage(val) {
+            const p = new URLSearchParams(window.location.search);
+            p.set('per_page', val);
+            window.location.search = p.toString();
+        }
+
+        function sortTable(col, type) {
+            const table = document.getElementById('residentsTable');
+            const tbody = table.tBodies[0];
+            const rows  = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+            const prev  = table.getAttribute('data-sort-col');
+            const dir   = prev == col && table.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+            rows.sort((a, b) => {
+                const av = a.children[col]?.textContent.trim() || '';
+                const bv = b.children[col]?.textContent.trim() || '';
+                if (type === 'number') { return dir==='asc' ? parseFloat(av)-parseFloat(bv) : parseFloat(bv)-parseFloat(av); }
+                return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
+            rows.forEach(r => tbody.appendChild(r));
+            table.setAttribute('data-sort-col', col);
+            table.setAttribute('data-sort-dir', dir);
+        }
+
+        // ── Export to CSV function ──
+        function exportToCSV() {
+            const table = document.getElementById('residentsTable');
+            const rows = table.querySelectorAll('tbody tr');
+            const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+            
+            if (visibleRows.length === 0) {
+                showToast('No data to export');
+                return;
+            }
+
+            // Create CSV content
+            let csvContent = 'ID,Last Name,First Name,Age,Gender,Address,Contact,Added On\n';
+            
+            visibleRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = [
+                    cells[0]?.textContent.trim() || '',
+                    cells[1]?.textContent.trim() || '',
+                    cells[2]?.textContent.trim() || '',
+                    cells[3]?.textContent.trim() || '',
+                    cells[4]?.textContent.trim().replace(/\s+/g, ' ').trim() || '',
+                    cells[5]?.textContent.trim() || '',
+                    cells[6]?.textContent.trim() || '',
+                    cells[7]?.textContent.trim() || ''
+                ];
+                
+                // Escape quotes and wrap in quotes if contains comma
+                const escapedRow = rowData.map(cell => {
+                    if (cell.includes(',') || cell.includes('"')) {
+                        return '"' + cell.replace(/"/g, '""') + '"';
+                    }
+                    return cell;
+                });
+                
+                csvContent += escapedRow.join(',') + '\n';
+            });
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `residents_export_${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('Export completed successfully');
+        }
+
+        // ── Toast helper ──
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
