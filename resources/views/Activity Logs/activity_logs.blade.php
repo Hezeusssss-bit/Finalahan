@@ -260,28 +260,33 @@
         .back-button {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: var(--white);
-            border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            color: var(--text-dark);
-            font-size: 1.2rem;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--navy-mid);
+            color: var(--white);
             text-decoration: none;
-            margin-right: 15px;
-            vertical-align: middle;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .back-button:hover {
-            background-color: var(--slate-light);
-            transform: translateY(-2px);
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .back-button i {
-            margin: 0;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover i {
+            transform: translateX(-2px);
         }
         
         /* ── MODAL ── */
@@ -434,14 +439,15 @@
     <main class="main">
         <!-- Page Header -->
         <div class="page-header anim">
-            <p class="page-eyebrow">System</p>
-            <h1 class="page-title">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <p class="page-eyebrow">System</p>
+                    <h1 class="page-title">Activity Logs</h1>
+                </div>
                 <a href="{{ route('resident.index') }}" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
+                    <i class="fas fa-chevron-left"></i> Dashboard
                 </a>
-                <i class="fas fa-scroll"></i>
-                Activity Logs
-            </h1>
+            </div>
         </div>
 
         <!-- Recent Activity Panel -->

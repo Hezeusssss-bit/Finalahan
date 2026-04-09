@@ -41,7 +41,7 @@ class EmployeeController extends Controller
                 'contact_number' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
                 'status' => 'required|in:active,inactive,on_leave',
-                'hire_date' => 'nullable|date|before_or_equal:today'
+                'hire_date' => 'nullable|date'
             ]);
             
             // Hash password before storing
@@ -83,7 +83,7 @@ class EmployeeController extends Controller
             'contact_number' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'status' => 'required|in:active,inactive,on_leave',
-            'hire_date' => 'nullable|date|before_or_equal:today'
+            'hire_date' => 'nullable|date'
         ]);
         
         $employee->update($validated);
@@ -207,6 +207,100 @@ class EmployeeController extends Controller
             'activeAssignments',
             'totalAssignments'
         ));
+    }
+    
+    /**
+     * Export evacuees data from employee's assigned areas to CSV
+     */
+    public function exportEvacuees()
+    {
+        try {
+            // Get current logged-in employee from session
+            $employeeId = session('employee_id');
+            
+            if (!$employeeId) {
+                return redirect()->route('login')->with('error', 'Please login to access this feature.');
+            }
+            
+            $employee = Employee::find($employeeId);
+            
+            if (!$employee) {
+                return redirect()->route('login')->with('error', 'Employee not found.');
+            }
+            
+            // Get assigned areas for this employee
+            $assignedAreas = EmployeeAssignment::where('employee_id', $employee->id)
+                ->where('status', 'active')
+                ->pluck('evacuation_center')
+                ->toArray();
+            
+            if (empty($assignedAreas)) {
+                return redirect()->back()->with('error', 'No assigned evacuation centers found.');
+            }
+            
+            // Get evacuees from assigned areas (excluding released)
+            $evacuees = \App\Models\Evacuee::with('resident')
+                ->whereIn('evacuation_area', $assignedAreas)
+                ->where('evacuation_status', '!=', 'Released')
+                ->get()
+                ->map(function($evacuee) {
+                    return [
+                        'ID' => str_pad($evacuee->id, 4, '0', STR_PAD_LEFT),
+                        'Fullname' => $evacuee->resident->name ?? 'N/A',
+                        'Age' => $evacuee->resident->price ?? 'N/A',
+                        'Gender' => $evacuee->resident->gender ?? 'N/A',
+                        'Evacuation Status' => $evacuee->evacuation_status,
+                        'Evacuation Area' => $evacuee->evacuation_area,
+                        'Room Number' => $evacuee->room_number ?? 'N/A',
+                        'Evacuation Date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : 'N/A'
+                    ];
+                });
+
+            // Log export activity
+            $this->logActivity(
+                'Evacuees Data Exported by Employee',
+                "Employee '{$employee->name}' exported {$evacuees->count()} evacuee records from assigned areas",
+                'Employee'
+            );
+
+            // Generate CSV filename with timestamp and employee info
+            $filename = 'evacuees_export_' . $employee->name . '_' . date('Y-m-d_H-i-s') . '.csv';
+            
+            // Set headers for CSV download
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ];
+
+            // Create CSV content
+            $callback = function() use ($evacuees) {
+                $file = fopen('php://output', 'w');
+                
+                // Add UTF-8 BOM for proper character encoding in Excel
+                fwrite($file, "\xEF\xBB\xBF");
+                
+                // Add header row
+                if ($evacuees->isNotEmpty()) {
+                    fputcsv($file, array_keys($evacuees->first()));
+                }
+                
+                // Add data rows
+                foreach ($evacuees as $evacuee) {
+                    fputcsv($file, $evacuee);
+                }
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            \Log::error('Employee export evacuees error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while exporting evacuee data.');
+        }
     }
     
     /**

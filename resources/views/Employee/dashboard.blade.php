@@ -892,13 +892,39 @@
         }
         
         function exportEvacuees() {
-            // Export all evacuees from employee's assigned areas
-            window.open('/evacuees/export', '_blank');
+            // Export evacuees from employee's assigned areas
+            window.open('{{ route("employee.evacuees.export") }}', '_blank');
         }
         
         function viewEvacuee(id) {
-            // Open evacuee details modal or redirect
-            window.location.href = `/evacuees/${id}`;
+            // Fetch evacuee details and display in modal
+            fetch(`/evacuees/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const evacuee = data.evacuee;
+                        const details = `
+Evacuee Details
+
+ID: ${evacuee.id}
+Name: ${evacuee.name}
+Age: ${evacuee.age}
+Gender: ${evacuee.gender}
+Evacuation Status: ${evacuee.evacuation_status}
+Evacuation Area: ${evacuee.evacuation_area}
+Room Number: ${evacuee.room_number}
+Evacuation Date: ${evacuee.evacuation_date}
+Released At: ${evacuee.released_at}
+                        `;
+                        alert(details.trim());
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching evacuee details.');
+                });
         }
         
         function releaseEvacuee(id) {

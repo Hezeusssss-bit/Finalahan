@@ -799,4 +799,44 @@ public function index(Request $request)
             ], 500);
         }
     }
+
+    /**
+     * Show evacuee details
+     */
+    public function showEvacuee($evacueeId)
+    {
+        try {
+            $evacuee = Evacuee::with('resident')->findOrFail($evacueeId);
+            
+            // For simplicity, we'll return a JSON response with evacuee details
+            // In a full implementation, you might want to return a view
+            return response()->json([
+                'success' => true,
+                'evacuee' => [
+                    'id' => str_pad($evacuee->id, 4, '0', STR_PAD_LEFT),
+                    'name' => $evacuee->resident->name ?? 'N/A',
+                    'age' => $evacuee->resident->price ?? 'N/A',
+                    'gender' => $evacuee->resident->gender ?? 'N/A',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number ?? 'N/A',
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : 'N/A',
+                    'released_at' => $evacuee->released_at ? $evacuee->released_at->format('Y-m-d H:i:s') : 'N/A'
+                ]
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Evacuee not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Show evacuee error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving evacuee details.'
+            ], 500);
+        }
+    }
 }

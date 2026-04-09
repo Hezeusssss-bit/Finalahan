@@ -354,28 +354,33 @@
         .back-button {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: var(--white);
-            border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            color: var(--text-dark);
-            font-size: 1.2rem;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--navy-mid);
+            color: var(--white);
             text-decoration: none;
-            margin-right: 15px;
-            vertical-align: middle;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .back-button:hover {
-            background-color: var(--slate-light);
-            transform: translateY(-2px);
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .back-button i {
-            margin: 0;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover i {
+            transform: translateX(-2px);
         }
         
         /* ── ALERT BANNER ── */
@@ -425,20 +430,20 @@
     <main class="main">
         <!-- Page Header -->
         <div class="page-header anim">
-            <p class="page-eyebrow">Administration</p>
-            <h1 class="page-title">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <p class="page-eyebrow">Administration</p>
+                    <h1 class="page-title">Employee Management</h1>
+                </div>
                 <a href="{{ route('resident.index') }}" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
+                    <i class="fas fa-chevron-left"></i> Dashboard
                 </a>
-                <i class="fas fa-user-tie"></i>
-                Employee Management
-            </h1>
+            </div>
         </div>
 
         <!-- Flash Messages -->
         @if(session('success'))
         <div class="flash-alert success anim">
-            <i class="fas fa-circle-check"></i>
             <span>{{ session('success') }}</span>
         </div>
         @endif
@@ -573,18 +578,11 @@
                         <label for="position" class="form-label">Position</label>
                         <select id="position" name="position" required class="form-control">
                             <option value="">Select position</option>
-                            <option value="Administrator">Administrator</option>
                             <option value="Staff">Staff</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Supervisor">Supervisor</option>
-                            <option value="Officer">Officer</option>
+
                         </select>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="department" class="form-label">Department</label>
-                        <input type="text" id="department" name="department" required class="form-control" placeholder="Enter department">
-                    </div>
                     
                     <div class="form-group">
                         <label for="contact_number" class="form-label">Contact Number</label>
@@ -596,15 +594,6 @@
                         <textarea id="address" name="address" class="form-control" placeholder="Enter address"></textarea>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="status" class="form-label">Status</label>
-                        <select id="status" name="status" required class="form-control">
-                            <option value="">Select status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="on_leave">On Leave</option>
-                        </select>
-                    </div>
                     
                     <div class="form-group">
                         <label for="hire_date" class="form-label">Hire Date</label>
@@ -628,8 +617,13 @@
     function openModal(id)  { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
 
-    ['employeeModalOverlay','assignmentModalOverlay'].forEach(id => {
-        document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
+    document.addEventListener('DOMContentLoaded', function() {
+        ['employeeModalOverlay','assignmentModalOverlay'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', e => { if (e.target.id === id) closeModal(id); });
+            }
+        });
     });
 
 // Employee CRUD operations
@@ -668,7 +662,6 @@ function editEmployee(employeeId) {
             document.getElementById('fullName').value = employee.name;
             document.getElementById('email').value = employee.email;
             document.getElementById('position').value = employee.position;
-            document.getElementById('department').value = employee.department;
             document.getElementById('contact_number').value = employee.contact_number || '';
             document.getElementById('address').value = employee.address || '';
             document.getElementById('hire_date').value = employee.hire_date || '';

@@ -203,6 +203,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             line-height: 1.2;
         }
 
+        /* BACK BUTTON */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--navy-mid);
+            color: var(--white);
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .back-button i {
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover i {
+            transform: translateX(-2px);
+        }
+
         /* PANEL */
         .panel {
             background: var(--white);
@@ -457,8 +490,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     <p class="page-eyebrow">Emergency Services</p>
                     <h1 class="page-title">SMS Alert System</h1>
                 </div>
-                <a href="{{ route('services') }}" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
-                    <i class="fas fa-arrow-left"></i> Back
+                <a href="{{ route('services') }}" class="back-button">
+                    <i class="fas fa-chevron-left"></i> Dashboard
                 </a>
             </div>
         </div>

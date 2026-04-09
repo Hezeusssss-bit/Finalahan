@@ -70,12 +70,14 @@ Route::middleware('authCheck')->group(function () {
     Route::get('/api/residents/by-purok', [ProductController::class, 'getResidentsByPurok'])->name('residents.by-purok');
     Route::get('/api/facilities/{facility}/capacity', [ProductController::class, 'getFacilityCapacity'])->name('facilities.capacity');
     Route::post('/evacuees/{evacueeId}/release', [ProductController::class, 'releaseEvacuee'])->name('evacuees.release');
+Route::get('/evacuees/{evacueeId}', [ProductController::class, 'showEvacuee'])->name('evacuees.show');
 });
 
 // Employee Management (temporarily outside auth for testing)
 Route::get('/employee', [App\Http\Controllers\EmployeeController::class, 'index'])->name('employee.employee');
 Route::get('/employee/dashboard', [App\Http\Controllers\EmployeeController::class, 'dashboard'])->name('employee.dashboard')->middleware('authCheck');
 Route::get('/employee/history', [App\Http\Controllers\EmployeeController::class, 'history'])->name('employee.history')->middleware('authCheck');
+Route::get('/employee/evacuees/export', [App\Http\Controllers\EmployeeController::class, 'exportEvacuees'])->name('employee.evacuees.export')->middleware('authCheck');
 Route::post('/employee', [App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
 Route::put('/employee/{id}', [App\Http\Controllers\EmployeeController::class, 'update'])->name('employee.update');
 Route::delete('/employee/{id}', [App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employee.destroy');
@@ -238,4 +240,24 @@ Route::get('/officials', function () {
     return view('Officials.officials');
 
 })->name('officials');
+
+
+
+// IDP's Route
+
+Route::get('/idps', [App\Http\Controllers\IdpController::class, 'index'])->name('idps');
+
+Route::get('/idps/create', [App\Http\Controllers\IdpController::class, 'create'])->name('idps.create');
+
+Route::post('/idps', [App\Http\Controllers\IdpController::class, 'store'])->name('idps.store');
+
+Route::get('/idps/{idp}', [App\Http\Controllers\IdpController::class, 'show'])->name('idps.show');
+
+Route::get('/idps/{idp}/edit', [App\Http\Controllers\IdpController::class, 'edit'])->name('idps.edit');
+
+Route::put('/idps/{idp}', [App\Http\Controllers\IdpController::class, 'update'])->name('idps.update');
+
+Route::delete('/idps/{idp}', [App\Http\Controllers\IdpController::class, 'destroy'])->name('idps.destroy');
+
+Route::patch('/idps/{idp}/status', [App\Http\Controllers\IdpController::class, 'updateStatus'])->name('idps.status.update');
 

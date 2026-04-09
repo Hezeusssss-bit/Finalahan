@@ -73,7 +73,7 @@
         .brand-badge {
             width: 38px;
             height: 38px;
-            background: var(--teal);
+            background: transparent;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -81,6 +81,13 @@
             font-size: 17px;
             color: white;
             flex-shrink: 0;
+        }
+
+        .dswd-logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            border-radius: 6px;
         }
 
         .brand-name {
@@ -687,10 +694,12 @@
     <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div class="brand-badge">
+                    <img src="{{ asset('images/dswd_logo.png') }}" alt="DSWD Logo" class="dswd-logo">
+                </div>
             <div>
-                <div class="brand-name">B-DEAMS</div>
-                <div class="brand-sub">Evacuation Alert System</div>
+                <div class="brand-name">MSWD IS with Intellegent Decision Support</div> <br>
+                <div class="brand-sub">Barangay Gargato</div>
             </div>
         </div>
 
@@ -714,6 +723,9 @@
             </a>
             <a href="{{ route('facilities') }}" class="nav-link">
                 <i class="fas fa-building"></i> Facilities
+            </a>
+            <a href="{{ route('idps') }}" class="nav-link">
+                <i class="fas fa-users"></i> IDP's
             </a>
         </div>
 
@@ -779,7 +791,7 @@
                     </div>
                 </div>
                 <div class="stat-value">{{ $kagawads->count() }}/7</div>
-                <div class="stat-label">Kagawad Seats</div>
+                <div class="stat-label">Kagawad Seats</div> 
             </div>
             </div>
         </div>
@@ -822,6 +834,9 @@
                                 {{ $official->is_active ? 'Active' : 'Inactive' }}
                               </div>
                               <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="viewOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--teal);">
+                                  <i class="fas fa-eye"></i> View
+                                </button>
                                 <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
                                   <i class="fas fa-edit"></i> Edit
                                 </button>
@@ -868,6 +883,9 @@
                                 {{ $official->is_active ? 'Active' : 'Inactive' }}
                               </div>
                               <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="viewOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--teal);">
+                                  <i class="fas fa-eye"></i> View
+                                </button>
                                 <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
                                   <i class="fas fa-edit"></i> Edit
                                 </button>
@@ -914,6 +932,9 @@
                                 {{ $official->is_active ? 'Active' : 'Inactive' }}
                               </div>
                               <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button onclick="viewOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--teal);">
+                                  <i class="fas fa-eye"></i> View
+                                </button>
                                 <button onclick="editOfficial({{ $official->id }})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
                                   <i class="fas fa-edit"></i> Edit
                                 </button>
@@ -1118,6 +1139,69 @@
         </div>
     </div>
 
+    <!-- ══ VIEW OFFICIAL MODAL ══ -->
+    <div class="modal-backdrop" id="viewOfficialModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-head-title">Official Information</div>
+                    <div class="modal-head-sub">View complete details of the barangay official</div>
+                </div>
+                <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                    <div id="viewOfficialPhoto" style="width: 100px; height: 100px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; margin-right: 20px; overflow: hidden;">
+                        <i class="fas fa-user default-icon" style="color: white; font-size: 40px;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h3 id="viewOfficialName" style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-dark); margin-bottom: 5px;"></h3>
+                        <p id="viewOfficialPosition" style="font-size: 16px; color: var(--text-mid); margin-bottom: 8px;"></p>
+                        <span id="viewOfficialStatus" class="official-status" style="display: inline-block;"></span>
+                    </div>
+                </div>
+
+                <div style="display: grid; gap: 18px;">
+                    <div class="info-group">
+                        <label class="form-label" style="margin-bottom: 8px;">Contact Information</label>
+                        <div style="background: var(--slate-light); padding: 15px; border-radius: 10px;">
+                            <div id="viewOfficialContact" style="margin-bottom: 8px; font-size: 14px; color: var(--text-mid);">
+                                <i class="fas fa-phone" style="color: var(--blue); width: 20px;"></i>
+                                <span id="viewContactNumber"></span>
+                            </div>
+                            <div id="viewOfficialEmail" style="font-size: 14px; color: var(--text-mid);">
+                                <i class="fas fa-envelope" style="color: var(--blue); width: 20px;"></i>
+                                <span id="viewEmailAddress"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-group">
+                        <label class="form-label" style="margin-bottom: 8px;">Term Information</label>
+                        <div style="background: var(--slate-light); padding: 15px; border-radius: 10px;">
+                            <div style="margin-bottom: 8px; font-size: 14px; color: var(--text-mid);">
+                                <i class="fas fa-calendar-alt" style="color: var(--blue); width: 20px;"></i>
+                                <strong>Term Start:</strong> <span id="viewTermStart"></span>
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-mid);">
+                                <i class="fas fa-calendar-check" style="color: var(--blue); width: 20px;"></i>
+                                <strong>Term End:</strong> <span id="viewTermEnd"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-group" id="viewNotesGroup" style="display: none;">
+                        <label class="form-label" style="margin-bottom: 8px;">Additional Notes</label>
+                        <div style="background: var(--slate-light); padding: 15px; border-radius: 10px;">
+                            <p id="viewNotes" style="font-size: 14px; color: var(--text-mid); margin: 0; line-height: 1.5;"></p>
+                        </div>
+                    </div>
+                </div>
+
+                            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast" id="toast">
         <i class="fas fa-circle-check"></i>
@@ -1275,6 +1359,9 @@ function addOfficialToList(official) {
                 ${official.is_active ? 'Active' : 'Inactive'}
             </div>
             <div class="official-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                <button onclick="viewOfficial(${official.id})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--teal);">
+                    <i class="fas fa-eye"></i> View
+                </button>
                 <button onclick="editOfficial(${official.id})" class="btn-submit" style="padding: 6px 12px; font-size: 12px; background: var(--blue);">
                     <i class="fas fa-edit"></i> Edit
                 </button>
@@ -1444,6 +1531,113 @@ document.getElementById('editOfficialModal').addEventListener('click', function(
         closeEditModal();
     }
 });
+
+// View Modal Functions
+function openViewModal() {
+    document.getElementById('viewOfficialModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeViewModal() {
+    document.getElementById('viewOfficialModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Close view modal when clicking outside
+document.getElementById('viewOfficialModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeViewModal();
+    }
+});
+
+// View Official Function
+function viewOfficial(officialId) {
+    fetch(`{{ route('services.officials.get', ':id') }}`.replace(':id', officialId))
+        .then(response => response.json())
+        .then(official => {
+            // Populate the view modal with official data
+            document.getElementById('viewOfficialName').textContent = official.full_name || `${official.first_name} ${official.middle_name || ''} ${official.last_name}`;
+            
+            // Set position
+            const position = official.position;
+            if (position.toLowerCase().includes('captain')) {
+                document.getElementById('viewOfficialPosition').textContent = 'Barangay Captain';
+            } else {
+                document.getElementById('viewOfficialPosition').textContent = position;
+            }
+            
+            // Set status
+            const statusElement = document.getElementById('viewOfficialStatus');
+            if (official.is_active) {
+                statusElement.textContent = 'Active';
+                statusElement.className = 'official-status status-active';
+            } else {
+                statusElement.textContent = 'Inactive';
+                statusElement.className = 'official-status status-inactive';
+            }
+            
+            // Set photo
+            const photoElement = document.getElementById('viewOfficialPhoto');
+            if (official.photo_path) {
+                photoElement.innerHTML = `<img src="${asset('storage/' + official.photo_path)}" alt="${official.full_name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+                photoElement.innerHTML = '<i class="fas fa-user default-icon" style="color: white; font-size: 40px;"></i>';
+            }
+            
+            // Set contact information
+            const contactElement = document.getElementById('viewContactNumber');
+            const emailElement = document.getElementById('viewEmailAddress');
+            
+            if (official.contact_number) {
+                contactElement.textContent = official.contact_number;
+                document.getElementById('viewOfficialContact').style.display = 'flex';
+            } else {
+                document.getElementById('viewOfficialContact').style.display = 'none';
+            }
+            
+            if (official.email) {
+                emailElement.textContent = official.email;
+                document.getElementById('viewOfficialEmail').style.display = 'flex';
+            } else {
+                document.getElementById('viewOfficialEmail').style.display = 'none';
+            }
+            
+            // Set term information
+            const termStartElement = document.getElementById('viewTermStart');
+            const termEndElement = document.getElementById('viewTermEnd');
+            
+            if (official.term_start) {
+                const startDate = new Date(official.term_start);
+                termStartElement.textContent = startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } else {
+                termStartElement.textContent = 'Not specified';
+            }
+            
+            if (official.term_end) {
+                const endDate = new Date(official.term_end);
+                termEndElement.textContent = endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } else {
+                termEndElement.textContent = 'Not specified';
+            }
+            
+            // Set notes
+            const notesGroup = document.getElementById('viewNotesGroup');
+            const notesElement = document.getElementById('viewNotes');
+            
+            if (official.notes && official.notes.trim()) {
+                notesElement.textContent = official.notes;
+                notesGroup.style.display = 'block';
+            } else {
+                notesGroup.style.display = 'none';
+            }
+            
+            openViewModal();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error loading official data.');
+        });
+}
 </script>
 
 </body>

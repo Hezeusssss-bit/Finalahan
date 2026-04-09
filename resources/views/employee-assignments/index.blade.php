@@ -79,6 +79,39 @@
             gap: 12px;
         }
 
+        /* BACK BUTTON */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--navy-mid);
+            color: var(--white);
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .back-button i {
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover i {
+            transform: translateX(-2px);
+        }
+
         .btn { 
             padding: 9px 20px; 
             border-radius: 10px; 
@@ -520,9 +553,8 @@
                 </h1>
             </div>
             <div style="margin-top: -20px;">
-                <a href="{{ route('resident.index') }}" class="btn btn-outline dark">
-                    <i class="fas fa-arrow-left"></i>
-                    Dashboard
+                <a href="{{ route('resident.index') }}" class="back-button">
+                    <i class="fas fa-chevron-left"></i> Dashboard
                 </a>
             </div>
         </div>

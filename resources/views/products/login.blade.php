@@ -101,7 +101,7 @@
         .brand-badge {
             width: 38px;
             height: 38px;
-            background: var(--teal);
+            background: transparent;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -109,6 +109,12 @@
             font-size: 17px;
             color: white;
             flex-shrink: 0;
+            transition: transform 0.6s ease;
+            cursor: pointer;
+        }
+
+        .brand-badge:hover {
+            transform: rotate(360deg);
         }
 
         .brand-name {
@@ -206,41 +212,6 @@
             color: var(--teal);
         }
 
-        .options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 15px 0 30px 0;
-            font-size: 13.5px;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            color: var(--text-mid);
-            cursor: pointer;
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            padding: 0;
-            cursor: pointer;
-            accent-color: var(--teal);
-        }
-
-        .forgot-password {
-            color: var(--teal);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .forgot-password:hover {
-            color: var(--navy);
-        }
-
         button {
             width: 100%;
             background: var(--navy);
@@ -297,7 +268,7 @@
         .login-right-icon {
             width: 80px;
             height: 80px;
-            background: rgba(14, 165, 160, 0.2);
+            background: transparent;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -305,6 +276,25 @@
             font-size: 32px;
             color: var(--teal);
             margin: 0 auto 30px;
+            transition: transform 0.8s ease;
+            cursor: pointer;
+        }
+
+        .login-right-icon:hover {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .dswd-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .brand-badge .dswd-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
         }
 
         .login-right-title {
@@ -391,10 +381,10 @@
         <div class="login-left">
             <div class="brand-section">
                 <div class="brand-badge">
-                    <i class="fas fa-shield-alt"></i>
+                    <img src="{{ asset('images/dswd_logo.png') }}" alt="DSWD Logo" class="dswd-logo">
                 </div>
                 <div>
-                    <div class="brand-name">MSWD Information System With Intellegent Decision Support</div>
+                    <div class="brand-name">MSWD Information System With Intellegent Decision Support</div> <br>
                     <div class="brand-sub">Barangay Gargato</div>
                 </div>
             </div>
@@ -436,14 +426,6 @@
                     </div>
                 </div>
 
-                <div class="options">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember">
-                        <span>Remember Me</span>
-                    </label>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
-                </div>
-
                 <button type="submit">
                     <i class="fas fa-right-to-bracket"></i>
                     Login
@@ -454,7 +436,7 @@
         <div class="login-right">
             <div class="login-right-content">
                 <div class="login-right-icon">
-                    <i class="fas fa-shield-alt"></i>
+                    <img src="{{ asset('images/dswd_logo.png') }}" alt="DSWD Logo" class="dswd-logo">
                 </div>
                 <div class="login-right-title">Municipal Social Welfare and Development</div>
                 <div class="login-right-sub">

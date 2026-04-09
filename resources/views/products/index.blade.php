@@ -76,7 +76,7 @@
         .brand-badge {
             width: 38px;
             height: 38px;
-            background: var(--teal);
+            background: transparent;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -84,6 +84,13 @@
             font-size: 17px;
             color: white;
             flex-shrink: 0;
+        }
+
+        .dswd-logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            border-radius: 6px;
         }
 
         .brand-name {
@@ -742,10 +749,12 @@
     <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-badge"><i class="fas fa-shield-alt"></i></div>
+            <div class="brand-badge">
+                    <img src="{{ asset('images/dswd_logo.png') }}" alt="DSWD Logo" class="dswd-logo">
+                </div>
             <div>
-                <div class="brand-name">B-DEAMS</div>
-                <div class="brand-sub">Evacuation Alert System</div>
+                <div class="brand-name">MSWD IS with Intellegent Decision Support</div> <br>
+                <div class="brand-sub">Barangay Gargato</div>
             </div>
         </div>
 
@@ -769,6 +778,9 @@
             </a>
             <a href="{{ route('facilities') }}" class="nav-link">
                 <i class="fas fa-building"></i> Facilities
+            </a>
+            <a href="{{ route('idps') }}" class="nav-link">
+                <i class="fas fa-users"></i> IDP's
             </a>
         </div>
 
