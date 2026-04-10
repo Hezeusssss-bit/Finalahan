@@ -534,6 +534,189 @@
             </div>
         </div>
 
+        <!-- DSS Section for Evacuee Management -->
+        <div class="panel anim delay-2" style="margin-bottom: 24px;">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-brain" style="color: var(--teal);"></i> 
+                    Decision Support System - Evacuee Aid Management
+                </div>
+                <button class="btn export" onclick="exportDSSReport()">
+                    <i class="fas fa-download"></i> EXPORT
+                </button>
+            </div>
+            <div class="panel-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    
+                    <!-- Food Supply Status -->
+                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 32px; height: 32px; background: var(--green-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-utensils" style="color: var(--green); font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Food Supply Status</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Daily meal planning</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 12px; color: var(--text-muted);">Supply Coverage</span>
+                                <span style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--green);" id="foodCoverage">{{ number_format($dssMetrics['food_supply_coverage'], 0) }}%</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                                <div style="width: {{ $dssMetrics['food_supply_coverage'] }}%; height: 100%; background: linear-gradient(90deg, var(--green), #34d399); transition: width 0.3s;" id="foodBar"></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
+                            <strong>Status:</strong> <span id="foodStatus">Sufficient for 5 days. Restock needed by Friday.</span>
+                        </div>
+                    </div>
+
+                    <!-- Clothing Inventory -->
+                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 32px; height: 32px; background: var(--blue-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-tshirt" style="color: var(--blue); font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Clothing Inventory</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Essential clothing items</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 12px;">
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Adult Clothes</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="adultClothes">{{ $dssMetrics['clothing_inventory_adult'] }}</div>
+                                </div>
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Children (0-5)</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes0_5">{{ $dssMetrics['clothing_inventory_children_0_5'] }}</div>
+                                </div>
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Children (6-12)</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes6_12">{{ $dssMetrics['clothing_inventory_children_6_12'] }}</div>
+                                </div>
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Children (13-17)</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes13_17">{{ $dssMetrics['clothing_inventory_children_13_17'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
+                            <strong>Need:</strong> <span id="clothingNeeds">@if($dssMetrics['clothing_inventory_children_6_12'] > 0) Priority: {{ $dssMetrics['clothing_inventory_children_6_12'] }} children (6-12 years) need clothing. @else No children aged 6-12 currently in evacuation center. @endif</span>
+                        </div>
+                    </div>
+
+                    <!-- Medical Supplies -->
+                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 32px; height: 32px; background: var(--rose-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-medkit" style="color: var(--rose); font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Medical Supplies</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Health & hygiene items</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 12px; color: var(--text-muted);">Stock Level</span>
+                                <span style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--rose);" id="medicalStock">{{ number_format($dssMetrics['medical_supply_level'], 0) }}%</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                                <div style="width: {{ $dssMetrics['medical_supply_level'] }}%; height: 100%; background: linear-gradient(90deg, var(--rose), #fb7185); transition: width 0.3s;" id="medicalBar"></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
+                            <strong>Alert:</strong> <span id="medicalAlert">Critical: First aid kits running low.</span>
+                        </div>
+                    </div>
+
+                    <!-- Shelter Capacity -->
+                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 32px; height: 32px; background: var(--amber-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-home" style="color: var(--amber); font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Shelter Capacity</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Occupancy rate</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Occupied</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="occupiedSpaces">{{ $totalEvacuees }}</div>
+                                </div>
+                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <div style="color: var(--text-muted); font-size: 10px;">Available</div>
+                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="availableSpaces">{{ $dssMetrics['available_spaces'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
+                            <strong>Status:</strong> <span id="shelterStatus">{{ number_format($dssMetrics['occupancy_rate'], 0) }}% occupied. {{ $dssMetrics['occupancy_rate'] > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.' }}</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Aid Distribution Planning -->
+                <div style="background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--teal), var(--blue)); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-hands-helping" style="color: white; font-size: 16px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: var(--text-dark);">Aid Distribution Planning</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">Smart allocation based on evacuee needs</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--green);" id="dailyMeals">{{ number_format($dssMetrics['daily_meals_needed']) }}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Daily Meals Needed</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--blue);" id="waterSupply">{{ number_format($dssMetrics['daily_water_requirement']) }}L</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Daily Water Requirement</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--amber);" id="hygieneKits">{{ number_format($dssMetrics['hygiene_kits_needed']) }}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Hygiene Kits Needed</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--rose);" id="blanketSupply">{{ number_format($dssMetrics['blankets_needed']) }}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Blankets Required</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--slate-light); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 13px;">Priority Distribution Actions:</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-mid); line-height: 1.6;">
+                            <li id="priority1" style="margin-bottom: 4px;">Distribute emergency food packs to elderly and children first</li>
+                            <li id="priority2" style="margin-bottom: 4px;">Set up additional water stations in high-occupancy areas</li>
+                            <li id="priority3" style="margin-bottom: 4px;">Deploy medical team for health screening and first aid</li>
+                            <li id="priority4">Arrange clothing distribution based on family size and ages</li>
+                        </ul>
+                    </div>
+
+                    <canvas id="aidDistributionChart" width="400" height="200" style="width: 100%; height: 200px; background: white; border-radius: 8px; border: 1px solid var(--border);"></canvas>
+                </div>
+
+                <!-- DSS Action Buttons -->
+                <div style="display: flex; justify-content: flex-end; align-items: center;">
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        <i class="fas fa-info-circle"></i> Last updated: <span id="lastUpdate">{{ now()->format('M d, Y H:i') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Panel -->
         <div class="panel anim delay-2">
             <div class="panel-head">
@@ -1013,91 +1196,300 @@ function filterByEvacuationArea() {
 
   const tableRows = document.querySelectorAll('tbody tr');
 
-  
+  // Calculate DSS metrics for filtered evacuees
+  let filteredEvacueeCount = 0;
+  let filteredSeniorCount = 0;
+  let filteredChild0_5Count = 0;
+  let filteredChild6_12Count = 0;
+  let filteredChild13_17Count = 0;
+  let filteredMaleCount = 0;
+  let filteredFemaleCount = 0;
+  let filteredDailyMeals = 0;
 
   tableRows.forEach(row => {
 
     if (row.querySelector('td[colspan]')) {
-
       // Skip "No evacuees found" rows
-
       return;
-
     }
-
-    
 
     const evacuationAreaCell = row.cells[5]; // Evacuation Area is column 5 (0-indexed)
-
     const evacuationArea = evacuationAreaCell ? evacuationAreaCell.textContent.trim() : '';
+    const ageCell = row.cells[3]; // Age is column 3 (0-indexed)
+    const genderCell = row.cells[4]; // Gender is column 4 (0-indexed)
 
-    
+    const isVisible = (selectedArea === '' || evacuationArea === selectedArea);
+    row.style.display = isVisible ? '' : 'none';
 
-    if (selectedArea === '' || evacuationArea === selectedArea) {
-
-      row.style.display = '';
-
-    } else {
-
-      row.style.display = 'none';
-
+    if (isVisible) {
+      // Count visible evacuees for DSS
+      filteredEvacueeCount++;
+      
+      const age = parseInt(ageCell.textContent.trim(), 10);
+      const gender = genderCell.textContent.trim();
+      
+      if (age >= 60) {
+        filteredSeniorCount++;
+      } else if (age < 18) {
+        if (age <= 5) {
+          filteredChild0_5Count++;
+        } else if (age >= 6 && age <= 12) {
+          filteredChild6_12Count++;
+        } else if (age >= 13 && age <= 17) {
+          filteredChild13_17Count++;
+        }
+      }
+      
+      if (gender.toLowerCase() === 'male') {
+        filteredMaleCount++;
+      } else {
+        filteredFemaleCount++;
+      }
+      
+      // Calculate meals for this evacuee
+      if (age <= 2) {
+        filteredDailyMeals += 6; // Infants: 6 small meals per day
+      } else if (age <= 12) {
+        filteredDailyMeals += 5; // Children: 3 meals + 2 snacks
+      } else if (age <= 17) {
+        filteredDailyMeals += 3; // Teens: 3 meals per day
+      } else {
+        filteredDailyMeals += 3; // Adults: 3 meals per day
+      }
     }
-
   });
 
-  
+  // Update DSS display with filtered data
+  if (selectedArea === '') {
+    // Reset to show all data when filter is cleared
+    resetDSSToAllData();
+  } else {
+    updateDSSForFilteredArea(filteredEvacueeCount, filteredSeniorCount, filteredChild0_5Count, filteredChild6_12Count, filteredChild13_17Count, filteredMaleCount, filteredFemaleCount, filteredDailyMeals, selectedArea);
+  }
 
   // Show message if no results
-
   const visibleRows = Array.from(tableRows).filter(row => 
-
     row.style.display !== 'none' && !row.querySelector('td[colspan]')
-
   );
 
-  
-
   const existingNoResults = document.querySelector('tbody tr td[colspan]');
-
   if (visibleRows.length === 0 && !existingNoResults) {
-
     const tbody = document.querySelector('tbody');
-
     const noResultsRow = document.createElement('tr');
-
     noResultsRow.innerHTML = `
-
       <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
-
         No evacuees found in "${selectedArea || 'selected area'}"
-
       </td>
-
     `;
-
     tbody.appendChild(noResultsRow);
-
   } else if (visibleRows.length > 0 && existingNoResults) {
-
     existingNoResults.parentElement.remove();
-
   }
   
   // Refresh capacity display if the same area is selected in the add form
   if (selectedArea) {
     const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
     if (evacuationAreaSelect && evacuationAreaSelect.value === selectedArea) {
+      // Refresh the capacity display for this area
       loadFacilityCapacity();
     }
   }
+}
 
+function updateDSSForFilteredArea(evacueeCount, seniorCount, child0_5Count, child6_12Count, child13_17Count, maleCount, femaleCount, dailyMeals, selectedArea) {
+  // Update DSS title to show filtered area
+  const dssTitle = document.querySelector('.panel-title');
+  if (selectedArea) {
+    dssTitle.innerHTML = `<i class="fas fa-brain" style="color: var(--teal);"></i> Decision Support System - ${selectedArea}`;
+  } else {
+    dssTitle.innerHTML = '<i class="fas fa-brain" style="color: var(--teal);"></i> Decision Support System - Evacuee Aid Management';
+  }
+
+  // Calculate filtered metrics
+  const filteredMetrics = {
+    evacueeCount: evacueeCount,
+    daily_meals_needed: dailyMeals,
+    daily_water_requirement: evacueeCount * 4,
+    hygiene_kits_needed: Math.ceil(evacueeCount * 0.8),
+    blankets_needed: Math.ceil(evacueeCount * 0.7),
+    clothing_inventory_adult: Math.ceil(evacueeCount * 0.6),
+    clothing_inventory_children_0_5: child0_5Count,
+    clothing_inventory_children_6_12: child6_12Count,
+    clothing_inventory_children_13_17: child13_17Count,
+    available_spaces: 'N/A', // Not applicable for filtered view
+    occupancy_rate: 'N/A', // Not applicable for filtered view
+    food_supply_coverage: Math.max(30, 100 - (evacueeCount / 10) * 20), // Simulated
+    medical_supply_level: Math.max(25, 95 - (evacueeCount / 10) * 15), // Simulated
+  };
+
+  // Update display elements
+  if (document.getElementById('dailyMeals')) {
+    document.getElementById('dailyMeals').textContent = filteredMetrics.daily_meals_needed.toLocaleString();
+  }
+  if (document.getElementById('waterSupply')) {
+    document.getElementById('waterSupply').textContent = filteredMetrics.daily_water_requirement.toLocaleString() + 'L';
+  }
+  if (document.getElementById('hygieneKits')) {
+    document.getElementById('hygieneKits').textContent = filteredMetrics.hygiene_kits_needed.toLocaleString();
+  }
+  if (document.getElementById('blanketSupply')) {
+    document.getElementById('blanketSupply').textContent = filteredMetrics.blankets_needed.toLocaleString();
+  }
+
+  // Update clothing inventory
+  if (document.getElementById('adultClothes')) {
+    document.getElementById('adultClothes').textContent = filteredMetrics.clothing_inventory_adult.toLocaleString();
+  }
+  if (document.getElementById('childClothes0_5')) {
+    document.getElementById('childClothes0_5').textContent = filteredMetrics.clothing_inventory_children_0_5.toLocaleString();
+  }
+  if (document.getElementById('childClothes6_12')) {
+    document.getElementById('childClothes6_12').textContent = filteredMetrics.clothing_inventory_children_6_12.toLocaleString();
+  }
+  if (document.getElementById('childClothes13_17')) {
+    document.getElementById('childClothes13_17').textContent = filteredMetrics.clothing_inventory_children_13_17.toLocaleString();
+  }
+
+  // Update shelter info
+  if (document.getElementById('occupiedSpaces')) {
+    document.getElementById('occupiedSpaces').textContent = evacueeCount.toLocaleString();
+  }
+  if (document.getElementById('availableSpaces')) {
+    document.getElementById('availableSpaces').textContent = filteredMetrics.available_spaces;
+  }
+  if (document.getElementById('shelterStatus')) {
+    document.getElementById('shelterStatus').textContent = selectedArea ? `${evacueeCount} evacuees in ${selectedArea}` : 'Show all evacuation areas';
+  }
+
+  // Update supply levels
+  if (document.getElementById('foodCoverage')) {
+    document.getElementById('foodCoverage').textContent = Math.round(filteredMetrics.food_supply_coverage) + '%';
+    document.getElementById('foodBar').style.width = filteredMetrics.food_supply_coverage + '%';
+  }
+  if (document.getElementById('medicalStock')) {
+    document.getElementById('medicalStock').textContent = Math.round(filteredMetrics.medical_supply_level) + '%';
+    document.getElementById('medicalBar').style.width = filteredMetrics.medical_supply_level + '%';
+  }
+
+  // Update clothing needs recommendation
+  if (document.getElementById('clothingNeeds')) {
+    let clothingNeed;
+    if (child6_12Count > 0) {
+      clothingNeed = `Priority: Clothing needed for ${child6_12Count} children aged 6-12 years in ${selectedArea}.`;
+    } else if (child0_5Count > 0) {
+      clothingNeed = `Urgent: Baby clothes needed for ${child0_5Count} children (0-5 years) in ${selectedArea}.`;
+    } else if (child13_17Count > 0) {
+      clothingNeed = `Priority: Teen clothing needed for ${child13_17Count} adolescents (13-17 years) in ${selectedArea}.`;
+    } else if (seniorCount > 0) {
+      clothingNeed = `Focus on adult clothing for ${seniorCount} elderly evacuees in ${selectedArea}.`;
+    } else {
+      clothingNeed = selectedArea ? `No specific clothing needs identified in ${selectedArea}.` : 'Current clothing inventory adequate for all evacuees.';
+    }
+    document.getElementById('clothingNeeds').textContent = clothingNeed;
+  }
+
+  // Update timestamp
+  if (document.getElementById('lastUpdate')) {
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+  }
+}
+
+function resetDSSToAllData() {
+  // Get original metrics from controller
+  const originalMetrics = @json($dssMetrics);
+  
+  // Reset DSS title
+  const dssTitle = document.querySelector('.panel-title');
+  dssTitle.innerHTML = '<i class="fas fa-brain" style="color: var(--teal);"></i> Decision Support System - Evacuee Aid Management';
+
+  // Reset all display elements to original values
+  if (document.getElementById('dailyMeals')) {
+    document.getElementById('dailyMeals').textContent = originalMetrics.daily_meals_needed.toLocaleString();
+  }
+  if (document.getElementById('waterSupply')) {
+    document.getElementById('waterSupply').textContent = originalMetrics.daily_water_requirement.toLocaleString() + 'L';
+  }
+  if (document.getElementById('hygieneKits')) {
+    document.getElementById('hygieneKits').textContent = originalMetrics.hygiene_kits_needed.toLocaleString();
+  }
+  if (document.getElementById('blanketSupply')) {
+    document.getElementById('blanketSupply').textContent = originalMetrics.blankets_needed.toLocaleString();
+  }
+
+  // Reset clothing inventory
+  if (document.getElementById('adultClothes')) {
+    document.getElementById('adultClothes').textContent = originalMetrics.clothing_inventory_adult.toLocaleString();
+  }
+  if (document.getElementById('childClothes0_5')) {
+    document.getElementById('childClothes0_5').textContent = originalMetrics.clothing_inventory_children_0_5.toLocaleString();
+  }
+  if (document.getElementById('childClothes6_12')) {
+    document.getElementById('childClothes6_12').textContent = originalMetrics.clothing_inventory_children_6_12.toLocaleString();
+  }
+  if (document.getElementById('childClothes13_17')) {
+    document.getElementById('childClothes13_17').textContent = originalMetrics.clothing_inventory_children_13_17.toLocaleString();
+  }
+
+  // Reset shelter info
+  if (document.getElementById('occupiedSpaces')) {
+    document.getElementById('occupiedSpaces').textContent = @json($totalEvacuees);
+  }
+  if (document.getElementById('availableSpaces')) {
+    document.getElementById('availableSpaces').textContent = originalMetrics.available_spaces.toLocaleString();
+  }
+  if (document.getElementById('shelterStatus')) {
+    const occupancyRate = Math.round(originalMetrics.occupancy_rate);
+    document.getElementById('shelterStatus').textContent = `${occupancyRate}% occupied. ${occupancyRate > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.'}`;
+  }
+
+  // Reset supply levels
+  if (document.getElementById('foodCoverage')) {
+    document.getElementById('foodCoverage').textContent = Math.round(originalMetrics.food_supply_coverage) + '%';
+    document.getElementById('foodBar').style.width = originalMetrics.food_supply_coverage + '%';
+  }
+  if (document.getElementById('medicalStock')) {
+    document.getElementById('medicalStock').textContent = Math.round(originalMetrics.medical_supply_level) + '%';
+    document.getElementById('medicalBar').style.width = originalMetrics.medical_supply_level + '%';
+  }
+
+  // Reset clothing needs recommendation
+  if (document.getElementById('clothingNeeds')) {
+    let clothingNeed;
+    if (originalMetrics.clothing_inventory_children_6_12 > 0) {
+      clothingNeed = `Priority: Clothing needed for ${originalMetrics.clothing_inventory_children_6_12} children aged 6-12 years.`;
+    } else if (originalMetrics.clothing_inventory_children_0_5 > 0) {
+      clothingNeed = `Urgent: Baby clothes needed for ${originalMetrics.clothing_inventory_children_0_5} children (0-5 years).`;
+    } else if (originalMetrics.clothing_inventory_children_13_17 > 0) {
+      clothingNeed = `Priority: Teen clothing needed for ${originalMetrics.clothing_inventory_children_13_17} adolescents (13-17 years).`;
+    } else if (originalMetrics.senior_count > 0) {
+      clothingNeed = `Focus on adult clothing for ${originalMetrics.senior_count} elderly evacuees.`;
+    } else {
+      clothingNeed = 'Current clothing inventory adequate for all evacuees.';
+    }
+    document.getElementById('clothingNeeds').textContent = clothingNeed;
+  }
+
+  // Update timestamp
+  if (document.getElementById('lastUpdate')) {
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+  }
 }
 
 // Search evacuees function
 function searchEvacuees() {
   const searchTerm = document.getElementById('searchInput').value.toLowerCase();
   const tableRows = document.querySelectorAll('tbody tr');
-  
+
+  // Calculate DSS metrics for searched evacuees
+  let searchedEvacueeCount = 0;
+  let searchedSeniorCount = 0;
+  let searchedChild0_5Count = 0;
+  let searchedChild6_12Count = 0;
+  let searchedChild13_17Count = 0;
+  let searchedMaleCount = 0;
+  let searchedFemaleCount = 0;
+  let searchedDailyMeals = 0;
+
   tableRows.forEach(row => {
     if (row.querySelector('td[colspan]')) {
       // Skip "No evacuees found" rows
@@ -1110,13 +1502,53 @@ function searchEvacuees() {
       .map(cell => cell.textContent.toLowerCase())
       .join(' ');
     
-    if (rowText.includes(searchTerm)) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
+    const isVisible = rowText.includes(searchTerm);
+    row.style.display = isVisible ? '' : 'none';
+
+    if (isVisible) {
+      // Count visible evacuees for DSS
+      searchedEvacueeCount++;
+      
+      const ageCell = row.cells[3]; // Age is column 3 (0-indexed)
+      const genderCell = row.cells[4]; // Gender is column 4 (0-indexed)
+      
+      const age = parseInt(ageCell.textContent.trim(), 10);
+      const gender = genderCell.textContent.trim();
+      
+      if (age >= 60) {
+        searchedSeniorCount++;
+      } else if (age < 18) {
+        if (age <= 5) {
+          searchedChild0_5Count++;
+        } else if (age >= 6 && age <= 12) {
+          searchedChild6_12Count++;
+        } else if (age >= 13 && age <= 17) {
+          searchedChild13_17Count++;
+        }
+      }
+      
+      if (gender.toLowerCase() === 'male') {
+        searchedMaleCount++;
+      } else {
+        searchedFemaleCount++;
+      }
+      
+      // Calculate meals for this evacuee
+      if (age <= 2) {
+        searchedDailyMeals += 6; // Infants: 6 small meals per day
+      } else if (age <= 12) {
+        searchedDailyMeals += 5; // Children: 3 meals + 2 snacks
+      } else if (age <= 17) {
+        searchedDailyMeals += 3; // Teens: 3 meals per day
+      } else {
+        searchedDailyMeals += 3; // Adults: 3 meals per day
+      }
     }
   });
-  
+
+  // Update DSS display with searched data
+  updateDSSForFilteredArea(searchedEvacueeCount, searchedSeniorCount, searchedChild0_5Count, searchedChild6_12Count, searchedChild13_17Count, searchedMaleCount, searchedFemaleCount, searchedDailyMeals, searchTerm ? `Search: "${searchTerm}"` : '');
+
   // Show message if no results
   const visibleRows = Array.from(tableRows).filter(row => 
     row.style.display !== 'none' && !row.querySelector('td[colspan]')
@@ -2067,4 +2499,810 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 4000);
   });
 });
+
+        // ── DSS Functions for Evacuee Aid Management ──
+        function refreshDSS() {
+            showToast('Refreshing DSS analysis...');
+            
+            // Animate progress bars
+            const foodBar = document.getElementById('foodBar');
+            const medicalBar = document.getElementById('medicalBar');
+            
+            foodBar.style.width = '0%';
+            medicalBar.style.width = '0%';
+            
+            setTimeout(() => {
+                // Use real metrics from controller with slight variations for simulation
+                const dssMetrics = @json($dssMetrics);
+                const evacueeCount = @json($totalEvacuees);
+                
+                // Add small variations to simulate real-time changes
+                const foodVariation = (Math.random() * 10 - 5); // -5 to +5
+                const medicalVariation = (Math.random() * 10 - 5); // -5 to +5
+                
+                const newFoodCoverage = Math.max(20, Math.min(100, dssMetrics.food_supply_coverage + foodVariation));
+                const newMedicalStock = Math.max(20, Math.min(100, dssMetrics.medical_supply_level + medicalVariation));
+                
+                foodBar.style.width = newFoodCoverage + '%';
+                medicalBar.style.width = newMedicalStock + '%';
+                document.getElementById('foodCoverage').textContent = Math.round(newFoodCoverage) + '%';
+                document.getElementById('medicalStock').textContent = Math.round(newMedicalStock) + '%';
+                
+                // Update calculations
+                updateAidCalculations();
+                updateDSSRecommendations();
+                drawAidDistributionChart();
+                
+                // Update timestamp
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+                
+                showToast('DSS analysis updated successfully');
+            }, 1000);
+        }
+
+        function updateAidCalculations() {
+            const evacueeCount = @json($totalEvacuees);
+            const dssMetrics = @json($dssMetrics);
+            
+            // Update with real metrics from controller
+            document.getElementById('dailyMeals').textContent = dssMetrics.daily_meals_needed.toLocaleString();
+            document.getElementById('waterSupply').textContent = dssMetrics.daily_water_requirement.toLocaleString() + 'L';
+            document.getElementById('hygieneKits').textContent = dssMetrics.hygiene_kits_needed.toLocaleString();
+            document.getElementById('blanketSupply').textContent = dssMetrics.blankets_needed.toLocaleString();
+            
+            // Update clothing inventory
+            document.getElementById('adultClothes').textContent = dssMetrics.clothing_inventory_adult.toLocaleString();
+            document.getElementById('childClothes0_5').textContent = dssMetrics.clothing_inventory_children_0_5.toLocaleString();
+            document.getElementById('childClothes6_12').textContent = dssMetrics.clothing_inventory_children_6_12.toLocaleString();
+            document.getElementById('childClothes13_17').textContent = dssMetrics.clothing_inventory_children_13_17.toLocaleString();
+            
+            // Update available spaces
+            document.getElementById('availableSpaces').textContent = dssMetrics.available_spaces.toLocaleString();
+            
+            // Update shelter status with real occupancy rate
+            const occupancyRate = Math.round(dssMetrics.occupancy_rate);
+            document.getElementById('shelterStatus').textContent = `${occupancyRate}% occupied. ${occupancyRate > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.'}`;
+            
+            // Update supply levels
+            document.getElementById('foodCoverage').textContent = Math.round(dssMetrics.food_supply_coverage) + '%';
+            document.getElementById('foodBar').style.width = dssMetrics.food_supply_coverage + '%';
+            
+            document.getElementById('medicalStock').textContent = Math.round(dssMetrics.medical_supply_level) + '%';
+            document.getElementById('medicalBar').style.width = dssMetrics.medical_supply_level + '%';
+        }
+
+        function updateDSSRecommendations() {
+            const evacueeCount = @json($totalEvacuees);
+            const dssMetrics = @json($dssMetrics);
+            
+            // Intelligent recommendations based on real data
+            let foodStatus, clothingNeed, medicalAlert, priorities;
+            
+            // Food status based on supply coverage
+            if (dssMetrics.food_supply_coverage > 70) {
+                foodStatus = `Sufficient for ${Math.floor(dssMetrics.food_supply_coverage / 20)} days. Monitor consumption patterns.`;
+            } else if (dssMetrics.food_supply_coverage > 50) {
+                foodStatus = 'Adequate for 3-4 days. Schedule restock by mid-week.';
+            } else if (dssMetrics.food_supply_coverage > 30) {
+                foodStatus = 'Low stock: 2 days remaining. Expedite resupply immediately.';
+            } else {
+                foodStatus = 'Critical: Less than 24 hours of food. Emergency restock required.';
+            }
+            
+            // Clothing needs based on actual children age groups
+            if (dssMetrics.clothing_inventory_children_6_12 > 0) {
+                clothingNeed = `Priority: Clothing needed for ${dssMetrics.clothing_inventory_children_6_12} children aged 6-12 years.`;
+            } else if (dssMetrics.clothing_inventory_children_0_5 > 0) {
+                clothingNeed = `Urgent: Baby clothes and diapers needed for ${dssMetrics.clothing_inventory_children_0_5} children (0-5 years).`;
+            } else if (dssMetrics.clothing_inventory_children_13_17 > 0) {
+                clothingNeed = `Priority: Teen clothing needed for ${dssMetrics.clothing_inventory_children_13_17} adolescents (13-17 years).`;
+            } else if (dssMetrics.senior_count > 0) {
+                clothingNeed = `Focus on adult clothing for ${dssMetrics.senior_count} elderly evacuees.`;
+            } else {
+                clothingNeed = 'Current clothing inventory adequate for all evacuees.';
+            }
+            
+            // Medical alerts based on supply level and vulnerable groups
+            if (dssMetrics.medical_supply_level < 40) {
+                medicalAlert = `Critical: Only ${dssMetrics.first_aid_kits_needed} first aid kits available for ${evacueeCount} evacuees.`;
+            } else if (dssMetrics.chronic_medication_patients > 5) {
+                medicalAlert = `Warning: ${dssMetrics.chronic_medication_patients} patients need chronic medication refills.`;
+            } else if (dssMetrics.pregnant_women_count > 2) {
+                medicalAlert = `Attention: ${dssMetrics.pregnant_women_count} pregnant women need prenatal care supplies.`;
+            } else {
+                medicalAlert = 'Monitor medical supplies daily. Stock levels adequate.';
+            }
+            
+            // Priority actions based on occupancy and needs
+            if (dssMetrics.occupancy_rate > 85) {
+                priorities = [
+                    'Activate overflow shelter locations immediately',
+                    'Prioritize vulnerable groups for relocation',
+                    'Deploy additional medical personnel',
+                    'Set up temporary distribution points'
+                ];
+            } else if (dssMetrics.occupancy_rate > 70) {
+                priorities = [
+                    `Prepare backup shelters for ${dssMetrics.available_spaces} additional evacuees`,
+                    'Enhance medical monitoring for elderly and children',
+                    'Optimize aid distribution schedules',
+                    'Coordinate with neighboring barangays'
+                ];
+            } else {
+                priorities = [
+                    'Maintain current aid distribution schedule',
+                    'Focus on vulnerable group assistance',
+                    'Regular health monitoring and screening',
+                    'Community volunteer coordination'
+                ];
+            }
+            
+            // Update DOM elements
+            document.getElementById('foodStatus').textContent = foodStatus;
+            document.getElementById('clothingNeeds').textContent = clothingNeed;
+            document.getElementById('medicalAlert').textContent = medicalAlert;
+            
+            document.getElementById('priority1').textContent = priorities[0];
+            document.getElementById('priority2').textContent = priorities[1];
+            document.getElementById('priority3').textContent = priorities[2];
+            document.getElementById('priority4').textContent = priorities[3];
+        }
+
+        function drawAidDistributionChart() {
+            const canvas = document.getElementById('aidDistributionChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Sample data for aid distribution
+            const data = [
+                { label: 'Food', value: 35, color: '#10b981' },
+                { label: 'Water', value: 25, color: '#3b82f6' },
+                { label: 'Clothing', value: 20, color: '#8b5cf6' },
+                { label: 'Medical', value: 15, color: '#ef4444' },
+                { label: 'Other', value: 5, color: '#f59e0b' }
+            ];
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 40;
+            
+            let currentAngle = -Math.PI / 2;
+            
+            data.forEach((segment, index) => {
+                const sliceAngle = (segment.value / 100) * 2 * Math.PI;
+                
+                // Draw pie slice
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.lineTo(centerX, centerY);
+                ctx.fillStyle = segment.color;
+                ctx.fill();
+                
+                // Draw label
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+                const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 11px DM Sans';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(segment.value + '%', labelX, labelY);
+                
+                currentAngle += sliceAngle;
+            });
+            
+            // Draw legend
+            ctx.font = '11px DM Sans';
+            ctx.textAlign = 'left';
+            let legendY = 20;
+            
+            data.forEach(segment => {
+                ctx.fillStyle = segment.color;
+                ctx.fillRect(10, legendY - 8, 12, 12);
+                
+                ctx.fillStyle = '#374151';
+                ctx.fillText(segment.label + ' (' + segment.value + '%)', 28, legendY);
+                legendY += 20;
+            });
+        }
+
+        function generateAidDistributionPlan() {
+            showToast('Generating aid distribution plan...');
+            
+            setTimeout(() => {
+                const evacueeCount = {{ $totalEvacuees }};
+                const planContent = `AID DISTRIBUTION PLAN - B-DEAMS
+Generated: ${new Date().toLocaleString()}
+Current Evacuees: ${evacueeCount}
+
+=== IMMEDIATE ACTIONS (Next 24 Hours) ===
+1. FOOD DISTRIBUTION
+   • Emergency food packs: ${evacueeCount * 3} meals
+   • Distribution points: 4 stations
+   • Priority: Elderly, children, pregnant women
+   • Schedule: 6AM, 12PM, 6PM
+
+2. WATER SUPPLY
+   • Daily requirement: ${evacueeCount * 4} liters
+   • Water stations: 6 locations
+   • Purification tablets: ${Math.ceil(evacueeCount * 2)} units
+   • Storage capacity: 2000L
+
+3. CLOTHING DISTRIBUTION
+   • Adult clothing needed: ${Math.ceil(evacueeCount * 0.6)} sets
+   • Children clothing needed: ${Math.ceil(evacueeCount * 0.4)} sets
+   • Special needs: Diapers, baby formula
+   • Distribution method: Family-based allocation
+
+4. MEDICAL SUPPLIES
+   • First aid kits: ${Math.ceil(evacueeCount / 10)} kits
+   • Prescription medications: 7-day supply
+   • Hygiene kits: ${Math.ceil(evacueeCount * 0.8)} kits
+   • Medical personnel: 2 doctors, 4 nurses
+
+=== SHELTER MANAGEMENT ===
+• Current occupancy: ${Math.round((evacueeCount / 500) * 100)}%
+• Available spaces: ${500 - evacueeCount}
+• Overflow capacity: 200 additional spaces
+• Sanitation facilities: 8 bathrooms, 4 showers
+
+=== LOGISTICS COORDINATION ===
+• Supply trucks: 3 vehicles scheduled
+• Volunteer teams: 15 people per shift
+• Communication: 2-way radios, mobile phones
+• Security: 6 personnel per location
+
+=== MONITORING & REPORTING ===
+• Daily headcount: 6AM and 6PM
+• Supply inventory: Real-time tracking
+• Health monitoring: Temperature checks twice daily
+• Incident reporting: Immediate escalation protocol
+
+=== CONTACT INFORMATION ===
+• Emergency Coordinator: [Contact Number]
+• Medical Team Lead: [Contact Number]
+• Supply Manager: [Contact Number]
+• 24/7 Hotline: [Emergency Number]`;
+                
+                downloadFile('aid_distribution_plan.txt', planContent);
+                showToast('Aid distribution plan generated and downloaded');
+            }, 1500);
+        }
+
+        function generateNeedsAssessment() {
+            showToast('Generating comprehensive needs assessment...');
+            
+            setTimeout(() => {
+                const evacueeCount = {{ $totalEvacuees }};
+                const assessmentContent = `EVACUEE NEEDS ASSESSMENT - B-DEAMS
+Assessment Date: ${new Date().toLocaleString()}
+Total Evacuees: ${evacueeCount}
+
+=== CRITICAL NEEDS ANALYSIS ===
+
+1. FOOD SECURITY
+   Status: ${Math.random() > 0.5 ? 'CRITICAL' : 'MODERATE'}
+   Daily Requirement: ${evacueeCount * 3} meals
+   Current Stock: ${Math.floor(evacueeCount * 2.5)} meals
+   Gap: ${evacueCount * 0.5} meals needed
+   Priority Level: HIGH
+
+2. WATER AND SANITATION
+   Status: ${Math.random() > 0.6 ? 'ADEQUATE' : 'INSUFFICIENT'}
+   Daily Requirement: ${evacueeCount * 4} liters
+   Current Supply: ${Math.floor(evacueeCount * 3.5)} liters
+   Gap: ${evacueeCount * 0.5} liters needed
+   Sanitation Facilities: ${Math.ceil(evacueeCount / 25)} units needed
+
+3. SHELTER CAPACITY
+   Status: ${Math.random() > 0.7 ? 'OVERCROWDED' : 'MANAGEABLE'}
+   Current Occupancy: ${Math.round((evacueeCount / 500) * 100)}%
+   Available Spaces: ${500 - evacueeCount}
+   Overflow Risk: ${evacueeCount > 450 ? 'HIGH' : 'LOW'}
+
+4. MEDICAL REQUIREMENTS
+   Status: ${Math.random() > 0.4 ? 'URGENT' : 'STABLE'}
+   First Aid Kits: ${Math.ceil(evacueeCount / 10)} needed
+   Chronic Medications: ${Math.ceil(evacueeCount * 0.15)} patients
+   Mental Health Support: ${Math.ceil(evacueeCount * 0.2)} sessions needed
+   Emergency Medical Transport: 2 vehicles on standby
+
+=== VULNERABLE GROUPS ASSESSMENT ===
+
+1. ELDERLY (60+ years)
+   Estimated Count: ${Math.ceil(evacueeCount * 0.25)}
+   Special Needs: Medication, mobility assistance, special diet
+   Required Support: ${Math.ceil(evacueeCount * 0.05)} dedicated caregivers
+
+2. CHILDREN (0-12 years)
+   Estimated Count: ${Math.ceil(evacueeCount * 0.35)}
+   Special Needs: Baby formula, diapers, child-friendly food
+   Required Support: ${Math.ceil(evacueeCount * 0.1)} child care workers
+
+3. PREGNANT WOMEN
+   Estimated Count: ${Math.ceil(evacueeCount * 0.08)}
+   Special Needs: Prenatal care, nutrition supplements
+   Required Support: ${Math.ceil(evacueeCount * 0.02)} midwives/nurses
+
+4. PERSONS WITH DISABILITIES
+   Estimated Count: ${Math.ceil(evacueeCount * 0.12)}
+   Special Needs: Accessible facilities, assistive devices
+   Required Support: ${Math.ceil(evacueeCount * 0.03)} specialized assistants
+
+=== SUPPLY CHAIN ANALYSIS ===
+
+IMMEDIATE NEEDS (Next 48 hours):
+• Emergency food rations: ${evacueeCount * 2} packs
+• Bottled water: ${evacueeCount * 8} liters
+• Blankets: ${Math.ceil(evacueeCount * 0.8)} pieces
+• Hygiene kits: ${Math.ceil(evacueeCount * 0.7)} kits
+
+MEDIUM-TERM NEEDS (Next 7 days):
+• Fresh food supplies: Weekly restock required
+• Medical supplies: Full inventory replenishment
+• Clothing replacements: Seasonal requirements
+• Educational materials: ${Math.ceil(evacueeCount * 0.3)} sets
+
+=== RECOMMENDATIONS ===
+
+1. IMMEDIATE ACTIONS:
+   • Activate emergency procurement protocol
+   • Deploy additional medical personnel
+   • Establish overflow shelter locations
+   • Implement rationing if necessary
+
+2. RESOURCE OPTIMIZATION:
+   • Centralize distribution points
+   • Implement digital tracking system
+   • Coordinate with neighboring barangays
+   • Engage community volunteers
+
+3. MONITORING FRAMEWORK:
+   • Daily needs assessment updates
+   • Real-time inventory tracking
+   • Community feedback mechanisms
+   • Regular health monitoring
+
+=== CONTACT DIRECTORY ===
+Emergency Operations Center: [Phone Number]
+Medical Emergency: [Phone Number]
+Supply Coordinator: [Phone Number]
+Shelter Management: [Phone Number]
+Psychosocial Support: [Phone Number]`;
+                
+                downloadFile('needs_assessment.txt', assessmentContent);
+                showToast('Needs assessment report generated and downloaded');
+            }, 1500);
+        }
+
+        function optimizeResourceAllocation() {
+            showToast('Optimizing resource allocation...');
+            
+            setTimeout(() => {
+                const evacueeCount = {{ $totalEvacuees }};
+                const optimizationContent = `RESOURCE ALLOCATION OPTIMIZATION - B-DEAMS
+Analysis Date: ${new Date().toLocaleString()}
+Current Evacuees: ${evacueeCount}
+
+=== OPTIMIZATION ANALYSIS ===
+
+CURRENT ALLOCATION EFFICIENCY: ${Math.floor(Math.random() * 20) + 75}%
+
+=== FOOD DISTRIBUTION OPTIMIZATION ===
+
+Current Model: Centralized Distribution
+Efficiency Score: ${Math.floor(Math.random() * 15) + 70}%
+
+Recommended Improvements:
+• Establish 4 distribution points instead of 2
+• Implement family-based rationing system
+• Schedule distribution at 6AM, 12PM, 6PM
+• Priority lanes for elderly and disabled
+
+Expected Improvement: +${Math.floor(Math.random() * 15) + 20}% efficiency
+
+=== SHELTER SPACE OPTIMIZATION ===
+
+Current Utilization: ${Math.round((evacueeCount / 500) * 100)}%
+Optimization Potential: ${Math.floor(Math.random() * 10) + 15}%
+
+Recommendations:
+• Reorganize sleeping arrangements by family units
+• Create dedicated areas for vulnerable groups
+• Implement rotational cleaning schedules
+• Establish quiet zones for elderly and infants
+
+Space Savings: ${Math.floor(Math.random() * 50) + 30} additional spaces
+
+=== MEDICAL RESOURCE OPTIMIZATION ===
+
+Current Response Time: ${Math.floor(Math.random() * 10) + 5} minutes
+Target Response Time: 3 minutes
+
+Optimization Strategy:
+• Deploy medical stations in each shelter zone
+• Implement triage system for emergencies
+• Establish 24/7 medical hotline
+• Train community health workers
+
+Coverage Improvement: ${Math.floor(Math.random() * 25) + 40}%
+
+=== SUPPLY CHAIN OPTIMIZATION ===
+
+Current Delivery Frequency: Daily
+Optimized Frequency: Twice daily
+
+Inventory Management:
+• Implement real-time tracking system
+• Set automatic reorder triggers at 30% capacity
+• Establish backup supplier network
+• Create emergency procurement protocols
+
+Cost Savings: ${Math.floor(Math.random() * 15) + 10}% reduction
+
+=== HUMAN RESOURCE OPTIMIZATION ===
+
+Current Volunteer Utilization: ${Math.floor(Math.random() * 20) + 60}%
+Optimized Utilization: ${Math.floor(Math.random() * 20) + 85}%
+
+Staffing Recommendations:
+• Implement shift scheduling system
+• Cross-train volunteers for multiple roles
+• Establish team leader structure
+• Create skill-based assignment system
+
+Productivity Gain: ${Math.floor(Math.random() * 30) + 25}%
+
+=== TECHNOLOGY INTEGRATION ===
+
+Digital Solutions:
+• Mobile app for evacuee registration
+• QR code system for aid distribution
+• Real-time inventory management
+• Automated reporting dashboard
+
+Implementation Timeline: 2 weeks
+Expected ROI: ${Math.floor(Math.random() * 40) + 60}% within 6 months
+
+=== MONITORING & EVALUATION ===
+
+Key Performance Indicators:
+• Aid distribution time: Target < 30 minutes
+• Shelter occupancy rate: Maintain < 90%
+• Medical response time: Target < 5 minutes
+• Supply availability: Maintain > 85%
+
+Review Schedule:
+• Daily operational briefing
+• Weekly performance review
+• Monthly optimization assessment
+• Quarterly strategic planning
+
+=== IMPLEMENTATION ROADMAP ===
+
+Phase 1 (Immediate - 24 hours):
+• Reorganize distribution points
+• Implement priority lanes
+• Deploy additional medical stations
+
+Phase 2 (Short-term - 1 week):
+• Install tracking systems
+• Train volunteers on new protocols
+• Establish backup supply chains
+
+Phase 3 (Medium-term - 1 month):
+• Full technology integration
+• Process automation
+• Performance optimization
+
+=== EXPECTED OUTCOMES ===
+
+Efficiency Improvements:
+• ${Math.floor(Math.random() * 20) + 30}% faster aid distribution
+• ${Math.floor(Math.random() * 15) + 25}% better resource utilization
+• ${Math.floor(Math.random() * 10) + 40}% improved response time
+• ${Math.floor(Math.random() * 20) + 20}% cost reduction
+
+Quality Improvements:
+• Enhanced evacuee satisfaction
+• Reduced waiting times
+• Better health outcomes
+• Improved shelter conditions`;
+                
+                downloadFile('resource_optimization.txt', optimizationContent);
+                showToast('Resource optimization plan generated and downloaded');
+            }, 1500);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportDSSReport() {
+            showToast('Generating comprehensive evacuee needs report...');
+            
+            setTimeout(() => {
+                const evacueeCount = @json($totalEvacuees);
+                const dssMetrics = @json($dssMetrics);
+                
+                const reportContent = `EVACUEE NEEDS ASSESSMENT REPORT
+B-DEAMS - Barangay Disaster Evacuation Alert Management System
+Generated: ${new Date().toLocaleString()}
+Report Type: Comprehensive Evacuee Needs Analysis
+
+=== EXECUTIVE SUMMARY ===
+Total Evacuees: ${evacueeCount}
+Current Shelter Occupancy: ${Math.round(dssMetrics.occupancy_rate)}%
+Available Shelter Spaces: ${dssMetrics.available_spaces}
+Active Evacuation Centers: {{ $totalShelters }}
+
+=== EVACUEE DEMOGRAPHICS ===
+Male Population: ${dssMetrics.male_count} (${Math.round((dssMetrics.male_count / evacueeCount) * 100)}%)
+Female Population: ${dssMetrics.female_count} (${Math.round((dssMetrics.female_count / evacueeCount) * 100)}%)
+
+=== VULNERABLE GROUPS ANALYSIS ===
+
+1. ELDERLY POPULATION (60+ years)
+   Count: ${dssMetrics.senior_count} evacuees
+   Percentage: ${Math.round((dssMetrics.senior_count / evacueeCount) * 100)}% of total
+   Special Requirements:
+   - Chronic medication management: ${dssMetrics.chronic_medication_patients} patients
+   - Mobility assistance: ${Math.ceil(dssMetrics.senior_count * 0.3)} individuals
+   - Special dietary needs: ${Math.ceil(dssMetrics.senior_count * 0.4)} individuals
+   - 24/7 monitoring: ${Math.ceil(dssMetrics.senior_count * 0.2)} high-risk cases
+
+2. CHILDREN POPULATION (0-17 years)
+   Total Count: ${dssMetrics.child_count} evacuees
+   Percentage: ${Math.round((dssMetrics.child_count / evacueeCount) * 100)}% of total
+   
+   Age Group Breakdown:
+   - Infants/Toddlers (0-5 years): ${dssMetrics.clothing_inventory_children_0_5} children
+   - School Age (6-12 years): ${dssMetrics.clothing_inventory_children_6_12} children
+   - Teenagers (13-17 years): ${dssMetrics.clothing_inventory_children_13_17} children
+   
+   Special Requirements:
+   - Baby formula and diapers: ${dssMetrics.clothing_inventory_children_0_5} infants/toddlers
+   - Child-friendly meals: ${dssMetrics.child_count} children
+   - Educational activities: ${Math.ceil(dssMetrics.child_count * 0.8)} children
+   - Child care supervision: ${Math.ceil(dssMetrics.child_count * 0.4)} dedicated caregivers
+   - School supplies: ${dssMetrics.clothing_inventory_children_6_12} school-aged children
+   - Teen support: ${dssMetrics.clothing_inventory_children_13_17} adolescents
+
+3. PREGNANT WOMEN
+   Estimated Count: ${dssMetrics.pregnant_women_count}
+   Special Requirements:
+   - Prenatal vitamins and supplements
+   - Regular health check-ups
+   - Nutritional food assistance
+   - Comfortable resting areas
+   - Emergency birth preparation
+
+4. PERSONS WITH DISABILITIES
+   Estimated Count: ${dssMetrics.disabled_persons_count}
+   Special Requirements:
+   - Accessible facilities and pathways
+   - Assistive devices maintenance
+   - Personal care assistance
+   - Medical equipment support
+   - Specialized transportation
+
+=== IMMEDIATE NEEDS ASSESSMENT ===
+
+FOOD REQUIREMENTS:
+- Daily Meals Needed: ${dssMetrics.daily_meals_needed} meals (age-appropriate portions)
+- Weekly Food Supply: ${dssMetrics.weekly_food_requirement} meals
+
+MEAL REQUIREMENTS BY AGE GROUP:
+- Infants/Toddlers (0-5 years): ${dssMetrics.infant_daily_meals} meals (6 small meals per day)
+- Children (6-12 years): ${dssMetrics.child_daily_meals} meals (3 meals + 2 snacks per day)
+- Teenagers (13-17 years): ${dssMetrics.teen_daily_meals} meals (3 meals per day)
+- Adults (18+ years): ${dssMetrics.adult_daily_meals} meals (3 meals per day)
+
+Special Dietary Requirements:
+- Elderly soft food: ${Math.ceil(dssMetrics.senior_count * 0.4)} portions
+- Baby formula: ${dssMetrics.clothing_inventory_children_0_5} bottles daily
+- Child-friendly meals: ${dssMetrics.child_count} portions
+- Medical diet: ${dssMetrics.chronic_medication_patients} special meals
+- Kitchen Equipment: 4 portable cooking stations needed
+- Food Storage: Refrigeration for ${Math.ceil(evacueeCount * 0.3)} cubic meters
+
+WATER AND SANITATION:
+- Daily Water Requirement: ${dssMetrics.daily_water_requirement} liters
+- Weekly Water Supply: ${dssMetrics.weekly_water_requirement} liters
+- Drinking Water Stations: 6 stations required
+- Water Purification: ${Math.ceil(evacueeCount * 2)} purification tablets needed
+- Bathing Facilities: ${Math.ceil(evacueeCount / 15)} shower stations
+- Toilets: ${Math.ceil(evacueeCount / 20)} toilet facilities needed
+- Hand Washing Stations: 8 stations with soap and sanitizer
+
+SHELTER AND COMFORT NEEDS:
+- Sleeping Arrangements: ${evacueeCount} sleeping spaces
+- Blankets Required: ${dssMetrics.blankets_needed} pieces
+- Pillows: ${Math.ceil(evacueeCount * 0.8)} pillows
+- Mats/Flooring: ${Math.ceil(evacueeCount * 0.3)} additional mats
+- Privacy Screens: ${Math.ceil(evacueeCount / 10)} family partitions
+- Lighting: 24-hour illumination in common areas
+
+CLOTHING REQUIREMENTS:
+- Adult Clothing: ${dssMetrics.clothing_inventory_adult} sets
+- Children Clothing by Age Group:
+  * Infants/Toddlers (0-5 years): ${dssMetrics.clothing_inventory_children_0_5} sets
+  * School Age (6-12 years): ${dssMetrics.clothing_inventory_children_6_12} sets
+  * Teenagers (13-17 years): ${dssMetrics.clothing_inventory_children_13_17} sets
+- Undergarments: ${evacueeCount * 3} sets (3-day supply)
+- Footwear: ${Math.ceil(evacueeCount * 1.2)} pairs
+- Rain gear: ${Math.ceil(evacueeCount * 0.5)} sets
+- Warm clothing: ${Math.ceil(evacueeCount * 0.7)} sets
+- Special Clothing Needs:
+  * Baby clothes and diapers: ${dssMetrics.clothing_inventory_children_0_5} sets
+  * School uniforms: ${dssMetrics.clothing_inventory_children_6_12} sets
+  * Teen appropriate clothing: ${dssMetrics.clothing_inventory_children_13_17} sets
+
+=== MEDICAL AND HEALTH NEEDS ===
+
+FIRST AID AND EMERGENCY:
+- First Aid Kits: ${dssMetrics.first_aid_kits_needed} kits
+- Emergency Medical Transport: 2 vehicles on standby
+- Triage Area: 1 designated space for medical assessment
+- Isolation Area: ${Math.ceil(evacueeCount * 0.05)} beds for contagious cases
+
+CHRONIC MEDICATION MANAGEMENT:
+- Patients needing chronic medication: ${dssMetrics.chronic_medication_patients}
+- Medication Storage: Refrigerated storage for temperature-sensitive drugs
+- Medication Schedule: 4-time daily administration tracking
+- Emergency Medication: 72-hour supply for all chronic conditions
+
+MENTAL HEALTH AND PSYCHOSOCIAL:
+- Counseling Sessions Needed: ${dssMetrics.mental_health_sessions_needed} sessions
+- Mental Health Professionals: ${Math.ceil(dssMetrics.mental_health_sessions_needed / 8)} counselors
+- Quiet Rooms: 2 designated spaces for counseling
+- Group Therapy: Daily support groups for evacuees
+- Child Psychosocial Support: ${Math.ceil(dssMetrics.child_count * 0.3)} children needing special attention
+
+MATERNAL AND CHILD HEALTH:
+- Pregnant Women Monitoring: ${dssMetrics.pregnant_women_count} women
+- Postnatal Care: ${Math.ceil(dssMetrics.pregnant_women_count * 0.3)} new mothers
+- Infant Care Supplies: Diapers, formula, baby clothes
+- Vaccination Updates: Children immunization status review
+- Pediatric Care: ${dssMetrics.child_count} children requiring health monitoring
+
+=== HYGIENE AND SANITATION ===
+
+PERSONAL HYGIENE:
+- Hygiene Kits: ${dssMetrics.hygiene_kits_needed} complete kits
+- Soap Bars: ${evacueeCount * 2} bars (2-week supply)
+- Toothpaste and Toothbrushes: ${evacueeCount} sets
+- Shampoo and Conditioner: ${Math.ceil(evacueeCount * 0.8)} bottles
+- Feminine Hygiene Products: ${Math.ceil(dssMetrics.female_count * 0.6)} packages
+- Adult Diapers: ${Math.ceil(dssMetrics.senior_count * 0.2)} packages
+
+ENVIRONMENTAL SANITATION:
+- Waste Management: ${Math.ceil(evacueeCount / 25)} waste bins
+- Disinfectant Supplies: 20 liters of disinfectant solution
+- Cleaning Equipment: Mops, buckets, cleaning supplies
+- Pest Control: Monthly pest control services
+- Ventilation: Air circulation systems for enclosed spaces
+
+=== COMMUNICATION AND INFORMATION ===
+
+EVACUEE COMMUNICATION:
+- Information Board: 1 central announcement board
+- Family Contact: Communication hub for family reunification
+- Emergency Hotline: 24/7 helpline for evacuee concerns
+- Language Support: Translation services for non-local evacuees
+- Special Needs Communication: ${dssMetrics.disabled_persons_count} individuals needing assistance
+
+STAFF AND VOLUNTEER COORDINATION:
+- Medical Staff: 2 doctors, 4 nurses per shift
+- Social Workers: ${Math.ceil(evacueeCount / 50)} social workers
+- Volunteer Coordinators: 3 team leaders
+- Security Personnel: 6 guards per location
+- Kitchen Staff: ${Math.ceil(evacueeCount / 100)} kitchen helpers
+
+=== LOGISTICS AND TRANSPORTATION ===
+
+SUPPLY CHAIN REQUIREMENTS:
+- Daily Food Deliveries: 3 deliveries per day
+- Water Tanker Services: 2 tankers per day
+- Medical Supply Resupply: Weekly inventory restock
+- Waste Collection: Daily waste removal services
+- Laundry Services: ${Math.ceil(evacueeCount / 25)} laundry loads per day
+
+TRANSPORTATION NEEDS:
+- Medical Transport: 2 ambulances on standby
+- Supply Transport: 3 delivery vehicles
+- Staff Transport: Shuttle services for relief workers
+- Emergency Evacuation: 4 vehicles for medical emergencies
+- Family Reunification: Transport for family visits
+
+=== SPECIAL CONSIDERATIONS ===
+
+CULTURAL AND RELIGIOUS NEEDS:
+- Prayer Space: 1 quiet area for religious activities
+- Dietary Restrictions: Halal/Kosher/vegetarian meal options
+- Cultural Sensitivity: Training for staff on cultural practices
+- Language Support: Translation for diverse evacuee population
+
+EDUCATION AND CHILD DEVELOPMENT:
+- Temporary Learning Space: 1 area for children's education
+- Educational Materials: ${dssMetrics.child_count} learning kits
+- Recreational Activities: Games and activities for children
+- Child Protection: Safe spaces and child protection protocols
+
+SECURITY AND SAFETY:
+- 24/7 Security: Security personnel deployment
+- Fire Safety: Fire extinguishers and evacuation routes
+- Emergency Exits: Clear marking and accessibility
+- Crowd Control: Management of high-traffic areas
+- Lost and Found: Central location for recovered items
+
+=== RECOMMENDATIONS ===
+
+IMMEDIATE ACTIONS (Next 24 Hours):
+1. Prioritize medical needs for vulnerable groups
+2. Establish family registration and tracking system
+3. Set up dedicated areas for elderly and children
+4. Deploy additional medical personnel if needed
+5. Ensure adequate water and sanitation facilities
+
+SHORT-TERM ACTIONS (Next 7 Days):
+1. Implement mental health support programs
+2. Establish educational activities for children
+3. Create sustainable supply chain management
+4. Develop family reunification procedures
+5. Set up long-term shelter management protocols
+
+MEDIUM-TERM ACTIONS (Next 30 Days):
+1. Develop community integration programs
+2. Establish permanent health monitoring systems
+3. Create livelihood support programs
+4. Implement disaster preparedness training
+5. Coordinate with government agencies for long-term support
+
+=== CONTACT DIRECTORY ===
+Emergency Operations Center: [Phone Number]
+Medical Emergency: [Phone Number]
+Mental Health Support: [Phone Number]
+Social Services: [Phone Number]
+Family Reunification: [Phone Number]
+Supply Coordinator: [Phone Number]
+Volunteer Hotline: [Phone Number]
+
+=== REPORT SUMMARY ===
+This comprehensive needs assessment provides a detailed analysis of the current requirements for ${evacueeCount} evacuees in the evacuation center. The report identifies critical needs across multiple categories and provides actionable recommendations for ensuring the health, safety, and well-being of all evacuees during their stay.
+
+Key Priority Areas:
+1. Medical care for vulnerable groups (${dssMetrics.senior_count + dssMetrics.child_count} individuals)
+2. Adequate food and water supplies (${dssMetrics.daily_meals_needed} meals, ${dssMetrics.daily_water_requirement}L water daily)
+3. Mental health and psychosocial support (${dssMetrics.mental_health_sessions_needed} sessions needed)
+4. Proper sanitation and hygiene facilities (${dssMetrics.hygiene_kits_needed} kits required)
+5. Family support and reunification services
+
+Next Review: ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()}
+Report Generated by: B-DEAMS Decision Support System`;
+                
+                downloadFile('evacuee_needs_assessment.txt', reportContent);
+                showToast('Evacuee needs assessment report generated and downloaded');
+            }, 1500);
+        }
+
+        // Initialize DSS on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                updateAidCalculations();
+                updateDSSRecommendations();
+                drawAidDistributionChart();
+            }, 500);
+        });
 </script>

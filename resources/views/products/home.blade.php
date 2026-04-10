@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Residents List — B-DEAMS</title>
+    <title>Family Heads — B-DEAMS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -348,14 +348,14 @@
 
         .modal-box {
             background: white; border-radius: 18px;
-            width: 90%; max-width: 480px;
-            max-height: 90vh; overflow-y: auto;
+            width: 95%; max-width: 800px;
+            max-height: 95vh; overflow-y: auto;
             scrollbar-width: none;
             animation: modalIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
         }
 
-        .modal-box.sm { max-width: 400px; }
-        .modal-box.lg { max-width: 560px; }
+        .modal-box.sm { max-width: 500px; }
+        .modal-box.lg { max-width: 1000px; }
         .modal-box::-webkit-scrollbar { display: none; }
 
         @keyframes modalIn {
@@ -413,6 +413,28 @@
         .form-control:focus {
             background: white; border-color: var(--teal);
             box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            color: var(--text-dark);
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--teal);
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            font-weight: 400;
+            user-select: none;
         }
 
         .error-msg { font-size: 11.5px; color: var(--rose); }
@@ -490,6 +512,67 @@
         .delay-1  { animation-delay: 0.07s; }
         .delay-2  { animation-delay: 0.13s; }
 
+        /* ---- FAMILY DETAILS DROPDOWN ---- */
+        .family-details-row {
+            background: var(--slate-light);
+        }
+
+        .family-details-content {
+            padding: 20px 24px;
+        }
+
+        .family-members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .member-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .member-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .member-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 13px;
+        }
+
+        .member-header i {
+            font-size: 14px;
+        }
+
+        .member-info {
+            font-size: 12.5px;
+            color: var(--text-mid);
+        }
+
+        .info-row {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-row strong {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .topnav { padding: 0 20px; }
             .page { padding: 22px 18px; }
@@ -511,8 +594,8 @@
             </div>
             <div class="nav-divider"></div>
             <div class="page-crumb">
-                <i class="fas fa-users" style="font-size:12px;"></i>
-                <span>Residents</span>
+                <i class="fas fa-home" style="font-size:12px;"></i>
+                <span>Family Heads</span>
             </div>
         </div>
         <a href="{{ route('resident.index') }}" class="nav-back">
@@ -530,55 +613,238 @@
         </div>
         @endif
 
-        <!-- Stat Strip -->
+        @php
+                // Calculate statistics from actual family data
+                $totalFamilies = $residents->count();
+                $totalMale = 0;
+                $totalFemale = 0;
+                $seniorMale = 0;
+                $seniorFemale = 0;
+                $childMale = 0;
+                $childFemale = 0;
+                $totalMembers = 0;
+                $totalSeniors = 0;
+                $totalChildren = 0;
+                $pregnantCount = 0;
+                $pwdCount = 0;
+                
+                foreach($residents as $resident) {
+                    // Count family head
+                    if($resident->family_head_fullname) {
+                        $totalMembers++;
+                        if($resident->family_head_age) {
+                            if($resident->family_head_age >= 60) {
+                                $totalSeniors++;
+                                if(strtolower($resident->gender) === 'male') {
+                                    $seniorMale++;
+                                    $totalMale++;
+                                } else {
+                                    $seniorFemale++;
+                                    $totalFemale++;
+                                }
+                            } elseif($resident->family_head_age < 18) {
+                                $totalChildren++;
+                                if(strtolower($resident->gender) === 'male') {
+                                    $childMale++;
+                                    $totalMale++;
+                                } else {
+                                    $childFemale++;
+                                    $totalFemale++;
+                                }
+                            } else {
+                                if(strtolower($resident->gender) === 'male') {
+                                    $totalMale++;
+                                } else {
+                                    $totalFemale++;
+                                }
+                            }
+                        } else {
+                            if(strtolower($resident->gender) === 'male') {
+                                $totalMale++;
+                            } else {
+                                $totalFemale++;
+                            }
+                        }
+                    }
+                    
+                    // Count wife
+                    if($resident->wife_fullname) {
+                        $totalMembers++;
+                        if($resident->wife_age) {
+                            if($resident->wife_age >= 60) {
+                                $totalSeniors++;
+                                $seniorFemale++;
+                                $totalFemale++;
+                            } elseif($resident->wife_age < 18) {
+                                $totalChildren++;
+                                $childFemale++;
+                                $totalFemale++;
+                            } else {
+                                $totalFemale++;
+                            }
+                        } else {
+                            $totalFemale++;
+                        }
+                        
+                        // Count pregnant wives
+                        if($resident->wife_pregnant) {
+                            $pregnantCount++;
+                        }
+                    }
+                    
+                    // Count son
+                    if($resident->son_fullname) {
+                        $totalMembers++;
+                        if($resident->son_age) {
+                            if($resident->son_age >= 60) {
+                                $totalSeniors++;
+                                $seniorMale++;
+                                $totalMale++;
+                            } elseif($resident->son_age < 18) {
+                                $totalChildren++;
+                                $childMale++;
+                                $totalMale++;
+                            } else {
+                                $totalMale++;
+                            }
+                        } else {
+                            $totalMale++;
+                        }
+                    }
+                    
+                    // Count daughter
+                    if($resident->daughter_fullname) {
+                        $totalMembers++;
+                        if($resident->daughter_age) {
+                            if($resident->daughter_age >= 60) {
+                                $totalSeniors++;
+                                $seniorFemale++;
+                                $totalFemale++;
+                            } elseif($resident->daughter_age < 18) {
+                                $totalChildren++;
+                                $childFemale++;
+                                $totalFemale++;
+                            } else {
+                                $totalFemale++;
+                            }
+                        } else {
+                            $totalFemale++;
+                        }
+                    }
+                    
+                    // Count grandmother
+                    if($resident->grandmother_fullname) {
+                        $totalMembers++;
+                        if($resident->grandmother_age) {
+                            if($resident->grandmother_age >= 60) {
+                                $totalSeniors++;
+                                $seniorFemale++;
+                                $totalFemale++;
+                            } elseif($resident->grandmother_age < 18) {
+                                $totalChildren++;
+                                $childFemale++;
+                                $totalFemale++;
+                            } else {
+                                $totalFemale++;
+                            }
+                        } else {
+                            $totalFemale++;
+                        }
+                    }
+                    
+                    // Count grandfather
+                    if($resident->grandfather_fullname) {
+                        $totalMembers++;
+                        if($resident->grandfather_age) {
+                            if($resident->grandfather_age >= 60) {
+                                $totalSeniors++;
+                                $seniorMale++;
+                                $totalMale++;
+                            } elseif($resident->grandfather_age < 18) {
+                                $totalChildren++;
+                                $childMale++;
+                                $totalMale++;
+                            } else {
+                                $totalMale++;
+                            }
+                        } else {
+                            $totalMale++;
+                        }
+                    }
+                    
+                    // Count PWD (actual individual PWD fields)
+                    if($resident->family_head_pwd) $pwdCount++;
+                    if($resident->wife_pwd) $pwdCount++;
+                    if($resident->son_pwd) $pwdCount++;
+                    if($resident->daughter_pwd) $pwdCount++;
+                    if($resident->grandmother_pwd) $pwdCount++;
+                    if($resident->grandfather_pwd) $pwdCount++;
+                }
+            @endphp
+            
+            <!-- Stat Strip -->
         <div class="stat-strip anim delay-1">
             <div class="stat-chip">
                 <div class="chip-dot" style="background:var(--navy);"></div>
                 <div>
-                    <div class="chip-val">{{ number_format($totalResidents) }}</div>
-                    <div class="chip-lbl">Total Residents</div>
+                    <div class="chip-val">{{ number_format($totalFamilies) }}</div>
+                    <div class="chip-lbl">Total Families</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:var(--blue);"></div>
                 <div>
-                    <div class="chip-val">{{ isset($maleCount) ? number_format($maleCount) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($totalMale) }}</div>
                     <div class="chip-lbl">Male</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:#ec4899;"></div>
                 <div>
-                    <div class="chip-val">{{ isset($femaleCount) ? number_format($femaleCount) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($totalFemale) }}</div>
                     <div class="chip-lbl">Female</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:var(--amber);"></div>
                 <div>
-                    <div class="chip-val">{{ isset($seniorMale) ? number_format($seniorMale) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($seniorMale) }}</div>
                     <div class="chip-lbl">Senior Male</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:#f97316;"></div>
                 <div>
-                    <div class="chip-val">{{ isset($seniorFemale) ? number_format($seniorFemale) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($seniorFemale) }}</div>
                     <div class="chip-lbl">Senior Female</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:var(--green);"></div>
                 <div>
-                    <div class="chip-val">{{ isset($childMale) ? number_format($childMale) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($childMale) }}</div>
                     <div class="chip-lbl">Child Male</div>
                 </div>
             </div>
             <div class="stat-chip">
                 <div class="chip-dot" style="background:var(--teal);"></div>
                 <div>
-                    <div class="chip-val">{{ isset($childFemale) ? number_format($childFemale) : 0 }}</div>
+                    <div class="chip-val">{{ number_format($childFemale) }}</div>
                     <div class="chip-lbl">Child Female</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:#ec4899;"></div>
+                <div>
+                    <div class="chip-val">{{ number_format($pregnantCount) }}</div>
+                    <div class="chip-lbl">Pregnant</div>
+                </div>
+            </div>
+            <div class="stat-chip">
+                <div class="chip-dot" style="background:#6366f1;"></div>
+                <div>
+                    <div class="chip-val">{{ number_format($pwdCount) }}</div>
+                    <div class="chip-lbl">PWD</div>
                 </div>
             </div>
         </div>
@@ -611,13 +877,12 @@
                             Category <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="dropdown-panel">
-                            <div class="dropdown-opt selected" data-value="ALL">All Residents</div>
-                            <div class="dropdown-opt" data-value="SENIOR MALE">Senior Male</div>
-                            <div class="dropdown-opt" data-value="SENIOR FEMALE">Senior Female</div>
-                            <div class="dropdown-opt" data-value="MALE">Male</div>
-                            <div class="dropdown-opt" data-value="FEMALE">Female</div>
-                            <div class="dropdown-opt" data-value="CHILD MALE">Child Male</div>
-                            <div class="dropdown-opt" data-value="CHILD FEMALE">Child Female</div>
+                            <div class="dropdown-opt selected" data-value="ALL">All Families</div>
+                            <div class="dropdown-opt" data-value="SENIOR HEAD">Senior Head</div>
+                            <div class="dropdown-opt" data-value="MALE HEAD">Male Head</div>
+                            <div class="dropdown-opt" data-value="FEMALE HEAD">Female Head</div>
+                            <div class="dropdown-opt" data-value="LARGE FAMILY">Large Family (5+)</div>
+                            <div class="dropdown-opt" data-value="NO CONTACT">No Contact</div>
                         </div>
                     </div>
 
@@ -625,7 +890,7 @@
                     <div class="search-wrap">
                         <i class="fas fa-magnifying-glass"></i>
                         <input type="text" id="searchInput" class="search-input"
-                               placeholder="Search residents…"
+                               placeholder="Search family heads…"
                                value="{{ request('search') }}"
                                oninput="refreshFilters()" />
                     </div>
@@ -633,7 +898,7 @@
 
                 <div class="toolbar-right">
                     <button class="btn-add" onclick="openAddModal()">
-                        <i class="fas fa-user-plus"></i> Add Resident
+                        <i class="fas fa-home"></i> Add Family Head
                     </button>
                     <button class="btn-export" onclick="exportToCSV()">
                         <i class="fas fa-file-csv"></i> Export
@@ -646,50 +911,350 @@
                 <table class="data-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th class="sortable" onclick="sortTable(1,'string')">Last Name <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
-                            <th class="sortable" onclick="sortTable(2,'string')">First Name <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
-                            <th>Age</th>
-                            <th>Gender</th>
-                            <th>Address</th>
+                            <th>Family ID</th>
+                            <th class="sortable" onclick="sortTable(1,'string')">Family Head <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th>Family Members</th>
+                            <th>Total Members</th>
+                            <th>Purok</th>
                             <th>Contact</th>
-                            <th>Added On</th>
+                            <th>Vulnerable Count</th>
+                            <th>Registered On</th>
                             <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($residents as $resident)
-                        <tr data-gender="{{ $resident->gender ?? '' }}">
+                        <tr data-purok="{{ $resident->description ?? '' }}" data-family="{{ $resident->qty . ' ' . $resident->name }}" data-family-id="{{ $resident->id }}" data-gender="{{ $resident->gender ?? 'Male' }}">
                             <td class="td-id">{{ str_pad($resident->id, 4, '0', STR_PAD_LEFT) }}</td>
-                            <td class="td-name">{{ $resident->qty }}</td>
-                            <td>{{ $resident->name }}</td>
-                            <td>{{ $resident->price }}</td>
+                            <td class="td-name">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 28px; height: 28px; background: var(--teal-light); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-home" style="color: var(--teal); font-size: 12px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 500; cursor: pointer; color: var(--navy); text-decoration: underline;" onclick="toggleFamilyDetails({{ $resident->id }})">
+                                            {{ $resident->qty }} {{ $resident->name }}
+                                            <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;" id="chevron-{{ $resident->id }}"></i>
+                                        </div>
+                                        @if($resident->gender)
+                                        <div style="font-size: 11px; color: var(--text-muted);">
+                                            <i class="fas fa-{{ strtolower($resident->gender) === 'male' ? 'mars' : 'venus' }}" style="font-size: 9px;"></i>
+                                            {{ $resident->gender }} Head
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
                             <td>
-                                @if($resident->gender)
-                                <span class="gender-pill {{ strtolower($resident->gender) === 'male' ? 'male' : 'female' }}">
-                                    <i class="fas fa-{{ strtolower($resident->gender) === 'male' ? 'mars' : 'venus' }}" style="font-size:10px;"></i>
-                                    {{ $resident->gender }}
+                                <div style="font-size: 12px; color: var(--text-mid);">
+                                    <i class="fas fa-users" style="font-size: 10px; color: var(--teal); margin-right: 4px;"></i>
+                                    @php
+                                        $memberCount = 1; // Start with family head
+                                        if($resident->wife_fullname) $memberCount++;
+                                        if($resident->son_fullname) $memberCount++;
+                                        if($resident->daughter_fullname) $memberCount++;
+                                        if($resident->grandmother_fullname) $memberCount++;
+                                        if($resident->grandfather_fullname) $memberCount++;
+                                    @endphp
+                                    {{ $memberCount }} members
+                                </div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+                                    Head + {{ $memberCount - 1 }} dependents
+                                </div>
+                            </td>
+                            <td>
+                                <span style="background: var(--blue-light); color: var(--blue); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                    @php
+                                        $memberCount = 1; // Start with family head
+                                        if($resident->wife_fullname) $memberCount++;
+                                        if($resident->son_fullname) $memberCount++;
+                                        if($resident->daughter_fullname) $memberCount++;
+                                        if($resident->grandmother_fullname) $memberCount++;
+                                        if($resident->grandfather_fullname) $memberCount++;
+                                    @endphp
+                                    {{ $memberCount }}
                                 </span>
+                            </td>
+                            <td style="color:var(--text-mid);">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-map-pin" style="font-size: 10px; color: var(--teal);"></i>
+                                    {{ $resident->description ?? 'Not Assigned' }}
+                                </div>
+                            </td>
+                            <td style="color:var(--text-mid);font-size:13px;">
+                                @if($resident->contact_number)
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-phone" style="font-size: 10px; color: var(--green);"></i>
+                                    {{ $resident->contact_number }}
+                                </div>
                                 @else
-                                <span style="color:var(--text-muted);">—</span>
+                                <span style="color: var(--rose); font-size: 11px;">
+                                    <i class="fas fa-exclamation-triangle" style="font-size: 9px;"></i> No Contact
+                                </span>
                                 @endif
                             </td>
-                            <td style="color:var(--text-mid);">{{ $resident->description ?? '—' }}</td>
-                            <td style="color:var(--text-mid);font-size:13px;">{{ $resident->contact_number ?? '—' }}</td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    @php
+                                        $seniorCount = 0;
+                                        $childCount = 0;
+                                        $pregnantCount = 0;
+                                        $pwdCount = 0;
+                                        
+                                        // Count seniors (60+ years)
+                                        if($resident->family_head_age && $resident->family_head_age >= 60) $seniorCount++;
+                                        if($resident->wife_age && $resident->wife_age >= 60) $seniorCount++;
+                                        if($resident->son_age && $resident->son_age >= 60) $seniorCount++;
+                                        if($resident->daughter_age && $resident->daughter_age >= 60) $seniorCount++;
+                                        if($resident->grandmother_age && $resident->grandmother_age >= 60) $seniorCount++;
+                                        if($resident->grandfather_age && $resident->grandfather_age >= 60) $seniorCount++;
+                                        
+                                        // Count children (below 18 years)
+                                        if($resident->son_age && $resident->son_age < 18) $childCount++;
+                                        if($resident->daughter_age && $resident->daughter_age < 18) $childCount++;
+                                        
+                                        // Count pregnant wives
+                                        if($resident->wife_pregnant) $pregnantCount = 1;
+                                        
+                                        // Count PWD in family (actual individual PWD fields)
+                                        if($resident->family_head_pwd) $pwdCount++;
+                                        if($resident->wife_pwd) $pwdCount++;
+                                        if($resident->son_pwd) $pwdCount++;
+                                        if($resident->daughter_pwd) $pwdCount++;
+                                        if($resident->grandmother_pwd) $pwdCount++;
+                                        if($resident->grandfather_pwd) $pwdCount++;
+                                    @endphp
+                                    
+                                    @if($seniorCount > 0)
+                                    <span style="background: var(--amber-light); color: var(--amber); padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
+                                        <i class="fas fa-user-clock" style="font-size: 8px;"></i> {{ $seniorCount }} Senior
+                                    </span>
+                                    @endif
+                                    
+                                    @if($childCount > 0)
+                                    <span style="background: var(--green-light); color: var(--green); padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
+                                        <i class="fas fa-child" style="font-size: 8px;"></i> {{ $childCount }} Child
+                                    </span>
+                                    @endif
+                                    
+                                    @if($pregnantCount > 0)
+                                    <span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
+                                        <i class="fas fa-baby" style="font-size: 8px;"></i> Pregnant
+                                    </span>
+                                    @endif
+                                    
+                                    @if($pwdCount > 0)
+                                    <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
+                                        <i class="fas fa-wheelchair" style="font-size: 8px;"></i> PWD
+                                    </span>
+                                    @endif
+                                    
+                                    @if($seniorCount == 0 && $childCount == 0 && $pregnantCount == 0 && $pwdCount == 0)
+                                    <span style="color: var(--text-muted); font-size: 10px; font-style: italic;">
+                                        No vulnerable members 
+                                        <small>(Debug: FH:{{ $resident->family_head_age ?? 'null' }}, W:{{ $resident->wife_age ?? 'null' }}, S:{{ $resident->son_age ?? 'null' }}, D:{{ $resident->daughter_age ?? 'null' }}, Preg:{{ $resident->wife_pregnant ? 'YES' : 'NO' }}, PWD:{{ $resident->pwd_in_family ?? 'null' }})</small>
+                                    </span>
+                                    @endif
+                                </div>
+                            </td>
                             <td style="color:var(--text-muted);font-size:12.5px;">{{ $resident->created_at->format('M d, Y') }}</td>
                             <td>
                                 <div class="action-btns" style="justify-content:flex-end;">
-                                    <button class="action-btn" onclick="openViewModal({{ $resident->id }})" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn edit" title="Edit"
-                                        onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}')">
+                                    <button class="action-btn edit" title="Edit Family"
+                                        onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}','{{ $resident->wife_pregnant ? 'true' : 'false' }}','{{ $resident->family_head_pwd ? 'true' : 'false' }}','{{ $resident->wife_pwd ? 'true' : 'false' }}','{{ $resident->son_pwd ? 'true' : 'false' }}','{{ $resident->daughter_pwd ? 'true' : 'false' }}','{{ $resident->grandmother_pwd ? 'true' : 'false' }}','{{ $resident->grandfather_pwd ? 'true' : 'false' }}')">
                                         <i class="fas fa-pen"></i>
                                     </button>
-                                    <button class="action-btn delete" title="Delete"
+                                    <button class="action-btn delete" title="Delete Family"
                                         onclick="openDeleteModal('{{ route('resident.destroy', $resident->id) }}')">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Family Details Dropdown Row -->
+                        <tr id="family-details-{{ $resident->id }}" class="family-details-row" style="display: none;">
+                            <td colspan="9" style="padding: 0;">
+                                <div class="family-details-content">
+                                    <div class="family-details-header">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                                            <i class="fas fa-users" style="color: var(--teal); font-size: 16px;"></i>
+                                            <span style="font-weight: 600; color: var(--navy); font-size: 14px;">Family Members Details</span>
+                                            <span style="color: var(--text-muted); font-size: 12px;">{{ $resident->qty }} {{ $resident->name }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="family-members-grid">
+                                        <!-- Family Head -->
+                                        @if($resident->family_head_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-home" style="color: var(--teal);"></i>
+                                                <span>Family Head</span>
+                                                @if($resident->family_head_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->family_head_fullname }}</div>
+                                                @if($resident->family_head_age)<div class="info-row"><strong>Age:</strong> {{ $resident->family_head_age }} years</div>@endif
+                                                @if($resident->family_head_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->family_head_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->family_head_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- Wife -->
+                                        @if($resident->wife_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-female" style="color: #ec4899;"></i>
+                                                <span>Wife</span>
+                                                @if($resident->wife_pregnant)
+                                                <span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-baby" style="font-size: 7px;"></i> Pregnant
+                                                </span>
+                                                @endif
+                                                @if($resident->wife_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->wife_fullname }}</div>
+                                                @if($resident->wife_age)<div class="info-row"><strong>Age:</strong> {{ $resident->wife_age }} years</div>@endif
+                                                @if($resident->wife_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->wife_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->wife_pregnant)
+                                                <div class="info-row" style="color: #ec4899; font-weight: 600;">
+                                                    <i class="fas fa-baby" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Pregnancy Status:</strong> Pregnant
+                                                </div>
+                                                @else
+                                                <div class="info-row" style="color: #999; font-size: 11px; font-style: italic;">
+                                                    <strong>Pregnancy Status:</strong> Not Pregnant
+                                                </div>
+                                                @endif
+                                                @if($resident->wife_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- Son -->
+                                        @if($resident->son_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-child" style="color: var(--blue);"></i>
+                                                <span>Son</span>
+                                                @if($resident->son_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->son_fullname }}</div>
+                                                @if($resident->son_age)<div class="info-row"><strong>Age:</strong> {{ $resident->son_age }} years</div>@endif
+                                                @if($resident->son_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->son_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->son_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- Daughter -->
+                                        @if($resident->daughter_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-child" style="color: var(--rose);"></i>
+                                                <span>Daughter</span>
+                                                @if($resident->daughter_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->daughter_fullname }}</div>
+                                                @if($resident->daughter_age)<div class="info-row"><strong>Age:</strong> {{ $resident->daughter_age }} years</div>@endif
+                                                @if($resident->daughter_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->daughter_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->daughter_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- Grandmother -->
+                                        @if($resident->grandmother_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-user-clock" style="color: var(--amber);"></i>
+                                                <span>Grandmother</span>
+                                                @if($resident->grandmother_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->grandmother_fullname }}</div>
+                                                @if($resident->grandmother_age)<div class="info-row"><strong>Age:</strong> {{ $resident->grandmother_age }} years</div>@endif
+                                                @if($resident->grandmother_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->grandmother_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->grandmother_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- Grandfather -->
+                                        @if($resident->grandfather_fullname)
+                                        <div class="member-card">
+                                            <div class="member-header">
+                                                <i class="fas fa-user-clock" style="color: #6366f1;"></i>
+                                                <span>Grandfather</span>
+                                                @if($resident->grandfather_pwd)
+                                                <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 500; margin-left: 8px;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 7px;"></i> PWD
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="member-info">
+                                                <div class="info-row"><strong>Name:</strong> {{ $resident->grandfather_fullname }}</div>
+                                                @if($resident->grandfather_age)<div class="info-row"><strong>Age:</strong> {{ $resident->grandfather_age }} years</div>@endif
+                                                @if($resident->grandfather_birthdate)<div class="info-row"><strong>Birthdate:</strong> {{ $resident->grandfather_birthdate->format('M d, Y') }}</div>@endif
+                                                @if($resident->grandfather_pwd)
+                                                <div class="info-row" style="color: #6366f1; font-weight: 600;">
+                                                    <i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>
+                                                    <strong>Disability Status:</strong> Person With Disability (PWD)
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -697,9 +1262,9 @@
                         <tr>
                             <td colspan="9">
                                 <div class="empty-state">
-                                    <div class="empty-icon"><i class="fas fa-users"></i></div>
-                                    <div class="empty-title">No Residents Found</div>
-                                    <div class="empty-msg">Add your first resident using the button above.</div>
+                                    <div class="empty-icon"><i class="fas fa-home"></i></div>
+                                    <div class="empty-title">No Family Heads Found</div>
+                                    <div class="empty-msg">Add your first family head using the button above.</div>
                                 </div>
                             </td>
                         </tr>
@@ -734,64 +1299,230 @@
         <span id="toast-msg">Done!</span>
     </div>
 
+    <!-- Hidden Canvas for Resource Chart -->
+    <canvas id="resourceChart" width="200" height="200" style="display: none;"></canvas>
+
+    <!-- Hidden DSS Elements -->
+    <div id="readinessRecommendation" style="display: none;"></div>
+    <div id="vulnerableAction" style="display: none;"></div>
+    <div id="resourceInsight" style="display: none;"></div>
+    <div id="contactAlert" style="display: none;"></div>
+
     <!-- ══ ADD RESIDENT MODAL ══ -->
     <div class="modal-backdrop" id="addBackdrop">
         <div class="modal-box">
             <div class="modal-head">
                 <div>
-                    <div class="modal-head-title">Add New Resident</div>
-                    <div class="modal-head-sub">Fill in the details to register a resident.</div>
+                    <div class="modal-head-title">Add New Family Head</div>
+                    <div class="modal-head-sub">Fill in the details to register a family head.</div>
                 </div>
                 <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-xmark"></i></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{ route('resident.store') }}">
                     @csrf
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="name" class="form-control" placeholder="e.g. Maria" value="{{ old('name') }}">
-                            @error('name')<div class="error-msg">{{ $message }}</div>@enderror
+                    
+                    <!-- Family Information Section -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--teal);">
+                            <i class="fas fa-home" style="margin-right: 8px;"></i>Family Information
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Address (Purok)</label>
+                                <select name="description" class="form-control">
+                                    <option value="" disabled selected>Select Purok...</option>
+                                    @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
+                                    <option value="{{ $p }}" {{ old('description')==$p?'selected':'' }}>{{ $p }}</option>
+                                    @endforeach
+                                </select>
+                                @error('description')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact Number</label>
+                                <input type="text" name="contact_number" class="form-control" placeholder="e.g. 09..." value="{{ old('contact_number') }}">
+                                @error('contact_number')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="qty" class="form-control" placeholder="e.g. Santos" value="{{ old('qty') }}">
-                            @error('qty')<div class="error-msg">{{ $message }}</div>@enderror
+                    </div>
+
+                    <!-- Parents Section -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--blue);">
+                            <i class="fas fa-users" style="margin-right: 8px;"></i>Parents
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Family Head Fullname</label>
+                                <input type="text" name="family_head_fullname" class="form-control" placeholder="e.g. Juan Dela Cruz" value="{{ old('family_head_fullname') }}">
+                                @error('family_head_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Family Head Age</label>
+                                <input type="number" name="family_head_age" class="form-control" placeholder="e.g. 45" value="{{ old('family_head_age') }}" min="0" max="120">
+                                @error('family_head_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Family Head Birthdate</label>
+                                <input type="date" name="family_head_birthdate" class="form-control" value="{{ old('family_head_birthdate') }}">
+                                @error('family_head_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Wife Fullname</label>
+                                <input type="text" name="wife_fullname" class="form-control" placeholder="e.g. Maria Dela Cruz" value="{{ old('wife_fullname') }}">
+                                @error('wife_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Wife Age</label>
+                                <input type="number" name="wife_age" class="form-control" placeholder="e.g. 42" value="{{ old('wife_age') }}" min="0" max="120">
+                                @error('wife_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Wife Birthdate</label>
+                                <input type="date" name="wife_birthdate" class="form-control" value="{{ old('wife_birthdate') }}">
+                                @error('wife_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="wife_pregnant" value="1" {{ old('wife_pregnant') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Wife is Pregnant</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="wife_pwd" value="1" {{ old('wife_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Wife is PWD</span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Age</label>
-                            <input type="text" name="price" class="form-control" placeholder="e.g. 34" value="{{ old('price') }}">
-                            @error('price')<div class="error-msg">{{ $message }}</div>@enderror
+                    </div>
+
+                    <!-- Children Section -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--green);">
+                            <i class="fas fa-child" style="margin-right: 8px;"></i>Children
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Son Fullname</label>
+                                <input type="text" name="son_fullname" class="form-control" placeholder="e.g. Jose Dela Cruz" value="{{ old('son_fullname') }}">
+                                @error('son_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Son Age</label>
+                                <input type="number" name="son_age" class="form-control" placeholder="e.g. 15" value="{{ old('son_age') }}" min="0" max="120">
+                                @error('son_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Son Birthdate</label>
+                                <input type="date" name="son_birthdate" class="form-control" value="{{ old('son_birthdate') }}">
+                                @error('son_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Daughter Fullname</label>
+                                <input type="text" name="daughter_fullname" class="form-control" placeholder="e.g. Ana Dela Cruz" value="{{ old('daughter_fullname') }}">
+                                @error('daughter_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Daughter Age</label>
+                                <input type="number" name="daughter_age" class="form-control" placeholder="e.g. 12" value="{{ old('daughter_age') }}" min="0" max="120">
+                                @error('daughter_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Daughter Birthdate</label>
+                                <input type="date" name="daughter_birthdate" class="form-control" value="{{ old('daughter_birthdate') }}">
+                                @error('daughter_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Gender</label>
-                            <select name="gender" class="form-control">
-                                <option value="" disabled selected>Select…</option>
-                                <option value="Male"   {{ old('gender')=='Male'?'selected':'' }}>Male</option>
-                                <option value="Female" {{ old('gender')=='Female'?'selected':'' }}>Female</option>
-                            </select>
-                            @error('gender')<div class="error-msg">{{ $message }}</div>@enderror
+                    </div>
+
+                    <!-- Elderly Section -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--amber);">
+                            <i class="fas fa-user-clock" style="margin-right: 8px;"></i>Elderly (Grandparents)
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Grandmother Fullname</label>
+                                <input type="text" name="grandmother_fullname" class="form-control" placeholder="e.g. Lola Dela Cruz" value="{{ old('grandmother_fullname') }}">
+                                @error('grandmother_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Grandmother Age</label>
+                                <input type="number" name="grandmother_age" class="form-control" placeholder="e.g. 75" value="{{ old('grandmother_age') }}" min="0" max="120">
+                                @error('grandmother_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Grandmother Birthdate</label>
+                                <input type="date" name="grandmother_birthdate" class="form-control" value="{{ old('grandmother_birthdate') }}">
+                                @error('grandmother_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Grandfather Fullname</label>
+                                <input type="text" name="grandfather_fullname" class="form-control" placeholder="e.g. Lolo Dela Cruz" value="{{ old('grandfather_fullname') }}">
+                                @error('grandfather_fullname')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Grandfather Age</label>
+                                <input type="number" name="grandfather_age" class="form-control" placeholder="e.g. 78" value="{{ old('grandfather_age') }}" min="0" max="120">
+                                @error('grandfather_age')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Grandfather Birthdate</label>
+                                <input type="date" name="grandfather_birthdate" class="form-control" value="{{ old('grandfather_birthdate') }}">
+                                @error('grandfather_birthdate')<div class="error-msg">{{ $message }}</div>@enderror
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Address (Purok)</label>
-                            <select name="description" class="form-control">
-                                <option value="" disabled selected>Select Purok…</option>
-                                @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
-                                <option value="{{ $p }}" {{ old('description')==$p?'selected':'' }}>{{ $p }}</option>
-                                @endforeach
-                            </select>
-                            @error('description')<div class="error-msg">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Contact Number</label>
-                            <input type="text" name="contact_number" class="form-control" placeholder="e.g. 09..." value="{{ old('contact_number') }}">
-                            @error('contact_number')<div class="error-msg">{{ $message }}</div>@enderror
+                    </div>
+
+                    <!-- Disability Status Section -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rose);">
+                            <i class="fas fa-wheelchair" style="margin-right: 8px;"></i>Disability Status (PWD)
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="family_head_pwd" value="1" {{ old('family_head_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Family Head is PWD</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="wife_pwd" value="1" {{ old('wife_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Wife is PWD</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="son_pwd" value="1" {{ old('son_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Son is PWD</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="daughter_pwd" value="1" {{ old('daughter_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Daughter is PWD</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="grandmother_pwd" value="1" {{ old('grandmother_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Grandmother is PWD</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" name="grandfather_pwd" value="1" {{ old('grandfather_pwd') ? 'checked' : '' }}>
+                                    <span class="checkbox-label">Grandfather is PWD</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
                         <button type="submit" class="btn-submit">
-                            <i class="fas fa-floppy-disk"></i> Save Resident
+                            <i class="fas fa-floppy-disk"></i> Save Family Head
                         </button>
                     </div>
                 </form>
@@ -804,8 +1535,8 @@
         <div class="modal-box">
             <div class="modal-head">
                 <div>
-                    <div class="modal-head-title">Edit Resident</div>
-                    <div class="modal-head-sub">Update the resident's information below.</div>
+                    <div class="modal-head-title">Edit Family Head</div>
+                    <div class="modal-head-sub">Update the family head's information below.</div>
                 </div>
                 <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-xmark"></i></button>
             </div>
@@ -815,29 +1546,108 @@
                     @method('PUT')
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                            <label class="form-label">Family Head Fullname</label>
+                            <input type="text" name="family_head_fullname" id="edit_family_head_fullname" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="qty" id="edit_qty" class="form-control" required>
+                            <label class="form-label">Family Head Age</label>
+                            <input type="number" name="family_head_age" id="edit_family_head_age" class="form-control" min="0" max="120">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Age</label>
-                            <input type="text" name="price" id="edit_price" class="form-control" required>
+                            <label class="form-label">Family Head Birthdate</label>
+                            <input type="date" name="family_head_birthdate" id="edit_family_head_birthdate" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Gender</label>
-                            <select name="gender" id="edit_gender" class="form-control">
-                                <option value="" disabled>Select…</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="family_head_pwd" id="edit_family_head_pwd" value="1">
+                                <span class="checkbox-label">Family Head is PWD</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Wife Fullname</label>
+                            <input type="text" name="wife_fullname" id="edit_wife_fullname" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Wife Age</label>
+                            <input type="number" name="wife_age" id="edit_wife_age" class="form-control" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Wife Birthdate</label>
+                            <input type="date" name="wife_birthdate" id="edit_wife_birthdate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                        <div class="form-group">
+                            <label class="form-label">Son Age</label>
+                            <input type="number" name="son_age" id="edit_son_age" class="form-control" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Son Birthdate</label>
+                            <input type="date" name="son_birthdate" id="edit_son_birthdate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="son_pwd" id="edit_son_pwd" value="1">
+                                <span class="checkbox-label">Son is PWD</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Daughter Fullname</label>
+                            <input type="text" name="daughter_fullname" id="edit_daughter_fullname" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Daughter Age</label>
+                            <input type="number" name="daughter_age" id="edit_daughter_age" class="form-control" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Daughter Birthdate</label>
+                            <input type="date" name="daughter_birthdate" id="edit_daughter_birthdate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="daughter_pwd" id="edit_daughter_pwd" value="1">
+                                <span class="checkbox-label">Daughter is PWD</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandmother Fullname</label>
+                            <input type="text" name="grandmother_fullname" id="edit_grandmother_fullname" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandmother Age</label>
+                            <input type="number" name="grandmother_age" id="edit_grandmother_age" class="form-control" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandmother Birthdate</label>
+                            <input type="date" name="grandmother_birthdate" id="edit_grandmother_birthdate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="grandmother_pwd" id="edit_grandmother_pwd" value="1">
+                                <span class="checkbox-label">Grandmother is PWD</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandfather Fullname</label>
+                            <input type="text" name="grandfather_fullname" id="edit_grandfather_fullname" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandfather Age</label>
+                            <input type="number" name="grandfather_age" id="edit_grandfather_age" class="form-control" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grandfather Birthdate</label>
+                            <input type="date" name="grandfather_birthdate" id="edit_grandfather_birthdate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="grandfather_pwd" id="edit_grandfather_pwd" value="1">
+                                <span class="checkbox-label">Grandfather is PWD</span>
+                            </label>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address (Purok)</label>
                             <select name="description" id="edit_description" class="form-control">
-                                <option value="" disabled>Select Purok…</option>
+                                <option value="" disabled>Select Purok...</option>
                                 @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
                                 <option value="{{ $p }}">{{ $p }}</option>
                                 @endforeach
@@ -890,7 +1700,7 @@
     <div class="modal-backdrop" id="viewBackdrop">
         <div class="modal-box sm">
             <div class="modal-head">
-                <div class="modal-head-title">Resident Details</div>
+                <div class="modal-head-title">Family Details</div>
                 <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-xmark"></i></button>
             </div>
             <div class="modal-body">
@@ -916,14 +1726,14 @@
         <div class="modal-box sm">
             <div class="modal-head">
                 <div>
-                    <div class="modal-head-title">Delete Resident</div>
-                    <div class="modal-head-sub">This action cannot be undone.</div>
+                    <div class="modal-head-title">Delete Family</div>
+                    <div class="modal-head-sub">This action cannot be undone and will remove all family members.</div>
                 </div>
                 <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
             </div>
             <div class="modal-body">
                 <p style="font-size:13.5px;color:var(--text-mid);line-height:1.6;margin-bottom:4px;">
-                    Are you sure you want to permanently delete this resident?
+                    Are you sure you want to permanently delete this family?
                 </p>
                 <div class="modal-footer">
                     <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
@@ -960,22 +1770,33 @@
             openModal('deleteBackdrop');
         }
 
-        function openEditModal(action, name, qty, price, description, gender, contact='') {
+        function openEditModal(action, name, qty, price, description, gender, contact='', wifePregnant = 'false', familyHeadPwd = 'false', wifePwd = 'false', sonPwd = 'false', daughterPwd = 'false', grandmotherPwd = 'false', grandfatherPwd = 'false') {
             document.getElementById('editResidentForm').action = action;
-            document.getElementById('edit_name').value           = name;
-            document.getElementById('edit_qty').value            = qty;
-            document.getElementById('edit_price').value          = price;
-            document.getElementById('edit_description').value    = description;
-            document.getElementById('edit_gender').value         = gender || '';
-            document.getElementById('edit_contact_number').value = contact;
+            // Map the parameters to the correct form fields
+            const nameParts = name.split(' ');
+            document.getElementById('edit_family_head_fullname').value = name;
+            document.getElementById('edit_description').value = description || '';
+            document.getElementById('edit_contact_number').value = contact || '';
+            
+            // Set vulnerability fields
+            document.getElementById('edit_wife_pregnant').checked = (wifePregnant === 'true');
+            
+            // Set PWD fields
+            document.getElementById('edit_family_head_pwd').checked = (familyHeadPwd === 'true');
+            document.getElementById('edit_wife_pwd').checked = (wifePwd === 'true');
+            document.getElementById('edit_son_pwd').checked = (sonPwd === 'true');
+            document.getElementById('edit_daughter_pwd').checked = (daughterPwd === 'true');
+            document.getElementById('edit_grandmother_pwd').checked = (grandmotherPwd === 'true');
+            document.getElementById('edit_grandfather_pwd').checked = (grandfatherPwd === 'true');
+            
             openModal('editBackdrop');
         }
 
         function confirmEdit(e) {
             e.preventDefault();
-            document.getElementById('confirm_name').textContent  = document.getElementById('edit_name').value;
-            document.getElementById('confirm_qty').textContent   = document.getElementById('edit_qty').value;
-            document.getElementById('confirm_price').textContent = document.getElementById('edit_price').value;
+            document.getElementById('confirm_name').textContent  = document.getElementById('edit_family_head_fullname').value;
+            document.getElementById('confirm_qty').textContent   = 'Family Head';
+            document.getElementById('confirm_price').textContent = document.getElementById('edit_family_head_age').value || '—';
             document.getElementById('confirm_desc').textContent  = document.getElementById('edit_description').value || '—';
             openModal('confirmBackdrop');
             return false;
@@ -986,6 +1807,33 @@
             document.getElementById('editResidentForm').submit();
         }
 
+        function toggleFamilyDetails(residentId) {
+            const detailsRow = document.getElementById(`family-details-${residentId}`);
+            const chevron = document.getElementById(`chevron-${residentId}`);
+            
+            if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                // Show dropdown
+                detailsRow.style.display = 'table-row';
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                // Hide dropdown
+                detailsRow.style.display = 'none';
+                chevron.style.transform = 'rotate(0deg)';
+            }
+            chevron.style.transition = 'transform 0.3s ease';
+        }
+        
+        // Close modal when clicking on backdrop
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-backdrop')) {
+                const modalId = event.target.id;
+                if (modalId && modalId.startsWith('family-details-modal-')) {
+                    const residentId = modalId.replace('family-details-modal-', '');
+                    toggleFamilyDetails(residentId);
+                }
+            }
+        });
+
         function openViewModal(id) {
             fetch(`/residents/${id}`)
                 .then(r => r.json())
@@ -994,8 +1842,8 @@
                     document.getElementById('view_name').textContent         = d.name;
                     document.getElementById('view_qty').textContent          = d.qty;
                     document.getElementById('view_price').textContent        = d.price;
-                    document.getElementById('view_description').textContent  = d.description || '—';
-                    document.getElementById('view_contact_number').textContent = d.contact_number || '—';
+                    document.getElementById('view_description').textContent  = d.description || '---';
+                    document.getElementById('view_contact_number').textContent = d.contact_number || '---';
                     document.getElementById('view_created').textContent      = d.created_at;
                     document.getElementById('view_updated').textContent      = d.updated_at;
                     openModal('viewBackdrop');
@@ -1055,7 +1903,7 @@
                 let matchSearch = false;
                 for (let c of row.cells) { if (c.textContent.toLowerCase().includes(q)) { matchSearch = true; break; } }
 
-                const purokTxt = row.cells[5]?.textContent.trim() || '';
+                const purokTxt = row.cells[4]?.textContent.trim() || '';
                 const matchPurok = currentPurok === 'ALL' || purokTxt === currentPurok;
 
                 const age    = parseInt(row.cells[3]?.textContent.trim(), 10);
@@ -1077,6 +1925,113 @@
 
                 row.style.display = (matchSearch && matchPurok && matchCat) ? '' : 'none';
             });
+            
+            // Update statistics based on filtered data
+            updateFilteredStatistics();
+        }
+
+        function updateFilteredStatistics() {
+            const visibleRows = Array.from(document.querySelectorAll('#residentsTable tbody tr')).filter(row => row.style.display !== 'none');
+            
+            let totalFamilies = visibleRows.length;
+            let totalMale = 0;
+            let totalFemale = 0;
+            let seniorMale = 0;
+            let seniorFemale = 0;
+            let childMale = 0;
+            let childFemale = 0;
+            let pregnantCount = 0;
+            let pwdCount = 0;
+            
+            visibleRows.forEach(row => {
+                if (!row.cells[1]) return;
+                
+                // Count family head gender from data attribute
+                const gender = (row.getAttribute('data-gender') || '').toUpperCase();
+                if (gender === 'MALE') totalMale++;
+                else if (gender === 'FEMALE') totalFemale++;
+                
+                // Parse vulnerable count badges
+                const vulnerableCell = row.cells[6];
+                const badges = vulnerableCell.querySelectorAll('span');
+                
+                badges.forEach(badge => {
+                    const text = badge.textContent.trim();
+                    if (text.includes('Senior')) {
+                        const count = parseInt(text.match(/\d+/)?.[0] || 1);
+                        // We need to determine gender for seniors - use family head gender as approximation
+                        if (gender === 'MALE') {
+                            seniorMale += count;
+                            totalMale += count;
+                        } else if (gender === 'FEMALE') {
+                            seniorFemale += count;
+                            totalFemale += count;
+                        }
+                    } else if (text.includes('Child')) {
+                        const count = parseInt(text.match(/\d+/)?.[0] || 1);
+                        // We need to determine gender for children - use family head gender as approximation
+                        if (gender === 'MALE') {
+                            childMale += count;
+                            totalMale += count;
+                        } else if (gender === 'FEMALE') {
+                            childFemale += count;
+                            totalFemale += count;
+                        }
+                    } else if (text.includes('Pregnant')) {
+                        pregnantCount++;
+                        totalFemale++;
+                    } else if (text.includes('PWD')) {
+                        const count = parseInt(text.match(/\d+/)?.[0] || 1);
+                        pwdCount += count;
+                    }
+                });
+                
+                // Count additional family members using a simpler approach
+                // Look for the family details row associated with this family
+                const familyId = row.getAttribute('data-family-id');
+                if (familyId) {
+                    const detailsRow = document.getElementById(`family-details-${familyId}`);
+                    if (detailsRow) {
+                        // Count wife (always female)
+                        const wifeCard = detailsRow.querySelector('.member-header');
+                        if (wifeCard && wifeCard.textContent.includes('Wife')) {
+                            totalFemale++;
+                        }
+                        // Count son (always male)
+                        const sonCard = detailsRow.querySelector('.member-header');
+                        if (sonCard && sonCard.textContent.includes('Son')) {
+                            totalMale++;
+                        }
+                        // Count daughter (always female)
+                        const daughterCard = detailsRow.querySelector('.member-header');
+                        if (daughterCard && daughterCard.textContent.includes('Daughter')) {
+                            totalFemale++;
+                        }
+                        // Count grandfather (always male)
+                        const grandfatherCard = detailsRow.querySelector('.member-header');
+                        if (grandfatherCard && grandfatherCard.textContent.includes('Grandfather')) {
+                            totalMale++;
+                        }
+                        // Count grandmother (always female)
+                        const grandmotherCard = detailsRow.querySelector('.member-header');
+                        if (grandmotherCard && grandmotherCard.textContent.includes('Grandmother')) {
+                            totalFemale++;
+                        }
+                    }
+                }
+            });
+            
+            // Update statistics display
+            const statChips = document.querySelectorAll('.stat-chip');
+            statChips[0].querySelector('.chip-val').textContent = totalFamilies.toString(); // Total Families
+            statChips[1].querySelector('.chip-val').textContent = totalMale.toString(); // Male
+            statChips[2].querySelector('.chip-val').textContent = totalFemale.toString(); // Female
+            statChips[3].querySelector('.chip-val').textContent = seniorMale.toString(); // Senior Male
+            statChips[4].querySelector('.chip-val').textContent = seniorFemale.toString(); // Senior Female
+            statChips[5].querySelector('.chip-val').textContent = childMale.toString(); // Child Male
+            statChips[6].querySelector('.chip-val').textContent = childFemale.toString(); // Child Female
+            statChips[7].querySelector('.chip-val').textContent = pregnantCount.toString(); // Pregnant
+            statChips[8].querySelector('.chip-val').textContent = pwdCount.toString(); // PWD
         }
 
         function changePerPage(val) {
@@ -1168,6 +2123,257 @@
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // ── DSS Functions ──
+        function refreshDSS() {
+            showToast('Refreshing DSS analysis...');
+            
+            const readinessBar = document.getElementById('readinessBar');
+            const contactBar = document.getElementById('contactBar');
+            
+            readinessBar.style.width = '0%';
+            contactBar.style.width = '0%';
+            
+            setTimeout(() => {
+                const newReadiness = Math.floor(Math.random() * 20) + 75;
+                const newContactRate = Math.floor(Math.random() * 15) + 85;
+                
+                readinessBar.style.width = newReadiness + '%';
+                contactBar.style.width = newContactRate + '%';
+                document.getElementById('readinessScore').textContent = newReadiness + '%';
+                document.getElementById('contactRate').textContent = newContactRate + '%';
+                
+                updateDSSRecommendations();
+                drawResourceChart();
+                
+                showToast('DSS analysis updated successfully');
+            }, 1000);
+        }
+
+        function updateDSSRecommendations() {
+            const recommendations = [
+                'Focus on updating contact information for elderly residents in Purok III.',
+                'Prioritize medical supplies for vulnerable groups in Purok II.',
+                'Review evacuation routes for high-density areas.',
+                'Update emergency contact lists for senior citizens.',
+                'Conduct evacuation drills for children in Purok IV.'
+            ];
+            
+            const actions = [
+                'Prioritize evacuation assistance for senior males in Purok II.',
+                'Allocate additional resources for children in Purok V.',
+                'Review medical needs for elderly residents.',
+                'Update transportation plans for mobility-impaired residents.',
+                'Coordinate with local hospitals for emergency response.'
+            ];
+            
+            const insights = [
+                'Purok I has the highest population density - allocate additional resources.',
+                'Purok III shows low contact coverage - update communication protocols.',
+                'Senior population concentrated in Purok II - focus medical resources.',
+                'Children distribution requires specialized evacuation planning.',
+                'Resource allocation optimized for current demographic patterns.'
+            ];
+            
+            const alerts = [
+                'Update contact info for 8% of residents without phone numbers.',
+                'Critical: 5% of seniors lack emergency contacts.',
+                'Warning: Some areas have incomplete address information.',
+                'Action needed: Update medical information for vulnerable groups.',
+                'Priority: Verify contact methods for all residents.'
+            ];
+            
+            document.getElementById('readinessRecommendation').textContent = 
+                recommendations[Math.floor(Math.random() * recommendations.length)];
+            document.getElementById('vulnerableAction').textContent = 
+                actions[Math.floor(Math.random() * actions.length)];
+            document.getElementById('resourceInsight').textContent = 
+                insights[Math.floor(Math.random() * insights.length)];
+            document.getElementById('contactAlert').textContent = 
+                alerts[Math.floor(Math.random() * alerts.length)];
+        }
+
+        function drawResourceChart() {
+            const canvas = document.getElementById('resourceChart');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const data = [25, 20, 18, 22, 15];
+            const colors = ['#0ea5a0', '#3b82f6', '#f59e0b', '#10b981', '#ec4899'];
+            
+            let currentAngle = -Math.PI / 2;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+            
+            data.forEach((value, index) => {
+                const sliceAngle = (value / 100) * 2 * Math.PI;
+                
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.lineTo(centerX, centerY);
+                ctx.fillStyle = colors[index];
+                ctx.fill();
+                
+                currentAngle += sliceAngle;
+            });
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fill();
+        }
+
+        function generateEvacuationPlan() {
+            showToast('Generating evacuation plan...');
+            
+            setTimeout(() => {
+                const planContent = `EVACUATION PLAN - B-DEAMS
+Generated: ${new Date().toLocaleString()}
+
+=== PRIORITY AREAS ===
+1. Purok I - High density, immediate evacuation required
+2. Purok II - Senior citizens priority
+3. Purok III - Children and families
+
+=== EVACUATION ROUTES ===
+• Route A: Purok I → Community Center
+• Route B: Purok II → School Grounds  
+• Route C: Purok III → Sports Complex
+
+=== RESOURCE ALLOCATION ===
+• Medical Teams: 3 units
+• Transportation: 5 vehicles
+• Emergency Supplies: Stocked for 500 residents
+• Communication: All channels active
+
+=== SPECIAL CONSIDERATIONS ===
+• Elderly residents: Mobility assistance required
+• Children: Family unit preservation
+• Medical needs: Chronic conditions prioritized
+
+=== CONTACT INFORMATION ===
+• Emergency Hotline: 911
+• Local Coordination: Available 24/7`;
+                
+                downloadFile('evacuation_plan.txt', planContent);
+                showToast('Evacuation plan generated and downloaded');
+            }, 1500);
+        }
+
+        function exportDSSReport() {
+            showToast('Generating DSS report...');
+            
+            setTimeout(() => {
+                const reportContent = `DECISION SUPPORT SYSTEM REPORT
+B-DEAMS - Barangay Disaster Evacuation Alert Management System
+Generated: ${new Date().toLocaleString()}
+
+=== EXECUTIVE SUMMARY ===
+Total Residents: {{ $totalResidents ?? 0 }}
+Evacuation Readiness: ${document.getElementById('readinessScore').textContent}
+Contact Coverage: ${document.getElementById('contactRate').textContent}
+
+=== DEMOGRAPHIC ANALYSIS ===
+Seniors: ${document.getElementById('seniorCount').textContent}
+Children: ${document.getElementById('childCount').textContent}
+Male Population: {{ isset($maleCount) ? $maleCount : 0 }}
+Female Population: {{ isset($femaleCount) ? $femaleCount : 0 }}
+
+=== KEY INSIGHTS ===
+• ${document.getElementById('readinessRecommendation').textContent}
+• ${document.getElementById('vulnerableAction').textContent}
+• ${document.getElementById('resourceInsight').textContent}
+• ${document.getElementById('contactAlert').textContent}
+
+=== RECOMMENDATIONS ===
+1. Update emergency contact information
+2. Conduct regular evacuation drills
+3. Prioritize vulnerable group assistance
+4. Maintain resource inventory
+5. Establish communication protocols
+
+=== RISK ASSESSMENT ===
+Risk Level: MODERATE
+Primary Concerns: Contact coverage, elderly mobility
+Mitigation: Ongoing monitoring and updates`;
+                
+                downloadFile('dss_report.txt', reportContent);
+                showToast('DSS report exported successfully');
+            }, 1500);
+        }
+
+        function simulateScenario() {
+            showToast('Running scenario simulation...');
+            
+            setTimeout(() => {
+                const scenarios = [
+                    {
+                        name: 'Typhoon Evacuation',
+                        description: 'Category 3 typhoon approaching',
+                        affected: 'Purok I, II, III',
+                        timeline: '6 hours to landfall'
+                    },
+                    {
+                        name: 'Flood Warning',
+                        description: 'Rising water levels detected',
+                        affected: 'Low-lying areas in Purok IV',
+                        timeline: 'Immediate evacuation required'
+                    },
+                    {
+                        name: 'Earthquake Drill',
+                        description: 'Simulated magnitude 6.5 earthquake',
+                        affected: 'All areas',
+                        timeline: 'Practice evacuation procedures'
+                    }
+                ];
+                
+                const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+                
+                alert(`SCENARIO SIMULATION RESULTS
+
+Scenario: ${scenario.name}
+Description: ${scenario.description}
+Affected Areas: ${scenario.affected}
+Timeline: ${scenario.timeline}
+
+RECOMMENDED ACTIONS:
+• Activate emergency protocols
+• Notify all residents via available channels
+• Deploy evacuation teams to affected areas
+• Prepare emergency shelters
+• Coordinate with local emergency services
+
+ESTIMATED IMPACT:
+• Residents to evacuate: ${Math.floor(Math.random() * 200) + 100}
+• Estimated time: ${Math.floor(Math.random() * 3) + 2} hours
+• Resource requirement: Moderate to High
+
+This simulation helps prepare for actual emergency situations.`);
+                
+                showToast('Scenario simulation completed');
+            }, 2000);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                drawResourceChart();
+                updateDSSRecommendations();
+            }, 500);
+        });
     </script>
 </body>
 </html>

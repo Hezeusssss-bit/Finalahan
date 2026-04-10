@@ -550,6 +550,32 @@
                         @if($program->end_date)<span>End: {{ $program->end_date->format('M d, Y') }}</span>@endif
                     </div>
                     <div class="prog-status status-upcoming">{{ $program->getStatusLabel() }}</div>
+                    
+                    @php
+                        $requirement = collect($upcomingRequirements)->firstWhere('purok', $program->location);
+                    @endphp
+                    @if($requirement && isset($requirement['specific_needs']))
+                    <div class="prog-requirements" style="margin-top: 12px; padding: 10px; background: var(--amber-light); border-radius: 8px; border-left: 3px solid var(--amber);">
+                        <div style="font-size: 11px; font-weight: 600; color: #92400e; margin-bottom: 6px;">
+                            <i class="fas fa-clipboard-list" style="margin-right: 4px;"></i>Assistance Needs:
+                        </div>
+                        <div style="font-size: 10.5px; color: #78350f;">
+                            @if(isset($requirement['pwd_count']) && $requirement['pwd_count'] > 0)
+                            <div><strong>{{ $requirement['pwd_count'] }}</strong> PWD</div>
+                            @endif
+                            @if(isset($requirement['senior_count']) && $requirement['senior_count'] > 0)
+                            <div><strong>{{ $requirement['senior_count'] }}</strong> Seniors</div>
+                            @endif
+                            @if(isset($requirement['specific_needs']['medicine_kits_needed']))
+                            <div><strong>{{ $requirement['specific_needs']['medicine_kits_needed'] }}</strong> Medicine Kits</div>
+                            @endif
+                            @if(isset($requirement['specific_needs']['wheelchairs_needed']))
+                            <div><strong>{{ $requirement['specific_needs']['wheelchairs_needed'] }}</strong> Wheelchairs</div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    
                     <div class="prog-actions">
                         <button class="prog-btn" onclick="editProgram({{ $program->id }})" title="Edit"><i class="fas fa-pen"></i></button>
                         <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this program?');">
@@ -593,6 +619,32 @@
                         @if($program->end_date)<span>Until: {{ $program->end_date->format('M d, Y') }}</span>@endif
                     </div>
                     <div class="prog-status status-ongoing">{{ $program->getStatusLabel() }}</div>
+                    
+                    @php
+                        $requirement = collect($ongoingRequirements)->firstWhere('purok', $program->location);
+                    @endphp
+                    @if($requirement && isset($requirement['specific_needs']))
+                    <div class="prog-requirements" style="margin-top: 12px; padding: 10px; background: var(--blue-light); border-radius: 8px; border-left: 3px solid var(--blue);">
+                        <div style="font-size: 11px; font-weight: 600; color: #1e40af; margin-bottom: 6px;">
+                            <i class="fas fa-clipboard-list" style="margin-right: 4px;"></i>Assistance Needs:
+                        </div>
+                        <div style="font-size: 10.5px; color: #1e3a8a;">
+                            @if(isset($requirement['pwd_count']) && $requirement['pwd_count'] > 0)
+                            <div><strong>{{ $requirement['pwd_count'] }}</strong> PWD</div>
+                            @endif
+                            @if(isset($requirement['senior_count']) && $requirement['senior_count'] > 0)
+                            <div><strong>{{ $requirement['senior_count'] }}</strong> Seniors</div>
+                            @endif
+                            @if(isset($requirement['specific_needs']['medicine_kits_needed']))
+                            <div><strong>{{ $requirement['specific_needs']['medicine_kits_needed'] }}</strong> Medicine Kits</div>
+                            @endif
+                            @if(isset($requirement['specific_needs']['wheelchairs_needed']))
+                            <div><strong>{{ $requirement['specific_needs']['wheelchairs_needed'] }}</strong> Wheelchairs</div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    
                     <div class="prog-actions">
                         <button class="prog-btn" onclick="editProgram({{ $program->id }})" title="Edit"><i class="fas fa-pen"></i></button>
                         <form action="{{ route('program.destroy', $program->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this program?');">
@@ -702,12 +754,24 @@
 
                     <div class="form-group">
                         <label class="form-label">Purok / Location</label>
-                        <select name="location" class="form-control">
+                        <select name="location" id="locationSelect" class="form-control" onchange="loadRecommendations()">
                             <option value="">Select Purok…</option>
                             @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
                             <option value="{{ $p }}">{{ $p }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="form-group" id="recommendationsGroup" style="display:none;">
+                        <label class="form-label">
+                            <i class="fas fa-lightbulb" style="color: var(--amber); margin-right: 4px;"></i>
+                            Recommended Programs for This Purok
+                        </label>
+                        <div id="recommendationsList" style="background: var(--slate-light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--amber);">
+                            <div style="font-size: 12px; color: var(--text-muted); text-align: center;">
+                                Select a purok to see recommendations
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -773,12 +837,13 @@
 
         function openAddModal() {
             document.getElementById('modalTitle').textContent  = 'Add New Program';
-            document.getElementById('modalSub').textContent    = 'Fill in the details to create a program.';
+            document.getElementById('modalSub').textContent    = 'Fill in details to create a program.';
             document.getElementById('submitLabel').textContent = 'Add Program';
             document.getElementById('formMethod').value        = 'POST';
             document.getElementById('programForm').action      = '{{ route("program.store") }}';
             document.getElementById('programForm').reset();
             document.getElementById('customGroup').style.display = 'none';
+            document.getElementById('recommendationsGroup').style.display = 'none';
             openBD('programBackdrop');
         }
 
@@ -789,7 +854,7 @@
                 .then(r => r.json())
                 .then(p => {
                     document.getElementById('modalTitle').textContent  = 'Edit Program';
-                    document.getElementById('modalSub').textContent    = 'Update the program details below.';
+                    document.getElementById('modalSub').textContent    = 'Update program details below.';
                     document.getElementById('submitLabel').textContent = 'Save Changes';
                     document.getElementById('formMethod').value        = 'PUT';
                     document.getElementById('programForm').action      = `/program/${id}`;
@@ -800,10 +865,124 @@
                     document.querySelector('input[name="start_date"]').value   = p.start_date ? p.start_date.slice(0,10) : '';
                     document.querySelector('input[name="end_date"]').value     = p.end_date   ? p.end_date.slice(0,10)   : '';
                     document.getElementById('customGroup').style.display       = 'none';
+                    
+                    // Load recommendations if location is set
+                    if (p.location) {
+                        loadRecommendations();
+                    } else {
+                        document.getElementById('recommendationsGroup').style.display = 'none';
+                    }
 
                     openBD('programBackdrop');
                 })
                 .catch(() => alert('Error loading program data.'));
+        }
+
+        // ── Load recommendations based on purok selection ──
+        function loadRecommendations() {
+            const locationSelect = document.getElementById('locationSelect');
+            const recommendationsGroup = document.getElementById('recommendationsGroup');
+            const recommendationsList = document.getElementById('recommendationsList');
+            const programTitleSelect = document.getElementById('programTitleSelect');
+            
+            const selectedPurok = locationSelect.value;
+            
+            if (!selectedPurok) {
+                recommendationsGroup.style.display = 'none';
+                return;
+            }
+            
+            // Show recommendations section
+            recommendationsGroup.style.display = 'block';
+            
+            // Define recommendations based on the analysis from products/index.blade.php
+            const purokRecommendations = {
+                'Purok I': ['Senior Citizen Care', 'Medical Mission', 'Health and Wellness Campaign'],
+                'Purok II': ['Child Protection', 'Educational Support', 'Educational Assistance Program'],
+                'Purok III': ['PWD Assistance', 'Accessibility Programs', 'Infrastructure Development'],
+                'Purok IV': ['Maternal Health', 'Nutrition Program', 'Food Distribution Program'],
+                'Purok V': ['Food Security', 'Livelihood Training', 'Community Building Activity']
+            };
+            
+            const recommendations = purokRecommendations[selectedPurok] || [];
+            
+            // Display recommendations
+            let html = '<div style="margin-bottom: 8px; font-weight: 600; color: var(--navy); font-size: 12px;">';
+            html += '<i class="fas fa-map-marker-alt" style="color: var(--amber); margin-right: 4px; font-size: 10px;"></i>';
+            html += 'Suggested programs for ' + selectedPurok;
+            html += '</div>';
+            
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">';
+            recommendations.slice(0, 3).forEach(program => {
+                html += '<span class="recommendation-tag" onclick="selectProgram(\'' + program + '\')" style="background: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 11px; color: var(--text-mid); cursor: pointer; transition: all 0.2s;">';
+                html += '<i class="fas fa-plus-circle" style="color: var(--teal); margin-right: 3px; font-size: 9px;"></i>';
+                html += program;
+                html += '</span>';
+            });
+            html += '</div>';
+            
+            html += '<div style="font-size: 10px; color: var(--text-muted);">';
+            html += '<i class="fas fa-chart-line" style="margin-right: 2px;"></i>';
+            html += 'Based on family demographics analysis';
+            html += '</div>';
+            
+            recommendationsList.innerHTML = html;
+            
+            // Add hover effects to recommendation tags
+            setTimeout(() => {
+                document.querySelectorAll('.recommendation-tag').forEach(tag => {
+                    tag.addEventListener('mouseenter', function() {
+                        this.style.background = 'var(--teal-light)';
+                        this.style.borderColor = 'var(--teal)';
+                        this.style.color = 'var(--navy)';
+                    });
+                    tag.addEventListener('mouseleave', function() {
+                        this.style.background = 'white';
+                        this.style.borderColor = 'var(--border)';
+                        this.style.color = 'var(--text-mid)';
+                    });
+                });
+            }, 100);
+        }
+        
+        // ── Select program from recommendations ──
+        function selectProgram(programName) {
+            const programTitleSelect = document.getElementById('programTitleSelect');
+            
+            // Check if the program exists in the dropdown
+            let found = false;
+            for (let i = 0; i < programTitleSelect.options.length; i++) {
+                if (programTitleSelect.options[i].value === programName) {
+                    programTitleSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            
+            // If not found, select "Others" and fill the custom field
+            if (!found) {
+                programTitleSelect.value = 'Others';
+                document.getElementById('customGroup').style.display = 'block';
+                document.getElementById('customTitle').value = programName;
+                document.getElementById('customTitle').required = true;
+            }
+            
+            // Trigger change event to handle custom title display
+            programTitleSelect.dispatchEvent(new Event('change'));
+            
+            // Show toast notification
+            showToast('Program selected: ' + programName);
+        }
+        
+        // ── Toast notification helper ──
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
         // ── Custom title toggle ──

@@ -18,18 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         $stmt->bind_param("s", $selectedPurok);
         $result = $stmt->execute();
         $result = $stmt->get_result();
-        echo "Sending SMS to residents in: $selectedPurok\n";
+        echo "Sending program announcement to residents in: $selectedPurok\n";
     } else {
         $query = "SELECT contact_number FROM residents WHERE contact_number IS NOT NULL";
         $result = $conn->query($query);
-        echo "Sending SMS to ALL residents\n";
+        echo "Sending program announcement to ALL residents\n";
     }
 
     // Debug: Check how many residents we found
     $residentCount = $result->num_rows;
 
     echo "<div class='output-container'>";
-    echo "<div class='output-header'>? SMS Transmission Log</div>";
+    echo "<div class='output-header'>📢 Program Announcement Transmission Log</div>";
     echo "<pre class='output-content'>";
     echo "Found {$residentCount} residents with contact numbers.\n";
     
@@ -68,12 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
         curl_close($ch);
 
-        echo "SMS sent to ".$phone."\n";
+        echo "Program announcement sent to ".$phone."\n";
 
         sleep(1); // prevents API blocking
     }
 
-    echo "\n? All messages sent successfully.";
+    echo "\n📢 All program announcements sent successfully.";
     echo "</pre>";
     echo "</div>";
 
@@ -113,15 +113,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $conn = new mysqli("localhost","root","","mswd");
     $purok_query = "SELECT DISTINCT description as purok FROM residents WHERE description IS NOT NULL AND description != '' ORDER BY description";
     $purok_result = $conn->query($purok_query);
-    $puroks = [];
+    $all_puroks = [];
     while($row = $purok_result->fetch_assoc()){
         // Extract purok from description (assuming format like "Purok I" or similar)
         $purok_name = trim($row['purok']);
         if(!empty($purok_name)) {
-            $puroks[] = $purok_name;
+            $all_puroks[] = $purok_name;
         }
     }
-
+    
+    // Get upcoming programs for DSS message generation
+    $program_query = "SELECT title, location, start_date, description FROM programs WHERE status = 'upcoming' ORDER BY start_date ASC LIMIT 5";
+    $program_result = $conn->query($program_query);
+    $upcoming_programs = [];
+    $has_any_programs = false;
+    
+    while($row = $program_result->fetch_assoc()){
+        $upcoming_programs[] = $row;
+        $has_any_programs = true;
+    }
+    
+    // Simple filtering: Only show puroks that have programs
+    // Check if any programs exist and if they have specific purok locations
+    $puroks_with_programs = [];
+    
+    if($has_any_programs) {
+        foreach($upcoming_programs as $program) {
+            $location = strtolower($program['location'] ?? '');
+            
+            // Check for exact purok matches in location
+            if(strpos($location, 'purok i') !== false) {
+                $puroks_with_programs[] = 'Purok I';
+            }
+            if(strpos($location, 'purok ii') !== false) {
+                $puroks_with_programs[] = 'Purok II';
+            }
+            if(strpos($location, 'purok iii') !== false) {
+                $puroks_with_programs[] = 'Purok III';
+            }
+            if(strpos($location, 'purok iv') !== false) {
+                $puroks_with_programs[] = 'Purok IV';
+            }
+            if(strpos($location, 'purok v') !== false) {
+                $puroks_with_programs[] = 'Purok V';
+            }
+        }
+        
+        // Remove duplicates and sort
+        $puroks_with_programs = array_unique($puroks_with_programs);
+        sort($puroks_with_programs);
+    }
+    
+    // Dynamic logic: Show puroks that have programs, or all puroks if no programs exist
+    if ($has_any_programs && !empty($puroks_with_programs)) {
+        // Has programs with specific purok locations - show only those puroks
+        $puroks = $puroks_with_programs;
+    } else {
+        // No programs, or programs without specific purok locations - show all puroks
+        $puroks = $all_puroks;
+    }
     ?>
 
 <!DOCTYPE html>
@@ -130,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>SMS Alert - B-DEAMS</title>
+    <title>Program Announcement - B-DEAMS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -438,12 +488,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             color: #059669;
         }
 
-        /* EMERGENCY INDICATOR */
-        .emergency-indicator {
+        /* ANNOUNCEMENT INDICATOR */
+        .announcement-indicator {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: var(--rose);
+            background: var(--teal);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -487,10 +537,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         <div class="page-header anim">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                 <div>
-                    <p class="page-eyebrow">Emergency Services</p>
-                    <h1 class="page-title">SMS Alert System</h1>
+                    <p class="page-eyebrow">Community Services</p>
+                    <h1 class="page-title">Program Announcement System</h1>
                 </div>
-                <a href="{{ route('services') }}" class="back-button">
+                <a href="{{ route('resident.index') }}" class="back-button">
                     <i class="fas fa-chevron-left"></i> Dashboard
                 </a>
             </div>
@@ -500,20 +550,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         <div class="panel anim delay-1">
             <div class="panel-head">
                 <div class="panel-title">
-                    <i class="fas fa-sms"></i> Emergency SMS Broadcasting
+                    <i class="fas fa-bullhorn"></i> Program Announcement
                 </div>
             </div>
             <div class="panel-body">
-                <div class="emergency-indicator">
-                    <i class="fas fa-exclamation-triangle"></i> EMERGENCY MODE
+                <div class="announcement-indicator">
+                    <i class="fas fa-calendar-check"></i> PROGRAM ANNOUNCEMENT MODE
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="purok">Target Purok</label>
                     <select id="purok" class="form-control" name="purok" onchange="loadResidents()">
-                        <option value="">All Puroks (Global Alert)</option>
+                        <option value="">All Puroks with Programs</option>
                         <?php foreach($puroks as $purok): ?>
-                            <option value="<?php echo htmlspecialchars($purok); ?>"><?php echo htmlspecialchars($purok); ?></option>
+                            <option value="<?php echo htmlspecialchars($purok); ?>"><?php echo htmlspecialchars($purok); ?> 📅</option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -533,40 +583,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     <input type="hidden" name="purok" id="selectedPurok" value="">
                     
                     <div class="form-group">
-                        <label class="form-label" for="message">Emergency Message Content</label>
-                        <textarea name="message" id="message" class="form-control" required placeholder="Type your emergency message here...">Advisory: Please prepare for a possible disaster. Ensure your emergency kits are ready (water, food, first aid, batteries). Be ready for possible evacuation anytime.</textarea>
+                        <label class="form-label" for="message">Program Announcement Message</label>
+                        <textarea name="message" id="message" class="form-control" required placeholder="Compose your program announcement message..."></textarea>
                     </div>
                     
                     <div style="margin-bottom: 24px;">
                         <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-size: 14px;">
-                            <i class="fas fa-bolt" style="color: var(--amber); margin-right: 6px;"></i>
-                            Quick Alert Templates
+                            <i class="fas fa-magic" style="color: var(--teal); margin-right: 6px;"></i>
+                            DSS Program Announcement Templates
                         </div>
                         <div class="quick-grid">
-                            <button type="button" class="btn btn-rose" onclick="setEarlyEvacuationMessage()">
-                                <i class="fas fa-exclamation-triangle"></i> Early Evacuation
-                            </button>
-                            <button type="button" class="btn btn-amber" onclick="setPurok1Message()">
-                                <i class="fas fa-map-marker-alt"></i> Purok 1
-                            </button>
-                            <button type="button" class="btn btn-amber" onclick="setPurok2Message()">
-                                <i class="fas fa-map-marker-alt"></i> Purok 2
-                            </button>
-                            <button type="button" class="btn btn-amber" onclick="setPurok3Message()">
-                                <i class="fas fa-map-marker-alt"></i> Purok 3
-                            </button>
-                            <button type="button" class="btn btn-amber" onclick="setPurok4Message()">
-                                <i class="fas fa-map-marker-alt"></i> Purok 4
-                            </button>
-                            <button type="button" class="btn btn-amber" onclick="setPurok5Message()">
-                                <i class="fas fa-map-marker-alt"></i> Purok 5
+                            <button type="button" class="btn btn-teal" onclick="setDSSProgramMessage()">
+                                <i class="fas fa-brain"></i> DSS Program Message
                             </button>
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-block">
                         <i class="fas fa-paper-plane"></i>
-                        <span id="submitBtnText">? SEND EMERGENCY SMS TO ALL RESIDENTS</span>
+                        <span id="submitBtnText">📢 SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS</span>
                     </button>
                 </form>
             </div>
@@ -611,30 +646,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             document.getElementById('message').value = ' FLOOD WARNING: Water levels rising in your area. Move to higher ground immediately. Turn off electricity and gas. Avoid walking or driving through flood waters.';
         }
         
-        function setEarlyEvacuationMessage() {
-            document.getElementById('message').value = ' EARLY EVACUATION ALERT: All residents are advised to evacuate immediately due to potential danger. Proceed to the nearest evacuation center. Vehicles are waiting at designated exits. Stay calm and follow instructions.';
+        function setDSSProgramMessage() {
+            // Generate DSS program announcement based on upcoming programs
+            const upcomingPrograms = <?php echo json_encode($upcoming_programs); ?>;
+            const selectedPurok = document.getElementById('purok').value;
+            
+            // Always generate a message based on selected purok
+            let message = `📅 PROGRAM ANNOUNCEMENT\n\n`;
+            
+            // Find program specific to selected purok
+            let targetProgram = null;
+            
+            if (selectedPurok && upcomingPrograms.length > 0) {
+                // Look for program that matches the selected purok
+                targetProgram = upcomingPrograms.find(program => {
+                    const location = (program.location || '').toLowerCase();
+                    const purokLower = selectedPurok.toLowerCase();
+                    return location.includes(purokLower);
+                });
+            }
+            
+            if (targetProgram) {
+                // Found program specific to this purok
+                const startDate = new Date(targetProgram.start_date).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                message += `🎯 ${targetProgram.title}\n`;
+                message += `📍 Location: ${targetProgram.location || 'TBD'}\n`;
+                message += `📅 Date: ${startDate}\n`;
+                
+                if (targetProgram.description) {
+                    message += `\n📝 ${targetProgram.description}\n`;
+                }
+                
+                message += `\n✨ This program is specifically for ${selectedPurok} residents. Please mark your calendars and participate.\n`;
+            } else if (upcomingPrograms.length > 0 && !selectedPurok) {
+                // No specific purok selected, show general program
+                const program = upcomingPrograms[0];
+                const startDate = new Date(program.start_date).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                message += `🎯 ${program.title}\n`;
+                message += `📍 Location: ${program.location || 'TBD'}\n`;
+                message += `📅 Date: ${startDate}\n`;
+                
+                if (program.description) {
+                    message += `\n📝 ${program.description}\n`;
+                }
+                
+                message += `\n✨ Please mark your calendars and participate in this community program.\n`;
+            } else {
+                // No program found for this purok
+                message += `🎯 Community Program Update for ${selectedPurok || 'All Puroks'}\n`;
+                message += `📅 Date: To be announced\n`;
+                message += `📍 Location: Barangay Hall\n`;
+                message += `\n📝 Programs are being planned specifically for ${selectedPurok || 'your community'}. Please stay tuned for upcoming activities.\n`;
+                message += `\n✨ We encourage ${selectedPurok ? selectedPurok + ' residents' : 'all residents'} to participate in future community programs.\n`;
+            }
+            
+            // Always add purok-specific targeting if a purok is selected
+            if (selectedPurok) {
+                message += `\n🏘️ Target Area: ${selectedPurok}\n`;
+                message += `🎯 Special announcement for ${selectedPurok} residents!\n`;
+                
+                // Add purok-specific recommendations
+                const purokMessages = {
+                    'Purok I': 'Senior citizens and families are especially encouraged to join our upcoming health and wellness programs.',
+                    'Purok II': 'Families with children are invited to participate in our educational and youth development programs.',
+                    'Purok III': 'PWD assistance and accessibility programs are being planned for your community.',
+                    'Purok IV': 'Maternal health and nutrition programs will be available for your area.',
+                    'Purok V': 'Livelihood training and food security programs are being prepared for your community.'
+                };
+                
+                if (purokMessages[selectedPurok]) {
+                    message += `💡 ${purokMessages[selectedPurok]}\n`;
+                }
+            } else {
+                message += `\n🏘️ Target Area: All Puroks\n`;
+                message += `🎯 This announcement is for all residents of Barangay Gargato.\n`;
+            }
+            
+            message += `\n📞 For inquiries, please visit the barangay hall.\n`;
+            message += `\n~ B-DEAMS Automated Announcement`;
+            
+            document.getElementById('message').value = message;
         }
         
-        function setPurok1Message() {
-            document.getElementById('message').value = 'PUROK 1 ALERT: Attention all residents of Purok 1! This is an automated emergency notification. Please be advised of important community updates or emergency instructions. Follow all safety protocols and await further instructions from barangay officials. Stay safe and look out for your neighbors.';
-        }
-        
-        function setPurok2Message() {
-            document.getElementById('message').value = 'PUROK 2 ALERT: Important notice for all Purok 2 residents. Emergency response team is available to assist you. Please remain calm and follow official guidance. Keep your emergency kits ready and stay informed through official channels.';
-        }
-        
-        function setPurok3Message() {
-            document.getElementById('message').value = 'PUROK 3 ALERT: Attention residents of Purok 3. This is an automated alert system message. Please check on elderly neighbors and ensure your family is prepared. Follow evacuation routes if instructed and contact barangay hall for assistance.';
-        }
-        
-        function setPurok4Message() {
-            document.getElementById('message').value = 'PUROK 4 ALERT: Important message for all Purok 4 households. Emergency services are on standby. Please secure your belongings, prepare for possible evacuation, and stay tuned for further updates from local authorities.';
-        }
-        
-        function setPurok5Message() {
-            document.getElementById('message').value = 'PUROK 5 ALERT: Automated alert for Purok 5 residents. Your safety is our priority. Please follow all emergency procedures, keep communication lines open, and cooperate with barangay officials. Emergency assistance is available if needed.';
-        }
-        
+                
         function loadResidents() {
             const purokSelect = document.getElementById('purok');
             const residentsDisplay = document.getElementById('residentsDisplay');
@@ -647,9 +751,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             // Update hidden field and button text
             selectedPurokHidden.value = selectedPurok;
             if (selectedPurok) {
-                submitBtnText.textContent = `? SEND EMERGENCY SMS TO ${selectedPurok.toUpperCase()}`;
+                submitBtnText.textContent = `📢 SEND PROGRAM ANNOUNCEMENT TO ${selectedPurok.toUpperCase()}`;
+                // Automatically generate DSS message when purok is selected
+                setDSSProgramMessage();
             } else {
-                submitBtnText.textContent = '? SEND EMERGENCY SMS TO ALL RESIDENTS';
+                submitBtnText.textContent = '📢 SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS';
+                // Automatically generate DSS message for all residents
+                setDSSProgramMessage();
             }
             
             if (selectedPurok === '') {

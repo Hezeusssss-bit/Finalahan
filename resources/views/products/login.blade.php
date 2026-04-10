@@ -384,7 +384,7 @@
                     <img src="{{ asset('images/dswd_logo.png') }}" alt="DSWD Logo" class="dswd-logo">
                 </div>
                 <div>
-                    <div class="brand-name">MSWD Information System With Intellegent Decision Support</div> <br>
+                    <div class="brand-name">MSWD Information System With Intelligent Decision Support</div> <br>
                     <div class="brand-sub">Barangay Gargato</div>
                 </div>
             </div>

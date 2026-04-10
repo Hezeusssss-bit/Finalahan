@@ -69,6 +69,7 @@ Route::middleware('authCheck')->group(function () {
     Route::get('/api/evacuees/statistics', [ProductController::class, 'getEvacueesStatistics'])->name('evacuees.statistics');
     Route::get('/api/residents/by-purok', [ProductController::class, 'getResidentsByPurok'])->name('residents.by-purok');
     Route::get('/api/facilities/{facility}/capacity', [ProductController::class, 'getFacilityCapacity'])->name('facilities.capacity');
+    Route::get('/api/analytics-data', [ProductController::class, 'getAnalyticsData'])->name('analytics.data');
     Route::post('/evacuees/{evacueeId}/release', [ProductController::class, 'releaseEvacuee'])->name('evacuees.release');
 Route::get('/evacuees/{evacueeId}', [ProductController::class, 'showEvacuee'])->name('evacuees.show');
 });
