@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $residentCount = $result->num_rows;
 
     echo "<div class='output-container'>";
-    echo "<div class='output-header'>📢 Program Announcement Transmission Log</div>";
+    echo "<div class='output-header'>Program Announcement Transmission Log</div>";
     echo "<pre class='output-content'>";
     echo "Found {$residentCount} residents with contact numbers.\n";
     
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         sleep(1); // prevents API blocking
     }
 
-    echo "\n📢 All program announcements sent successfully.";
+    echo "\nAll program announcements sent successfully.";
     echo "</pre>";
     echo "</div>";
 
@@ -563,7 +563,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     <select id="purok" class="form-control" name="purok" onchange="loadResidents()">
                         <option value="">All Puroks with Programs</option>
                         <?php foreach($puroks as $purok): ?>
-                            <option value="<?php echo htmlspecialchars($purok); ?>"><?php echo htmlspecialchars($purok); ?> 📅</option>
+                            <option value="<?php echo htmlspecialchars($purok); ?>"><?php echo htmlspecialchars($purok); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -601,7 +601,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
                     <button type="submit" class="btn btn-primary btn-block">
                         <i class="fas fa-paper-plane"></i>
-                        <span id="submitBtnText">📢 SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS</span>
+                        <span id="submitBtnText">SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS</span>
                     </button>
                 </form>
             </div>
@@ -652,7 +652,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             const selectedPurok = document.getElementById('purok').value;
             
             // Always generate a message based on selected purok
-            let message = `📅 PROGRAM ANNOUNCEMENT\n\n`;
+            let message = `PROGRAM ANNOUNCEMENT\n\n`;
             
             // Find program specific to selected purok
             let targetProgram = null;
@@ -674,15 +674,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     year: 'numeric' 
                 });
                 
-                message += `🎯 ${targetProgram.title}\n`;
-                message += `📍 Location: ${targetProgram.location || 'TBD'}\n`;
-                message += `📅 Date: ${startDate}\n`;
+                message += `${targetProgram.title}\n`;
+                message += `Location: ${targetProgram.location || 'TBD'}\n`;
+                message += `Date: ${startDate}\n`;
                 
                 if (targetProgram.description) {
-                    message += `\n📝 ${targetProgram.description}\n`;
+                    message += `\n${targetProgram.description}\n`;
                 }
                 
-                message += `\n✨ This program is specifically for ${selectedPurok} residents. Please mark your calendars and participate.\n`;
+                message += `\nThis program is specifically for ${selectedPurok} residents. Please mark your calendars and participate.\n`;
             } else if (upcomingPrograms.length > 0 && !selectedPurok) {
                 // No specific purok selected, show general program
                 const program = upcomingPrograms[0];
@@ -692,28 +692,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                     year: 'numeric' 
                 });
                 
-                message += `🎯 ${program.title}\n`;
-                message += `📍 Location: ${program.location || 'TBD'}\n`;
-                message += `📅 Date: ${startDate}\n`;
+                message += `${program.title}\n`;
+                message += `Location: ${program.location || 'TBD'}\n`;
+                message += `Date: ${startDate}\n`;
                 
                 if (program.description) {
-                    message += `\n📝 ${program.description}\n`;
+                    message += `\n${program.description}\n`;
                 }
                 
-                message += `\n✨ Please mark your calendars and participate in this community program.\n`;
+                message += `\nPlease mark your calendars and participate in this community program.\n`;
             } else {
                 // No program found for this purok
-                message += `🎯 Community Program Update for ${selectedPurok || 'All Puroks'}\n`;
-                message += `📅 Date: To be announced\n`;
-                message += `📍 Location: Barangay Hall\n`;
-                message += `\n📝 Programs are being planned specifically for ${selectedPurok || 'your community'}. Please stay tuned for upcoming activities.\n`;
-                message += `\n✨ We encourage ${selectedPurok ? selectedPurok + ' residents' : 'all residents'} to participate in future community programs.\n`;
+                message += `Community Program Update for ${selectedPurok || 'All Puroks'}\n`;
+                message += `Date: To be announced\n`;
+                message += `Location: Barangay Hall\n`;
+                message += `\nPrograms are being planned specifically for ${selectedPurok || 'your community'}. Please stay tuned for upcoming activities.\n`;
+                message += `\nWe encourage ${selectedPurok ? selectedPurok + ' residents' : 'all residents'} to participate in future community programs.\n`;
             }
             
             // Always add purok-specific targeting if a purok is selected
             if (selectedPurok) {
-                message += `\n🏘️ Target Area: ${selectedPurok}\n`;
-                message += `🎯 Special announcement for ${selectedPurok} residents!\n`;
+                message += `\nTarget Area: ${selectedPurok}\n`;
+                message += `Special announcement for ${selectedPurok} residents!\n`;
                 
                 // Add purok-specific recommendations
                 const purokMessages = {
@@ -725,14 +725,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                 };
                 
                 if (purokMessages[selectedPurok]) {
-                    message += `💡 ${purokMessages[selectedPurok]}\n`;
+                    message += `${purokMessages[selectedPurok]}\n`;
                 }
             } else {
-                message += `\n🏘️ Target Area: All Puroks\n`;
-                message += `🎯 This announcement is for all residents of Barangay Gargato.\n`;
+                message += `\nTarget Area: All Puroks\n`;
+                message += `This announcement is for all residents of Barangay Gargato.\n`;
             }
             
-            message += `\n📞 For inquiries, please visit the barangay hall.\n`;
+            message += `\nFor inquiries, please visit the barangay hall.\n`;
             message += `\n~ B-DEAMS Automated Announcement`;
             
             document.getElementById('message').value = message;
@@ -751,11 +751,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             // Update hidden field and button text
             selectedPurokHidden.value = selectedPurok;
             if (selectedPurok) {
-                submitBtnText.textContent = `📢 SEND PROGRAM ANNOUNCEMENT TO ${selectedPurok.toUpperCase()}`;
+                submitBtnText.textContent = `SEND PROGRAM ANNOUNCEMENT TO ${selectedPurok.toUpperCase()}`;
                 // Automatically generate DSS message when purok is selected
                 setDSSProgramMessage();
             } else {
-                submitBtnText.textContent = '📢 SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS';
+                submitBtnText.textContent = 'SEND PROGRAM ANNOUNCEMENT TO ALL RESIDENTS';
                 // Automatically generate DSS message for all residents
                 setDSSProgramMessage();
             }

@@ -1039,13 +1039,13 @@
                                     
                                     @if($pregnantCount > 0)
                                     <span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
-                                        <i class="fas fa-baby" style="font-size: 8px;"></i> Pregnant
+                                        <i class="fas fa-baby" style="font-size: 8px;"></i> {{ $pregnantCount }} Pregnant
                                     </span>
                                     @endif
                                     
                                     @if($pwdCount > 0)
                                     <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; display: inline-block; width: fit-content;">
-                                        <i class="fas fa-wheelchair" style="font-size: 8px;"></i> PWD
+                                        <i class="fas fa-wheelchair" style="font-size: 8px;"></i> {{ $pwdCount }} PWD
                                     </span>
                                     @endif
                                     
@@ -1061,7 +1061,7 @@
                             <td>
                                 <div class="action-btns" style="justify-content:flex-end;">
                                     <button class="action-btn edit" title="Edit Family"
-                                        onclick="openEditModal('{{ route('resident.update', $resident->id) }}','{{ addslashes($resident->name) }}','{{ $resident->qty }}','{{ $resident->price }}','{{ addslashes($resident->description) }}','{{ $resident->gender }}','{{ $resident->contact_number }}','{{ $resident->wife_pregnant ? 'true' : 'false' }}','{{ $resident->family_head_pwd ? 'true' : 'false' }}','{{ $resident->wife_pwd ? 'true' : 'false' }}','{{ $resident->son_pwd ? 'true' : 'false' }}','{{ $resident->daughter_pwd ? 'true' : 'false' }}','{{ $resident->grandmother_pwd ? 'true' : 'false' }}','{{ $resident->grandfather_pwd ? 'true' : 'false' }}')">
+                                        onclick="openEditModal({{ $resident->id }})">
                                         <i class="fas fa-pen"></i>
                                     </button>
                                     <button class="action-btn delete" title="Delete Family"
@@ -1576,6 +1576,21 @@
                             <input type="date" name="wife_birthdate" id="edit_wife_birthdate" class="form-control">
                         </div>
                         <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="wife_pregnant" id="edit_wife_pregnant" value="1">
+                                <span class="checkbox-label">Wife is Pregnant</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="wife_pwd" id="edit_wife_pwd" value="1">
+                                <span class="checkbox-label">Wife is PWD</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Son Fullname</label>
+                            <input type="text" name="son_fullname" id="edit_son_fullname" class="form-control">
+                        </div>
                         <div class="form-group">
                             <label class="form-label">Son Age</label>
                             <input type="number" name="son_age" id="edit_son_age" class="form-control" min="0" max="120">
@@ -1770,26 +1785,55 @@
             openModal('deleteBackdrop');
         }
 
-        function openEditModal(action, name, qty, price, description, gender, contact='', wifePregnant = 'false', familyHeadPwd = 'false', wifePwd = 'false', sonPwd = 'false', daughterPwd = 'false', grandmotherPwd = 'false', grandfatherPwd = 'false') {
-            document.getElementById('editResidentForm').action = action;
-            // Map the parameters to the correct form fields
-            const nameParts = name.split(' ');
-            document.getElementById('edit_family_head_fullname').value = name;
-            document.getElementById('edit_description').value = description || '';
-            document.getElementById('edit_contact_number').value = contact || '';
-            
-            // Set vulnerability fields
-            document.getElementById('edit_wife_pregnant').checked = (wifePregnant === 'true');
-            
-            // Set PWD fields
-            document.getElementById('edit_family_head_pwd').checked = (familyHeadPwd === 'true');
-            document.getElementById('edit_wife_pwd').checked = (wifePwd === 'true');
-            document.getElementById('edit_son_pwd').checked = (sonPwd === 'true');
-            document.getElementById('edit_daughter_pwd').checked = (daughterPwd === 'true');
-            document.getElementById('edit_grandmother_pwd').checked = (grandmotherPwd === 'true');
-            document.getElementById('edit_grandfather_pwd').checked = (grandfatherPwd === 'true');
-            
-            openModal('editBackdrop');
+        function openEditModal(residentId) {
+            // Fetch resident data via API
+            fetch(`/residents/${residentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Set form action
+                    document.getElementById('editResidentForm').action = `/residents/${residentId}`;
+                    
+                    // Populate form fields with resident data
+                    document.getElementById('edit_family_head_fullname').value = data.family_head_fullname || '';
+                    document.getElementById('edit_family_head_age').value = data.family_head_age || '';
+                    document.getElementById('edit_family_head_birthdate').value = data.family_head_birthdate || '';
+                    document.getElementById('edit_family_head_pwd').checked = data.family_head_pwd || false;
+                    
+                    document.getElementById('edit_wife_fullname').value = data.wife_fullname || '';
+                    document.getElementById('edit_wife_age').value = data.wife_age || '';
+                    document.getElementById('edit_wife_birthdate').value = data.wife_birthdate || '';
+                    document.getElementById('edit_wife_pregnant').checked = data.wife_pregnant || false;
+                    document.getElementById('edit_wife_pwd').checked = data.wife_pwd || false;
+                    
+                    document.getElementById('edit_son_fullname').value = data.son_fullname || '';
+                    document.getElementById('edit_son_age').value = data.son_age || '';
+                    document.getElementById('edit_son_birthdate').value = data.son_birthdate || '';
+                    document.getElementById('edit_son_pwd').checked = data.son_pwd || false;
+                    
+                    document.getElementById('edit_daughter_fullname').value = data.daughter_fullname || '';
+                    document.getElementById('edit_daughter_age').value = data.daughter_age || '';
+                    document.getElementById('edit_daughter_birthdate').value = data.daughter_birthdate || '';
+                    document.getElementById('edit_daughter_pwd').checked = data.daughter_pwd || false;
+                    
+                    document.getElementById('edit_grandmother_fullname').value = data.grandmother_fullname || '';
+                    document.getElementById('edit_grandmother_age').value = data.grandmother_age || '';
+                    document.getElementById('edit_grandmother_birthdate').value = data.grandmother_birthdate || '';
+                    document.getElementById('edit_grandmother_pwd').checked = data.grandmother_pwd || false;
+                    
+                    document.getElementById('edit_grandfather_fullname').value = data.grandfather_fullname || '';
+                    document.getElementById('edit_grandfather_age').value = data.grandfather_age || '';
+                    document.getElementById('edit_grandfather_birthdate').value = data.grandfather_birthdate || '';
+                    document.getElementById('edit_grandfather_pwd').checked = data.grandfather_pwd || false;
+                    
+                    document.getElementById('edit_description').value = data.description || '';
+                    document.getElementById('edit_contact_number').value = data.contact_number || '';
+                    
+                    openModal('editBackdrop');
+                })
+                .catch(error => {
+                    console.error('Error loading resident data:', error);
+                    alert('Error loading resident data. Please try again.');
+                });
         }
 
         function confirmEdit(e) {

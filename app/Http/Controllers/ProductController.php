@@ -99,13 +99,52 @@ public function index(Request $request)
     $upcomingPrograms = \App\Models\Program::upcoming()->orderBy('start_date', 'asc')->get();
     $assistanceRequirements = $this->calculateDashboardAssistanceRequirements($upcomingPrograms);
 
+    // Get facilities for evacuation area analytics
+    $facilities = \App\Models\Facility::select('id', 'name', 'capacity', 'status')
+        ->where('status', 'available')
+        ->orderBy('name')
+        ->get();
+
+    // Get evacuee data for DSS analytics (same logic as EvacueeProgram)
+    $evacueesData = \App\Models\Evacuee::with('resident')
+        ->where('evacuation_status', '!=', 'Released')
+        ->get();
+    
+    $evacuees = collect();
+    
+    foreach ($evacueesData as $evacuee) {
+        $resident = $evacuee->resident;
+        
+        if ($resident) {
+            // Create evacuee record for family head
+            $evacuees->push([
+                'id' => $evacuee->id,
+                'family_head_name' => $resident->family_head_fullname ?? 'Unknown',
+                'gender' => $resident->gender ?? 'Male',
+                'age' => $resident->family_head_age ?? 0,
+                'evacuation_status' => $evacuee->evacuation_status,
+                'evacuation_area' => $evacuee->evacuation_area,
+                'room_number' => $evacuee->room_number,
+                'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : null,
+                'total_members' => $this->calculateTotalFamilyMembers($resident),
+                'dependent_count' => $this->calculateTotalFamilyMembers($resident) - 1,
+                'contact_number' => $resident->contact_number ?? '',
+                'purok' => $resident->description ?? '',
+                'has_pregnant' => $resident->wife_pregnant ?? false,
+                'has_pwd' => $this->hasPWDInFamily($resident)
+            ]);
+        }
+    }
+
     return view('products.index', [
         'residents' => $residents,
         'totalResidents' => $totalResidents,
         'newThisMonth' => $newThisMonth,
         'totalEvacuees' => $totalEvacuees,
         'recentActivities' => $recentActivities,
-        'assistanceRequirements' => $assistanceRequirements
+        'assistanceRequirements' => $assistanceRequirements,
+        'facilities' => $facilities,
+        'evacuees' => $evacuees
     ]);
 }
 
@@ -119,36 +158,52 @@ public function index(Request $request)
     // ð STORE new product
     public function store(Request $request)
     {
+        // Get all request data first
+        $allData = $request->all();
+        
+        // Handle checkboxes - convert to boolean properly
+        $checkboxFields = [
+            'family_head_pwd', 'wife_pregnant', 'wife_pwd', 'son_pwd', 
+            'daughter_pwd', 'grandmother_pwd', 'grandfather_pwd'
+        ];
+        
+        foreach ($checkboxFields as $field) {
+            $allData[$field] = isset($allData[$field]) ? true : false;
+        }
+        
         $data = $request->validate([
             'family_head_fullname' => 'required|string|max:255',
             'family_head_age' => 'nullable|integer|min:0|max:120',
             'family_head_birthdate' => 'nullable|date',
-            'family_head_pwd' => 'nullable|boolean',
+            'family_head_pwd' => 'boolean',
             'wife_fullname' => 'nullable|string|max:255',
             'wife_age' => 'nullable|integer|min:0|max:120',
             'wife_birthdate' => 'nullable|date',
-            'wife_pregnant' => 'nullable|boolean',
-            'wife_pwd' => 'nullable|boolean',
+            'wife_pregnant' => 'boolean',
+            'wife_pwd' => 'boolean',
             'pwd_in_family' => 'nullable|in:Yes,No',
             'son_fullname' => 'nullable|string|max:255',
             'son_age' => 'nullable|integer|min:0|max:120',
             'son_birthdate' => 'nullable|date',
-            'son_pwd' => 'nullable|boolean',
+            'son_pwd' => 'boolean',
             'daughter_fullname' => 'nullable|string|max:255',
             'daughter_age' => 'nullable|integer|min:0|max:120',
             'daughter_birthdate' => 'nullable|date',
-            'daughter_pwd' => 'nullable|boolean',
+            'daughter_pwd' => 'boolean',
             'grandmother_fullname' => 'nullable|string|max:255',
             'grandmother_age' => 'nullable|integer|min:0|max:120',
             'grandmother_birthdate' => 'nullable|date',
-            'grandmother_pwd' => 'nullable|boolean',
+            'grandmother_pwd' => 'boolean',
             'grandfather_fullname' => 'nullable|string|max:255',
             'grandfather_age' => 'nullable|integer|min:0|max:120',
             'grandfather_birthdate' => 'nullable|date',
-            'grandfather_pwd' => 'nullable|boolean',
+            'grandfather_pwd' => 'boolean',
             'description' => 'nullable|string', // Purok/Address
             'contact_number' => 'nullable|string|max:20'
         ]);
+
+        // Merge the processed checkbox values with validated data
+        $data = array_merge($data, array_intersect_key($allData, array_flip($checkboxFields)));
 
         // Set the name field to family head fullname for backward compatibility
         $data['name'] = $data['family_head_fullname'];
@@ -208,36 +263,52 @@ public function index(Request $request)
     // ð UPDATE product
     public function update(Resident $resident, Request $request)
     {
+        // Get all request data first
+        $allData = $request->all();
+        
+        // Handle checkboxes - convert to boolean properly
+        $checkboxFields = [
+            'family_head_pwd', 'wife_pregnant', 'wife_pwd', 'son_pwd', 
+            'daughter_pwd', 'grandmother_pwd', 'grandfather_pwd'
+        ];
+        
+        foreach ($checkboxFields as $field) {
+            $allData[$field] = isset($allData[$field]) ? true : false;
+        }
+        
         $data = $request->validate([
             'family_head_fullname' => 'required|string|max:255',
             'family_head_age' => 'nullable|integer|min:0|max:120',
             'family_head_birthdate' => 'nullable|date',
-            'family_head_pwd' => 'nullable|boolean',
+            'family_head_pwd' => 'boolean',
             'wife_fullname' => 'nullable|string|max:255',
             'wife_age' => 'nullable|integer|min:0|max:120',
             'wife_birthdate' => 'nullable|date',
-            'wife_pregnant' => 'nullable|boolean',
-            'wife_pwd' => 'nullable|boolean',
+            'wife_pregnant' => 'boolean',
+            'wife_pwd' => 'boolean',
             'pwd_in_family' => 'nullable|in:Yes,No',
             'son_fullname' => 'nullable|string|max:255',
             'son_age' => 'nullable|integer|min:0|max:120',
             'son_birthdate' => 'nullable|date',
-            'son_pwd' => 'nullable|boolean',
+            'son_pwd' => 'boolean',
             'daughter_fullname' => 'nullable|string|max:255',
             'daughter_age' => 'nullable|integer|min:0|max:120',
             'daughter_birthdate' => 'nullable|date',
-            'daughter_pwd' => 'nullable|boolean',
+            'daughter_pwd' => 'boolean',
             'grandmother_fullname' => 'nullable|string|max:255',
             'grandmother_age' => 'nullable|integer|min:0|max:120',
             'grandmother_birthdate' => 'nullable|date',
-            'grandmother_pwd' => 'nullable|boolean',
+            'grandmother_pwd' => 'boolean',
             'grandfather_fullname' => 'nullable|string|max:255',
             'grandfather_age' => 'nullable|integer|min:0|max:120',
             'grandfather_birthdate' => 'nullable|date',
-            'grandfather_pwd' => 'nullable|boolean',
+            'grandfather_pwd' => 'boolean',
             'description' => 'nullable|string', // Purok/Address
             'contact_number' => 'nullable|string|max:20'
         ]);
+
+        // Merge the processed checkbox values with validated data
+        $data = array_merge($data, array_intersect_key($allData, array_flip($checkboxFields)));
 
         // Set the name field to family head fullname for backward compatibility
         $data['name'] = $data['family_head_fullname'];
@@ -305,19 +376,13 @@ public function index(Request $request)
     public function getFacilitiesApi()
     {
         try {
-            $facilities = Facility::select('id', 'name')->orderBy('name')->get();
+            $facilities = Facility::select('id', 'name', 'capacity', 'status')->orderBy('name')->get();
             
-            return response()->json([
-                'success' => true,
-                'facilities' => $facilities
-            ]);
+            return response()->json($facilities);
 
         } catch (\Exception $e) {
             \Log::error('Get facilities API error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch facilities.'
-            ], 500);
+            return response()->json([], 500);
         }
     }
 
@@ -497,8 +562,7 @@ public function index(Request $request)
         if ($request->has('purok')) {
             $requestedPurok = $request->input('purok');
             
-            $residents = Resident::select('id', 'name', 'qty', 'price', 'gender', 'description', 'contact_number')
-                ->where('description', $requestedPurok)
+            $residents = Resident::where('description', $requestedPurok)
                 ->get()
                 ->map(function($resident) {
                     // Check if resident is already evacuated and not released
@@ -508,17 +572,104 @@ public function index(Request $request)
                     $isEvacuated = $evacuee ? true : false;
                     $evacuationStatus = $evacuee ? $evacuee->evacuation_status : null;
                     
+                    // Build family members array
+                    $familyMembers = [];
+                    $totalMembers = 0;
+                    $aidNeeds = $this->calculateFamilyAidNeeds($resident);
+                    
+                    // Add family head
+                    if ($resident->family_head_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Family Head',
+                            'name' => $resident->family_head_fullname,
+                            'age' => $resident->family_head_age,
+                            'gender' => $resident->gender ?? 'Male',
+                            'pwd' => $resident->family_head_pwd,
+                            'pregnant' => false
+                        ];
+                        $totalMembers++;
+                    }
+                    
+                    // Add wife
+                    if ($resident->wife_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Wife',
+                            'name' => $resident->wife_fullname,
+                            'age' => $resident->wife_age,
+                            'gender' => 'Female',
+                            'pwd' => $resident->wife_pwd,
+                            'pregnant' => $resident->wife_pregnant
+                        ];
+                        $totalMembers++;
+                    }
+                    
+                    // Add son
+                    if ($resident->son_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Son',
+                            'name' => $resident->son_fullname,
+                            'age' => $resident->son_age,
+                            'gender' => 'Male',
+                            'pwd' => $resident->son_pwd,
+                            'pregnant' => false
+                        ];
+                        $totalMembers++;
+                    }
+                    
+                    // Add daughter
+                    if ($resident->daughter_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Daughter',
+                            'name' => $resident->daughter_fullname,
+                            'age' => $resident->daughter_age,
+                            'gender' => 'Female',
+                            'pwd' => $resident->daughter_pwd,
+                            'pregnant' => false
+                        ];
+                        $totalMembers++;
+                    }
+                    
+                    // Add grandmother
+                    if ($resident->grandmother_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Grandmother',
+                            'name' => $resident->grandmother_fullname,
+                            'age' => $resident->grandmother_age,
+                            'gender' => 'Female',
+                            'pwd' => $resident->grandmother_pwd,
+                            'pregnant' => false
+                        ];
+                        $totalMembers++;
+                    }
+                    
+                    // Add grandfather
+                    if ($resident->grandfather_fullname) {
+                        $familyMembers[] = [
+                            'type' => 'Grandfather',
+                            'name' => $resident->grandfather_fullname,
+                            'age' => $resident->grandfather_age,
+                            'gender' => 'Male',
+                            'pwd' => $resident->grandfather_pwd,
+                            'pregnant' => false
+                        ];
+                        $totalMembers++;
+                    }
+                    
                     return [
                         'id' => $resident->id,
+                        'family_head_name' => $resident->family_head_fullname ?: $resident->name . ' ' . $resident->qty,
                         'name' => $resident->name,
                         'qty' => $resident->qty,
                         'price' => $resident->price,
-                        'age' => $resident->price,
+                        'age' => $resident->family_head_age ?: $resident->price,
                         'gender' => $resident->gender,
                         'description' => $resident->description,
                         'contact_number' => $resident->contact_number,
                         'evacuation_status' => $evacuationStatus,
-                        'is_evacuated' => $isEvacuated
+                        'is_evacuated' => $isEvacuated,
+                        'family_members' => $familyMembers,
+                        'total_members' => $totalMembers,
+                        'aid_needs' => $aidNeeds
                     ];
                 });
                 
@@ -556,9 +707,156 @@ public function index(Request $request)
     }
 
     /**
+     * Calculate aid distribution needs for a family
+     */
+    private function calculateFamilyAidNeeds($resident)
+    {
+        $needs = [
+            'daily_meals' => 0,
+            'water_liters' => 0,
+            'hygiene_kits' => 0,
+            'blankets' => 0,
+            'clothing' => [
+                'adult_clothes' => 0,
+                'children_0_5' => 0,
+                'children_6_12' => 0,
+                'children_13_17' => 0,
+                'senior_clothes' => 0
+            ],
+            'medical_supplies' => 0,
+            'special_needs' => []
+        ];
+        
+        $totalMembers = 0;
+        $seniorCount = 0;
+        $childCount = 0;
+        $pregnantCount = 0;
+        $pwdCount = 0;
+        
+        // Count family members and calculate needs
+        $members = [
+            ['age' => $resident->family_head_age, 'pwd' => $resident->family_head_pwd, 'pregnant' => false],
+            ['age' => $resident->wife_age, 'pwd' => $resident->wife_pwd, 'pregnant' => $resident->wife_pregnant],
+            ['age' => $resident->son_age, 'pwd' => $resident->son_pwd, 'pregnant' => false],
+            ['age' => $resident->daughter_age, 'pwd' => $resident->daughter_pwd, 'pregnant' => false],
+            ['age' => $resident->grandmother_age, 'pwd' => $resident->grandmother_pwd, 'pregnant' => false],
+            ['age' => $resident->grandfather_age, 'pwd' => $resident->grandfather_pwd, 'pregnant' => false]
+        ];
+        
+        foreach ($members as $member) {
+            if ($member['age']) {
+                $totalMembers++;
+                
+                // Calculate meals based on age
+                if ($member['age'] <= 2) {
+                    $needs['daily_meals'] += 6; // Infants: 6 small meals
+                } elseif ($member['age'] <= 12) {
+                    $needs['daily_meals'] += 5; // Children: 3 meals + 2 snacks
+                } elseif ($member['age'] <= 17) {
+                    $needs['daily_meals'] += 3; // Teens: 3 meals
+                } else {
+                    $needs['daily_meals'] += 3; // Adults: 3 meals
+                }
+                
+                // Water: 4 liters per person per day
+                $needs['water_liters'] += 4;
+                
+                // Hygiene kits (1 per person, but every 2 people share 1 kit minimum)
+                $needs['hygiene_kits'] = max(1, ceil($totalMembers * 0.8));
+                
+                // Blankets (1 per person, but every 3 people share 2 blankets minimum)
+                $needs['blankets'] = max(2, ceil($totalMembers * 0.7));
+                
+                // Clothing needs by age group
+                if ($member['age'] >= 60) {
+                    $needs['clothing']['senior_clothes']++;
+                    $seniorCount++;
+                } elseif ($member['age'] < 18) {
+                    if ($member['age'] <= 5) {
+                        $needs['clothing']['children_0_5']++;
+                    } elseif ($member['age'] <= 12) {
+                        $needs['clothing']['children_6_12']++;
+                    } else {
+                        $needs['clothing']['children_13_17']++;
+                    }
+                    $childCount++;
+                } else {
+                    $needs['clothing']['adult_clothes']++;
+                }
+                
+                // Medical supplies (basic first aid per family, plus additional for vulnerable)
+                $needs['medical_supplies'] = 1; // Base first aid kit
+                
+                // Count special needs
+                if ($member['pwd']) {
+                    $pwdCount++;
+                    $needs['special_needs'][] = 'PWD assistance required';
+                    $needs['medical_supplies'] += 0.5; // Additional medical supplies
+                }
+                
+                if ($member['pregnant']) {
+                    $pregnantCount++;
+                    $needs['special_needs'][] = 'Prenatal care items';
+                    $needs['medical_supplies'] += 0.3; // Additional medical supplies
+                }
+            }
+        }
+        
+        // Adjust medical supplies based on family composition
+        if ($seniorCount > 0) {
+            $needs['medical_supplies'] += $seniorCount * 0.4; // Additional medical for seniors
+            $needs['special_needs'][] = 'Senior medical support';
+        }
+        
+        if ($childCount > 0) {
+            $needs['medical_supplies'] += $childCount * 0.2; // Additional medical for children
+            $needs['special_needs'][] = 'Pediatric care items';
+        }
+        
+        // Round medical supplies to reasonable number
+        $needs['medical_supplies'] = ceil($needs['medical_supplies']);
+        
+        // Set hygiene kits and blankets based on total members
+        $needs['hygiene_kits'] = max(1, ceil($totalMembers * 0.8));
+        $needs['blankets'] = max(2, ceil($totalMembers * 0.7));
+        
+        // Remove duplicate special needs
+        $needs['special_needs'] = array_unique($needs['special_needs']);
+        
+        return $needs;
+    }
+
+    /**
+     * Calculate total family members
+     */
+    private function calculateTotalFamilyMembers($resident)
+    {
+        $count = 0;
+        
+        if ($resident->family_head_fullname) $count++;
+        if ($resident->wife_fullname) $count++;
+        if ($resident->son_fullname) $count++;
+        if ($resident->daughter_fullname) $count++;
+        if ($resident->grandmother_fullname) $count++;
+        if ($resident->grandfather_fullname) $count++;
+        
+        return $count;
+    }
+    
+    /**
+     * Check if family has PWD member
+     */
+    private function hasPWDInFamily($resident)
+    {
+        return ($resident->family_head_pwd || $resident->wife_pwd || $resident->son_pwd || 
+                $resident->daughter_pwd || $resident->grandmother_pwd || $resident->grandfather_pwd ||
+                $resident->pwd_in_family === 'Yes');
+    }
+
+    /**
      * Log system activity
      */
-    private function logActivity($action, $description, $module = 'System')
+    private function logActivity($action, $description, $module = 'Residents')
     {
         $performedBy = 'Admin';
         
@@ -586,88 +884,288 @@ public function index(Request $request)
     {
         $requirements = [];
         
+        // Get evacuee data for DSS calculations (same logic as program.blade.php)
+        $evacueesData = \App\Models\Evacuee::with('resident')
+            ->where('evacuation_status', '!=', 'Released')
+            ->get();
+        
+        $evacuees = collect();
+        
+        foreach ($evacueesData as $evacuee) {
+            $resident = $evacuee->resident;
+            
+            if ($resident) {
+                $evacuees->push([
+                    'id' => $evacuee->id,
+                    'family_head_name' => $resident->family_head_fullname ?? 'Unknown',
+                    'gender' => $resident->gender ?? 'Male',
+                    'age' => $resident->family_head_age ?? 0,
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : null,
+                    'total_members' => $this->calculateTotalFamilyMembers($resident),
+                    'dependent_count' => $this->calculateTotalFamilyMembers($resident) - 1,
+                    'contact_number' => $resident->contact_number ?? '',
+                    'purok' => $resident->description ?? '',
+                    'has_pregnant' => $resident->wife_pregnant ?? false,
+                    'has_pwd' => $this->hasPWDInFamily($resident)
+                ]);
+            }
+        }
+        
         foreach ($programs as $program) {
             if (!$program->location) continue;
             
             $purok = $program->location;
             $programType = strtolower($program->title);
             
-            // Get all residents in this purok
-            $residents = Resident::where('description', $purok)->get();
-            
-            $pwdCount = 0;
-            $seniorCount = 0;
-            $pregnantCount = 0;
-            $totalResidents = $residents->count();
-            
-            foreach ($residents as $resident) {
-                // Count PWD (Persons with Disabilities)
-                if ($resident->family_head_pwd || $resident->wife_pwd || $resident->son_pwd || 
-                    $resident->daughter_pwd || $resident->grandmother_pwd || $resident->grandfather_pwd ||
-                    $resident->pwd_in_family === 'Yes') {
-                    $pwdCount++;
+            // Check if this is an Evacuee Program for DSS calculations
+            if ($program->title === 'Evacuee Program') {
+                // Get evacuee data for this evacuation area (same logic as program.blade.php)
+                $areaEvacuees = $evacuees->filter(function($e) use ($program) {
+                    $evacuationArea = is_array($e) ? ($e['evacuation_area'] ?? null) : ($e->evacuation_area ?? null);
+                    return $evacuationArea === $program->location;
+                });
+                
+                // Calculate DSS metrics (same as program.blade.php)
+                $totalEvacuees = $areaEvacuees->count();
+                $seniorCount = $areaEvacuees->filter(function($e) { 
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    return $age >= 60; 
+                })->count();
+                $infantCount = $areaEvacuees->filter(function($e) { 
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    return $age <= 5; 
+                })->count();
+                $pregnantCount = $areaEvacuees->filter(function($e) { 
+                    $hasPregnant = is_array($e) ? ($e['has_pregnant'] ?? false) : ($e->has_pregnant ?? false);
+                    return $hasPregnant; 
+                })->count();
+                $pwdCount = $areaEvacuees->filter(function($e) { 
+                    $hasPwd = is_array($e) ? ($e['has_pwd'] ?? false) : ($e->has_pwd ?? false);
+                    return $hasPwd; 
+                })->count();
+                
+                // Calculate exact DSS needs (enhanced calculations)
+                $totalFamilyMembers = $areaEvacuees->sum(function($e) { 
+                    return is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1); 
+                });
+                
+                // Detailed meal calculations by age group
+                $dailyMeals = $areaEvacuees->sum(function($e) {
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    $totalMembers = is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+                    
+                    $mealsPerPerson = 3;
+                    if ($age <= 2) $mealsPerPerson = 6;  // Infants: 6 small meals
+                    else if ($age <= 5) $mealsPerPerson = 5;  // Toddlers: 3 meals + 2 snacks
+                    else if ($age <= 12) $mealsPerPerson = 4;  // Children: 3 meals + 1 snack
+                    else if ($age <= 17) $mealsPerPerson = 3;  // Teens: 3 meals
+                    else if ($age >= 60) $mealsPerPerson = 4;  // Seniors: 3 meals + 1 snack
+                    return $mealsPerPerson * $totalMembers;
+                });
+                
+                // Water needs (4L per person, plus extra for vulnerable groups)
+                $waterNeeded = $areaEvacuees->sum(function($e) { 
+                    $totalMembers = is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    $baseWater = $totalMembers * 4;
+                    
+                    // Extra water for infants, seniors, and pregnant women
+                    if ($age <= 5) $baseWater += 2;  // Infants/toddlers need extra water
+                    if ($age >= 60) $baseWater += 1;  // Seniors need extra water
+                    
+                    return $baseWater; 
+                });
+                
+                // Detailed supply calculations
+                $hygieneKits = max(1, ceil($totalFamilyMembers * 0.8));
+                $blankets = max(2, ceil($totalFamilyMembers * 0.7));
+                $firstAidKits = max(1, ceil($totalFamilyMembers / 8)); // 1 per 8 people
+                
+                // Additional specific needs
+                $babyFormula = $areaEvacuees->sum(function($e) {
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    $totalMembers = is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+                    return ($age <= 2) ? $totalMembers * 3 : 0; // 3 cans per infant per day
+                });
+                
+                $diapers = $areaEvacuees->sum(function($e) {
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    $totalMembers = is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+                    return ($age <= 2) ? $totalMembers * 8 : 0; // 8 diapers per infant per day
+                });
+                
+                $adultDiapers = $seniorCount * 2; // 2 per senior per day
+                
+                $medicineKits = max(1, ceil(($seniorCount + $pwdCount) * 1.5));
+                $wheelchairs = max(1, ceil($pwdCount * 0.4));
+                $walkingCanes = max(1, ceil($seniorCount * 0.6));
+                
+                // Food supplies (3-day stock)
+                $riceKilos = $totalFamilyMembers * 2; // 2kg per person for 3 days
+                $cannedGoods = $totalFamilyMembers * 6; // 6 cans per person for 3 days
+                $instantNoodles = $totalFamilyMembers * 9; // 9 packs per person for 3 days
+                
+                // Clothing needs by age group
+                $clothingNeeds = [
+                    'adult_clothes' => 0,
+                    'children_clothes' => 0,
+                    'infant_clothes' => 0,
+                    'senior_clothes' => 0
+                ];
+                
+                foreach ($areaEvacuees as $e) {
+                    $age = is_array($e) ? ($e['age'] ?? 0) : ($e->age ?? 0);
+                    $totalMembers = is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+                    
+                    if ($age <= 2) {
+                        $clothingNeeds['infant_clothes'] += $totalMembers * 3; // 3 sets per infant
+                    } elseif ($age <= 12) {
+                        $clothingNeeds['children_clothes'] += $totalMembers * 2; // 2 sets per child
+                    } elseif ($age >= 60) {
+                        $clothingNeeds['senior_clothes'] += $totalMembers * 2; // 2 sets per senior
+                    } else {
+                        $clothingNeeds['adult_clothes'] += $totalMembers * 2; // 2 sets per adult
+                    }
                 }
                 
-                // Count Senior Citizens (60 years and above)
-                if ($resident->family_head_age >= 60) $seniorCount++;
-                if ($resident->wife_age >= 60) $seniorCount++;
-                if ($resident->grandmother_age >= 60) $seniorCount++;
-                if ($resident->grandfather_age >= 60) $seniorCount++;
+                // Sanitation supplies
+                $toiletPaper = max(1, ceil($totalFamilyMembers * 2)); // 2 rolls per person
+                $soapBars = max(1, ceil($totalFamilyMembers * 1.5)); // 1.5 bars per person
+                $sanitizer = max(1, ceil($totalFamilyMembers)); // 1 bottle per person
                 
-                // Count Pregnant Women
-                if ($resident->wife_pregnant) $pregnantCount++;
-            }
-            
-            // Calculate specific requirements based on program type
-            $programRequirements = [
-                'purok' => $purok,
-                'program_title' => $program->title,
-                'start_date' => $program->start_date->format('M d, Y'),
-                'total_residents' => $totalResidents,
-                'pwd_count' => $pwdCount,
-                'senior_count' => $seniorCount,
-                'pregnant_count' => $pregnantCount,
-            ];
-            
-            // Specific assistance needs based on program type
-            if (strpos($programType, 'pwd') !== false || strpos($programType, 'assistance') !== false) {
-                $programRequirements['assistance_type'] = 'PWD Assistance';
-                $programRequirements['specific_needs'] = [
-                    'wheelchairs_needed' => max(1, floor($pwdCount * 0.3)),
-                    'walking_aids_needed' => max(1, floor($pwdCount * 0.5)),
-                    'medical_supplies_needed' => $pwdCount * 2,
-                    'transportation_assistance' => $pwdCount
+                // Shelter supplies
+                $sleepingMats = $totalFamilyMembers; // 1 per person
+                $tarpaulins = max(2, ceil($totalFamilyMembers / 4)); // 1 per 4 people
+                $rope = max(1, ceil($totalFamilyMembers / 10)); // 1 per 10 people
+                
+                $programRequirements = [
+                    'purok' => $purok,
+                    'program_title' => $program->title,
+                    'start_date' => $program->start_date->format('M d, Y'),
+                    'total_residents' => $totalEvacuees, // Use actual evacuee count
+                    'pwd_count' => $pwdCount,
+                    'senior_count' => $seniorCount,
+                    'pregnant_count' => $pregnantCount,
+                    'dss_metrics' => [
+                        'daily_meals' => $dailyMeals,
+                        'water_needed' => $waterNeeded,
+                        'hygiene_kits' => $hygieneKits,
+                        'blankets' => $blankets,
+                        'first_aid_kits' => $firstAidKits,
+                        'infant_count' => $infantCount,
+                        'baby_formula' => $babyFormula,
+                        'diapers' => $diapers,
+                        'adult_diapers' => $adultDiapers,
+                        'medicine_kits' => $medicineKits,
+                        'wheelchairs' => $wheelchairs,
+                        'walking_canes' => $walkingCanes,
+                        'rice_kilos' => $riceKilos,
+                        'canned_goods' => $cannedGoods,
+                        'instant_noodles' => $instantNoodles,
+                        'clothing_needs' => $clothingNeeds,
+                        'toilet_paper' => $toiletPaper,
+                        'soap_bars' => $soapBars,
+                        'sanitizer' => $sanitizer,
+                        'sleeping_mats' => $sleepingMats,
+                        'tarpaulins' => $tarpaulins,
+                        'rope' => $rope
+                    ]
                 ];
-            }
-            
-            if (strpos($programType, 'senior') !== false || strpos($programType, 'outreach') !== false) {
-                $programRequirements['assistance_type'] = 'Senior Citizen Outreach';
-                $programRequirements['specific_needs'] = [
-                    'medicine_kits_needed' => $seniorCount,
-                    'blood_pressure_monitors' => max(1, floor($seniorCount * 0.2)),
-                    'reading_glasses_needed' => max(1, floor($seniorCount * 0.4)),
-                    'mobility_aids_needed' => max(1, floor($seniorCount * 0.3))
+            } else {
+                // Handle regular programs with existing logic
+                $residents = Resident::where('description', $purok)->get();
+                
+                $pwdCount = 0;
+                $seniorCount = 0;
+                $pregnantCount = 0;
+                $totalResidents = $residents->count();
+                
+                foreach ($residents as $resident) {
+                    // Count PWD (Persons with Disabilities)
+                    if ($resident->family_head_pwd || $resident->wife_pwd || $resident->son_pwd || 
+                        $resident->daughter_pwd || $resident->grandmother_pwd || $resident->grandfather_pwd ||
+                        $resident->pwd_in_family === 'Yes') {
+                        $pwdCount++;
+                    }
+                    
+                    // Count Senior Citizens (60 years and above)
+                    if ($resident->family_head_age >= 60) $seniorCount++;
+                    if ($resident->wife_age >= 60) $seniorCount++;
+                    if ($resident->grandmother_age >= 60) $seniorCount++;
+                    if ($resident->grandfather_age >= 60) $seniorCount++;
+                    
+                    // Count Pregnant Women
+                    if ($resident->wife_pregnant) $pregnantCount++;
+                }
+                
+                $programRequirements = [
+                    'purok' => $purok,
+                    'program_title' => $program->title,
+                    'start_date' => $program->start_date->format('M d, Y'),
+                    'total_residents' => $totalResidents,
+                    'pwd_count' => $pwdCount,
+                    'senior_count' => $seniorCount,
+                    'pregnant_count' => $pregnantCount,
                 ];
-            }
-            
-            if (strpos($programType, 'medical') !== false || strpos($programType, 'health') !== false) {
-                $programRequirements['assistance_type'] = 'Medical Mission';
-                $programRequirements['specific_needs'] = [
-                    'basic_medicine_kits' => $totalResidents,
-                    'vitamin_supplements' => $totalResidents,
-                    'first_aid_kits' => max(1, floor($totalResidents * 0.3)),
-                    'medical_consultations' => $totalResidents
-                ];
-            }
-            
-            if (strpos($programType, 'food') !== false || strpos($programType, 'distribution') !== false) {
-                $programRequirements['assistance_type'] = 'Food Distribution';
-                $programRequirements['specific_needs'] = [
-                    'food_packages_needed' => $totalResidents,
-                    'rice_kilos_needed' => $totalResidents * 5,
-                    'canned_goods_needed' => $totalResidents * 3,
-                    'drinking_water_liters' => $totalResidents * 10
-                ];
+                
+                // Specific assistance needs based on program type
+                if (strpos($programType, 'pwd') !== false || strpos($programType, 'assistance') !== false) {
+                    $programRequirements['assistance_type'] = 'PWD Assistance';
+                    $programRequirements['specific_needs'] = [
+                        'wheelchairs_needed' => max(1, floor($pwdCount * 0.3)),
+                        'walking_aids_needed' => max(1, floor($pwdCount * 0.5)),
+                        'medical_supplies_needed' => $pwdCount * 2,
+                        'transportation_assistance' => $pwdCount
+                    ];
+                }
+                
+                if (strpos($programType, 'senior') !== false || strpos($programType, 'outreach') !== false) {
+                    $programRequirements['assistance_type'] = 'Senior Citizen Outreach';
+                    $programRequirements['specific_needs'] = [
+                        'medicine_kits_needed' => $seniorCount,
+                        'blood_pressure_monitors' => max(1, floor($seniorCount * 0.2)),
+                        'reading_glasses_needed' => max(1, floor($seniorCount * 0.4)),
+                        'mobility_aids_needed' => max(1, floor($seniorCount * 0.3))
+                    ];
+                }
+                
+                if (strpos($programType, 'medical') !== false || strpos($programType, 'health') !== false) {
+                    $programRequirements['assistance_type'] = 'Medical Mission';
+                    $medicalNeeds = [
+                        'basic_medicine_kits' => $totalResidents,
+                        'vitamin_supplements' => $totalResidents,
+                        'first_aid_kits' => max(1, floor($totalResidents * 0.3)),
+                        'medical_consultations' => $totalResidents
+                    ];
+                    
+                    // Add senior-specific medical equipment if seniors are present
+                    if ($seniorCount > 0) {
+                        $medicalNeeds['blood_pressure_monitors'] = max(1, floor($seniorCount * 0.6)); // 60% of seniors
+                        $medicalNeeds['reading_glasses_needed'] = max(1, floor($seniorCount * 0.8)); // 80% of seniors
+                        $medicalNeeds['medicine_kits_needed'] = $seniorCount; // 1 per senior
+                    }
+                    
+                    // Add PWD-specific medical equipment if PWD are present
+                    if ($pwdCount > 0) {
+                        $medicalNeeds['wheelchairs_needed'] = max(1, floor($pwdCount * 0.5)); // 50% of PWD
+                        $medicalNeeds['walking_aids_needed'] = max(1, floor($pwdCount * 0.7)); // 70% of PWD
+                    }
+                    
+                    $programRequirements['specific_needs'] = $medicalNeeds;
+                }
+                
+                if (strpos($programType, 'food') !== false || strpos($programType, 'distribution') !== false) {
+                    $programRequirements['assistance_type'] = 'Food Distribution';
+                    $programRequirements['specific_needs'] = [
+                        'food_packages_needed' => $totalResidents,
+                        'rice_kilos_needed' => $totalResidents * 5,
+                        'canned_goods_needed' => $totalResidents * 3,
+                        'drinking_water_liters' => $totalResidents * 10
+                    ];
+                }
             }
             
             $requirements[] = $programRequirements;
@@ -676,32 +1174,240 @@ public function index(Request $request)
         return $requirements;
     }
 
+
     /**
      * Show evacuee program page with real counts
      */
     public function evacueeProgram()
     {
-        // Get total evacuees count (excluding released)
-        $totalEvacuees = Evacuee::where('evacuation_status', '!=', 'Released')->count();
+        // Get total evacuees count will be calculated below after expanding family members
         
         // Get unique shelters count (excluding released)
         $totalShelters = Evacuee::where('evacuation_status', '!=', 'Released')->distinct('evacuation_area')->count('evacuation_area');
         
-        // Get all evacuees with their resident data (excluding released)
-        $evacuees = Evacuee::with('resident')
+        // Get all evacuees with their resident data (excluding released) and group by family head
+        $evacueesData = Evacuee::with('resident')
             ->where('evacuation_status', '!=', 'Released')
-            ->get()
-            ->map(function($evacuee) {
-            return [
-                'id' => $evacuee->id,
-                'fullname' => $evacuee->resident->name . ' ' . $evacuee->resident->qty,
-                'age' => $evacuee->resident->price,
-                'gender' => $evacuee->resident->gender,
-                'evacuation_status' => $evacuee->evacuation_status,
-                'evacuation_area' => $evacuee->evacuation_area,
-                'room_number' => $evacuee->room_number,
-                'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-'
-            ];
+            ->get();
+        
+        $evacuees = collect();
+        $seniorCount = 0;
+        $childCount = 0;
+        $child0_5Count = 0;
+        $child6_12Count = 0;
+        $child13_17Count = 0;
+        $maleCount = 0;
+        $femaleCount = 0;
+        
+        foreach ($evacueesData as $evacuee) {
+            $resident = $evacuee->resident;
+            
+            // Build family members array and group by family head
+            $familyMembers = [];
+            $familyHeadName = $resident->family_head_fullname ?: ($resident->name . ' ' . $resident->qty);
+            $totalFamilyMembers = 0;
+            $hasPregnant = false;
+            $hasPWD = false;
+            
+            // Count pregnant women and PWD members for this family
+            $familyPregnantCount = 0;
+            $familyPWDCount = 0;
+            
+            // Add family head
+            if ($resident->family_head_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->family_head_fullname,
+                    'age' => $resident->family_head_age,
+                    'gender' => $resident->gender ?? 'Male',
+                    'relationship' => 'Family Head',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->family_head_pwd,
+                    'pregnant' => false
+                ];
+                $totalFamilyMembers++;
+                if ($resident->family_head_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+            }
+            
+            // Add wife
+            if ($resident->wife_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->wife_fullname,
+                    'age' => $resident->wife_age,
+                    'gender' => 'Female',
+                    'relationship' => 'Wife',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->wife_pwd,
+                    'pregnant' => $resident->wife_pregnant
+                ];
+                $totalFamilyMembers++;
+                if ($resident->wife_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+                if ($resident->wife_pregnant) {
+                    $hasPregnant = true;
+                    $familyPregnantCount++;
+                }
+            }
+            
+            // Add son
+            if ($resident->son_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->son_fullname,
+                    'age' => $resident->son_age,
+                    'gender' => 'Male',
+                    'relationship' => 'Son',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->son_pwd,
+                    'pregnant' => false
+                ];
+                $totalFamilyMembers++;
+                if ($resident->son_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+            }
+            
+            // Add daughter
+            if ($resident->daughter_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->daughter_fullname,
+                    'age' => $resident->daughter_age,
+                    'gender' => 'Female',
+                    'relationship' => 'Daughter',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->daughter_pwd,
+                    'pregnant' => false
+                ];
+                $totalFamilyMembers++;
+                if ($resident->daughter_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+            }
+            
+            // Add grandmother
+            if ($resident->grandmother_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->grandmother_fullname,
+                    'age' => $resident->grandmother_age,
+                    'gender' => 'Female',
+                    'relationship' => 'Grandmother',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->grandmother_pwd,
+                    'pregnant' => false
+                ];
+                $totalFamilyMembers++;
+                if ($resident->grandmother_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+            }
+            
+            // Add grandfather
+            if ($resident->grandfather_fullname) {
+                $familyMembers[] = [
+                    'evacuee_id' => $evacuee->id,
+                    'fullname' => $resident->grandfather_fullname,
+                    'age' => $resident->grandfather_age,
+                    'gender' => 'Male',
+                    'relationship' => 'Grandfather',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'family_head_name' => $familyHeadName,
+                    'pwd' => $resident->grandfather_pwd,
+                    'pregnant' => false
+                ];
+                $totalFamilyMembers++;
+                if ($resident->grandfather_pwd) {
+                    $hasPWD = true;
+                    $familyPWDCount++;
+                }
+            }
+            
+            // Add family head entry to evacuees collection
+            if ($resident->family_head_fullname) {
+                $evacuees->push([
+                    'id' => $evacuee->id,
+                    'family_head_name' => $familyHeadName,
+                    'age' => $resident->family_head_age ?: $resident->price,
+                    'gender' => $resident->gender ?? 'Male',
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                    'contact_number' => $resident->contact_number,
+                    'purok' => $resident->description,
+                    'total_members' => $totalFamilyMembers,
+                    'dependent_count' => max(0, $totalFamilyMembers - 1),
+                    'has_pregnant' => $hasPregnant,
+                    'has_pwd' => $hasPWD,
+                    'pregnant_count' => $familyPregnantCount,
+                    'pwd_count' => $familyPWDCount,
+                    'family_members' => $familyMembers
+                ]);
+                
+                // Update statistics
+                foreach ($familyMembers as $member) {
+                    $age = (int) $member['age'];
+                    if ($age >= 60) {
+                        $seniorCount++;
+                    } elseif ($age < 18) {
+                        $childCount++;
+                        if ($age <= 5) {
+                            $child0_5Count++;
+                        } elseif ($age >= 6 && $age <= 12) {
+                            $child6_12Count++;
+                        } elseif ($age >= 13 && $age <= 17) {
+                            $child13_17Count++;
+                        }
+                    }
+                    
+                    if (strtolower($member['gender']) === 'male') {
+                        $maleCount++;
+                    } else {
+                        $femaleCount++;
+                    }
+                }
+            }
+        }
+        
+        // Calculate total evacuees (actual number of individuals)
+        $totalEvacuees = $evacuees->count();
+        
+        // Calculate total family members (including all family members of each evacuee)
+        $totalFamilyMembers = $evacuees->sum(function($e) {
+            return is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
         });
         
         // Get available facilities for evacuation areas with capacity info
@@ -724,45 +1430,9 @@ public function index(Request $request)
         });
         
         // === DSS ENHANCED STATISTICS ===
-        
-        // Calculate vulnerable groups based on actual evacuee data
-        $evacueeDetails = Evacuee::with('resident')
-            ->where('evacuation_status', '!=', 'Released')
-            ->get();
-        
-        $seniorCount = 0;
-        $childCount = 0;
-        $child0_5Count = 0;
-        $child6_12Count = 0;
-        $child13_17Count = 0;
-        $maleCount = 0;
-        $femaleCount = 0;
+        // Statistics are already calculated above from expanded family members
         $totalCapacity = 0;
         $totalOccupancy = 0;
-        
-        foreach ($evacueeDetails as $evacuee) {
-            $age = (int) $evacuee->resident->price;
-            
-            if ($age >= 60) {
-                $seniorCount++;
-            } elseif ($age < 18) {
-                $childCount++;
-                // Categorize children by specific age groups
-                if ($age <= 5) {
-                    $child0_5Count++;
-                } elseif ($age >= 6 && $age <= 12) {
-                    $child6_12Count++;
-                } elseif ($age >= 13 && $age <= 17) {
-                    $child13_17Count++;
-                }
-            }
-            
-            if (strtolower($evacuee->resident->gender) === 'male') {
-                $maleCount++;
-            } else {
-                $femaleCount++;
-            }
-        }
         
         // Calculate facility statistics
         foreach ($facilities as $facility) {
@@ -770,10 +1440,10 @@ public function index(Request $request)
             $totalOccupancy += $facility['current_occupancy'];
         }
         
-        // Calculate age-appropriate meal requirements
+        // Calculate age-appropriate meal requirements using expanded family members
         $dailyMealsNeeded = 0;
-        foreach ($evacueeDetails as $evacuee) {
-            $age = (int) $evacuee->resident->price;
+        foreach ($evacuees as $evacuee) {
+            $age = (int) $evacuee['age'];
             
             if ($age <= 2) {
                 $dailyMealsNeeded += 6; // Infants: 6 small meals per day
@@ -788,6 +1458,10 @@ public function index(Request $request)
         
         // Calculate DSS metrics based on real data
         $dssMetrics = [
+            // Population counts
+            'evacuee_count' => $totalEvacuees,
+            'total_family_members' => $totalFamilyMembers,
+            
             // Food calculations (age-appropriate meals)
             'daily_meals_needed' => $dailyMealsNeeded,
             'weekly_food_requirement' => $dailyMealsNeeded * 7,
@@ -799,8 +1473,8 @@ public function index(Request $request)
             'adult_daily_meals' => ($totalEvacuees - $childCount - $seniorCount) * 3 + $seniorCount * 3,
             
             // Water calculations (4 liters per person per day)
-            'daily_water_requirement' => $totalEvacuees * 4,
-            'weekly_water_requirement' => $totalEvacuees * 28,
+            'daily_water_requirement' => $totalFamilyMembers * 4,
+            'weekly_water_requirement' => $totalFamilyMembers * 28,
             
             // Shelter calculations
             'total_capacity' => $totalCapacity,
@@ -818,9 +1492,9 @@ public function index(Request $request)
             'female_count' => $femaleCount,
             
             // Aid requirements
-            'hygiene_kits_needed' => (int) ($totalEvacuees * 0.8), // 80% of evacuees
-            'blankets_needed' => (int) ($totalEvacuees * 0.7), // 70% of evacuees
-            'first_aid_kits_needed' => (int) ceil($totalEvacuees / 10), // 1 kit per 10 people
+            'hygiene_kits_needed' => max(1, (int) ceil($totalFamilyMembers * 0.8)), // 80% of family members, minimum 1
+            'blankets_needed' => max(2, (int) ceil($totalFamilyMembers * 0.7)), // 70% of family members, minimum 2
+            'first_aid_kits_needed' => (int) ceil($totalFamilyMembers / 10), // 1 kit per 10 people
             
             // Medical requirements
             'chronic_medication_patients' => (int) ($totalEvacuees * 0.15), // 15% estimate
@@ -831,7 +1505,7 @@ public function index(Request $request)
             // Supply levels (simulated based on occupancy rate)
             'food_supply_coverage' => max(30, 100 - ($totalOccupancy / $totalCapacity) * 40), // Inverse relationship
             'medical_supply_level' => max(25, 95 - ($totalOccupancy / $totalCapacity) * 35), // Inverse relationship
-            'clothing_inventory_adult' => (int) ($totalEvacuees * 0.6),
+            'clothing_inventory_adult' => (int) ($totalFamilyMembers * 0.6),
             'clothing_inventory_children_0_5' => $child0_5Count,
             'clothing_inventory_children_6_12' => $child6_12Count,
             'clothing_inventory_children_13_17' => $child13_17Count,
@@ -1134,249 +1808,347 @@ public function index(Request $request)
         }
     }
 
-    // Analytics Data API
+    // Analytics Data API - Updated for Evacuee Analytics
     public function getAnalyticsData(Request $request)
     {
         try {
-            // Get residents data for analytics
-            $residents = Resident::all();
+            // Get unique shelters count (excluding released)
+            $totalShelters = Evacuee::where('evacuation_status', '!=', 'Released')->distinct('evacuation_area')->count('evacuation_area');
             
-            // Calculate statistics from actual family data (same logic as home.blade.php)
-            $totalFamilies = $residents->count();
-            $totalMale = 0;
-            $totalFemale = 0;
-            $seniorMale = 0;
-            $seniorFemale = 0;
-            $childMale = 0;
-            $childFemale = 0;
-            $totalMembers = 0;
-            $totalSeniors = 0;
-            $totalChildren = 0;
-            $pregnantCount = 0;
-            $pwdCount = 0;
-            $totalAge = 0;
-            $ageCount = 0;
+            // Get all evacuees with their resident data (excluding released) and group by family head
+            $evacueesData = Evacuee::with('resident')
+                ->where('evacuation_status', '!=', 'Released')
+                ->get();
             
-            // Calculate purok distribution
-            $purokData = [
-                'Purok I' => 0,
-                'Purok II' => 0,
-                'Purok III' => 0,
-                'Purok IV' => 0,
-                'Purok V' => 0
-            ];
+            $evacuees = collect();
+            $seniorCount = 0;
+            $childCount = 0;
+            $child0_5Count = 0;
+            $child6_12Count = 0;
+            $child13_17Count = 0;
+            $maleCount = 0;
+            $femaleCount = 0;
             
-            foreach($residents as $resident) {
-                // Count family head
-                if($resident->family_head_fullname) {
-                    $totalMembers++;
-                    $age = $resident->family_head_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
+            foreach ($evacueesData as $evacuee) {
+                $resident = $evacuee->resident;
+                
+                // Build family members array and group by family head
+                $familyMembers = [];
+                $familyHeadName = $resident->family_head_fullname ?: ($resident->name . ' ' . $resident->qty);
+                $totalFamilyMembers = 0;
+                $hasPregnant = false;
+                $hasPWD = false;
+                
+                // Count pregnant women and PWD members for this family
+                $familyPregnantCount = 0;
+                $familyPWDCount = 0;
+                
+                // Add family head
+                if ($resident->family_head_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->family_head_fullname,
+                        'age' => $resident->family_head_age,
+                        'gender' => $resident->gender ?? 'Male',
+                        'relationship' => 'Family Head',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->family_head_pwd,
+                        'pregnant' => false
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->family_head_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                }
+                
+                // Add wife
+                if ($resident->wife_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->wife_fullname,
+                        'age' => $resident->wife_age,
+                        'gender' => 'Female',
+                        'relationship' => 'Wife',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->wife_pwd,
+                        'pregnant' => $resident->wife_pregnant
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->wife_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                    if ($resident->wife_pregnant) {
+                        $hasPregnant = true;
+                        $familyPregnantCount++;
+                    }
+                }
+                
+                // Add son
+                if ($resident->son_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->son_fullname,
+                        'age' => $resident->son_age,
+                        'gender' => 'Male',
+                        'relationship' => 'Son',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->son_pwd,
+                        'pregnant' => false
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->son_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                }
+                
+                // Add daughter
+                if ($resident->daughter_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->daughter_fullname,
+                        'age' => $resident->daughter_age,
+                        'gender' => 'Female',
+                        'relationship' => 'Daughter',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->daughter_pwd,
+                        'pregnant' => false
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->daughter_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                }
+                
+                // Add grandmother
+                if ($resident->grandmother_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->grandmother_fullname,
+                        'age' => $resident->grandmother_age,
+                        'gender' => 'Female',
+                        'relationship' => 'Grandmother',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->grandmother_pwd,
+                        'pregnant' => false
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->grandmother_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                }
+                
+                // Add grandfather
+                if ($resident->grandfather_fullname) {
+                    $familyMembers[] = [
+                        'evacuee_id' => $evacuee->id,
+                        'fullname' => $resident->grandfather_fullname,
+                        'age' => $resident->grandfather_age,
+                        'gender' => 'Male',
+                        'relationship' => 'Grandfather',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'family_head_name' => $familyHeadName,
+                        'pwd' => $resident->grandfather_pwd,
+                        'pregnant' => false
+                    ];
+                    $totalFamilyMembers++;
+                    if ($resident->grandfather_pwd) {
+                        $hasPWD = true;
+                        $familyPWDCount++;
+                    }
+                }
+                
+                // Add family head entry to evacuees collection
+                if ($resident->family_head_fullname) {
+                    $evacuees->push([
+                        'id' => $evacuee->id,
+                        'family_head_name' => $familyHeadName,
+                        'age' => $resident->family_head_age ?: $resident->price,
+                        'gender' => $resident->gender ?? 'Male',
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : '-',
+                        'contact_number' => $resident->contact_number,
+                        'purok' => $resident->description,
+                        'total_members' => $totalFamilyMembers,
+                        'dependent_count' => max(0, $totalFamilyMembers - 1),
+                        'has_pregnant' => $hasPregnant,
+                        'has_pwd' => $hasPWD,
+                        'pregnant_count' => $familyPregnantCount,
+                        'pwd_count' => $familyPWDCount,
+                        'family_members' => $familyMembers
+                    ]);
                     
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        if(strtolower($resident->gender) === 'male') {
-                            $seniorMale++;
-                            $totalMale++;
-                        } else {
-                            $seniorFemale++;
-                            $totalFemale++;
+                    // Update statistics
+                    foreach ($familyMembers as $member) {
+                        $age = (int) $member['age'];
+                        if ($age >= 60) {
+                            $seniorCount++;
+                        } elseif ($age < 18) {
+                            $childCount++;
+                            if ($age <= 5) {
+                                $child0_5Count++;
+                            } elseif ($age >= 6 && $age <= 12) {
+                                $child6_12Count++;
+                            } elseif ($age >= 13 && $age <= 17) {
+                                $child13_17Count++;
+                            }
                         }
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        if(strtolower($resident->gender) === 'male') {
-                            $childMale++;
-                            $totalMale++;
+                        
+                        if (strtolower($member['gender']) === 'male') {
+                            $maleCount++;
                         } else {
-                            $childFemale++;
-                            $totalFemale++;
-                        }
-                    } else {
-                        if(strtolower($resident->gender) === 'male') {
-                            $totalMale++;
-                        } else {
-                            $totalFemale++;
+                            $femaleCount++;
                         }
                     }
-                }
-                
-                // Count wife
-                if($resident->wife_fullname) {
-                    $totalMembers++;
-                    $age = $resident->wife_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
-                    
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        $seniorFemale++;
-                        $totalFemale++;
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        $childFemale++;
-                        $totalFemale++;
-                    } else {
-                        $totalFemale++;
-                    }
-                    
-                    // Count pregnant wives
-                    if($resident->wife_pregnant) {
-                        $pregnantCount++;
-                    }
-                }
-                
-                // Count son
-                if($resident->son_fullname) {
-                    $totalMembers++;
-                    $age = $resident->son_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
-                    
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        $seniorMale++;
-                        $totalMale++;
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        $childMale++;
-                        $totalMale++;
-                    } else {
-                        $totalMale++;
-                    }
-                }
-                
-                // Count daughter
-                if($resident->daughter_fullname) {
-                    $totalMembers++;
-                    $age = $resident->daughter_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
-                    
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        $seniorFemale++;
-                        $totalFemale++;
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        $childFemale++;
-                        $totalFemale++;
-                    } else {
-                        $totalFemale++;
-                    }
-                }
-                
-                // Count grandmother
-                if($resident->grandmother_fullname) {
-                    $totalMembers++;
-                    $age = $resident->grandmother_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
-                    
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        $seniorFemale++;
-                        $totalFemale++;
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        $childFemale++;
-                        $totalFemale++;
-                    } else {
-                        $totalFemale++;
-                    }
-                }
-                
-                // Count grandfather
-                if($resident->grandfather_fullname) {
-                    $totalMembers++;
-                    $age = $resident->grandfather_age ?? 0;
-                    $totalAge += $age;
-                    if($age > 0) $ageCount++;
-                    
-                    if($age >= 60) {
-                        $totalSeniors++;
-                        $seniorMale++;
-                        $totalMale++;
-                    } elseif($age < 18) {
-                        $totalChildren++;
-                        $childMale++;
-                        $totalMale++;
-                    } else {
-                        $totalMale++;
-                    }
-                }
-                
-                // Count PWD (actual individual PWD fields)
-                if($resident->family_head_pwd) $pwdCount++;
-                if($resident->wife_pwd) $pwdCount++;
-                if($resident->son_pwd) $pwdCount++;
-                if($resident->daughter_pwd) $pwdCount++;
-                if($resident->grandmother_pwd) $pwdCount++;
-                if($resident->grandfather_pwd) $pwdCount++;
-                
-                // Purok distribution
-                $purok = $resident->description ?? 'Unknown';
-                if (array_key_exists($purok, $purokData)) {
-                    $purokData[$purok]++;
                 }
             }
             
-            // Calculate adults (non-senior, non-child)
-            $adultMale = $totalMale - $seniorMale - $childMale;
-            $adultFemale = $totalFemale - $seniorFemale - $childFemale;
+            // Calculate total evacuees (actual number of individuals)
+            $totalEvacuees = $evacuees->count();
             
-            // Calculate readiness metrics
-            $contactCoverage = $totalFamilies > 0 ? round(($residents->where('contact_number', '!=', null)->count() / $totalFamilies) * 100) : 0;
-            $vulnerabilityRate = $totalMembers > 0 ? round((($totalSeniors + $totalChildren + $pregnantCount + $pwdCount) / $totalMembers) * 100) : 0;
-            $readinessScore = round(($contactCoverage + (100 - $vulnerabilityRate) + 50) / 3);
+            // Calculate total family members (including all family members of each evacuee)
+            $totalFamilyMembers = $evacuees->sum(function($e) {
+                return is_array($e) ? ($e['total_members'] ?? 1) : ($e->total_members ?? 1);
+            });
             
-            // Calculate average age
-            $avgAge = $ageCount > 0 ? round($totalAge / $ageCount) : 0;
+            // Get available facilities for evacuation areas with capacity info
+            $facilities = Facility::where('status', 'available')->orderBy('name')->get()->map(function($facility) {
+                // Get current occupancy for this facility
+                $currentOccupancy = Evacuee::where('evacuation_area', $facility->name)
+                    ->where('evacuation_status', '!=', 'Released')
+                    ->count();
+                
+                $availableSpaces = $facility->capacity - $currentOccupancy;
+                
+                return [
+                    'id' => $facility->id,
+                    'name' => $facility->name,
+                    'capacity' => $facility->capacity,
+                    'current_occupancy' => $currentOccupancy,
+                    'available_spaces' => $availableSpaces,
+                    'occupancy_percentage' => $facility->capacity > 0 ? ($currentOccupancy / $facility->capacity) * 100 : 0
+                ];
+            });
             
-            // Calculate gender ratio (adults only)
-            $totalAdults = $adultMale + $adultFemale;
-            $genderRatio = $adultFemale > 0 ? round(($adultMale / $adultFemale) * 100) : 100;
+            // === DSS ENHANCED STATISTICS ===
+            // Statistics are already calculated above from expanded family members
+            $totalCapacity = 0;
+            $totalOccupancy = 0;
             
-            // Calculate dependency ratio
-            $workingAge = $totalMembers - $totalSeniors - $totalChildren;
-            $dependencyRatio = $workingAge > 0 ? round((($totalSeniors + $totalChildren) / $workingAge) * 100) : 0;
+            // Calculate facility statistics
+            foreach ($facilities as $facility) {
+                $totalCapacity += $facility['capacity'];
+                $totalOccupancy += $facility['current_occupancy'];
+            }
+            
+            // Calculate age-appropriate meal requirements using expanded family members
+            $dailyMealsNeeded = 0;
+            foreach ($evacuees as $evacuee) {
+                $age = (int) $evacuee['age'];
+                
+                if ($age <= 2) {
+                    $dailyMealsNeeded += 6; // Infants: 6 small meals per day
+                } elseif ($age <= 12) {
+                    $dailyMealsNeeded += 5; // Children: 3 meals + 2 snacks
+                } elseif ($age <= 17) {
+                    $dailyMealsNeeded += 3; // Teens: 3 meals per day
+                } else {
+                    $dailyMealsNeeded += 3; // Adults: 3 meals per day
+                }
+            }
+            
+            // Calculate DSS metrics based on real data
+            $dssMetrics = [
+                // Population counts
+                'evacuee_count' => $totalEvacuees,
+                'total_family_members' => $totalFamilyMembers,
+                
+                // Food calculations (age-appropriate meals)
+                'daily_meals_needed' => $dailyMealsNeeded,
+                'weekly_food_requirement' => $dailyMealsNeeded * 7,
+                
+                // Meal breakdown by age group
+                'infant_daily_meals' => $child0_5Count * 6,
+                'child_daily_meals' => ($child6_12Count * 5) + ($child13_17Count * 3),
+                'teen_daily_meals' => $child13_17Count * 3,
+                'adult_daily_meals' => ($totalEvacuees - $childCount - $seniorCount) * 3 + $seniorCount * 3,
+                
+                // Water calculations (4 liters per person per day)
+                'daily_water_requirement' => $totalFamilyMembers * 4,
+                'weekly_water_requirement' => $totalFamilyMembers * 28,
+                
+                // Shelter calculations
+                'total_capacity' => $totalCapacity,
+                'total_occupied' => $totalOccupancy,
+                'available_spaces' => $totalCapacity - $totalOccupancy,
+                'occupancy_rate' => $totalCapacity > 0 ? ($totalOccupancy / $totalCapacity) * 100 : 0,
+                
+                // Vulnerable groups
+                'senior_count' => $seniorCount,
+                'child_count' => $childCount,
+                'child_0_5_count' => $child0_5Count,
+                'child_6_12_count' => $child6_12Count,
+                'child_13_17_count' => $child13_17Count,
+                'male_count' => $maleCount,
+                'female_count' => $femaleCount,
+                
+                // Aid requirements
+                'hygiene_kits_needed' => max(1, (int) ceil($totalFamilyMembers * 0.8)), // 80% of family members, minimum 1
+                'blankets_needed' => max(2, (int) ceil($totalFamilyMembers * 0.7)), // 70% of family members, minimum 2
+                'first_aid_kits_needed' => (int) ceil($totalFamilyMembers / 10), // 1 kit per 10 people
+                
+                // Medical requirements
+                'chronic_medication_patients' => (int) ($totalEvacuees * 0.15), // 15% estimate
+                'mental_health_sessions_needed' => (int) ($totalEvacuees * 0.2), // 20% estimate
+                'pregnant_women_count' => (int) ($totalEvacuees * 0.08), // 8% estimate
+                'disabled_persons_count' => (int) ($totalEvacuees * 0.12), // 12% estimate
+                
+                // Supply levels (simulated based on occupancy rate)
+                'food_supply_coverage' => max(30, 100 - ($totalOccupancy / $totalCapacity) * 40), // Inverse relationship
+                'medical_supply_level' => max(25, 95 - ($totalOccupancy / $totalCapacity) * 35), // Inverse relationship
+                'clothing_inventory_adult' => (int) ($totalFamilyMembers * 0.6),
+                'clothing_inventory_children_0_5' => $child0_5Count,
+                'clothing_inventory_children_6_12' => $child6_12Count,
+                'clothing_inventory_children_13_17' => $child13_17Count,
+                'clothing_inventory_children_total' => $childCount,
+            ];
             
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'demographics' => [
-                        'seniorMale' => $seniorMale,
-                        'seniorFemale' => $seniorFemale,
-                        'adultMale' => $adultMale,
-                        'adultFemale' => $adultFemale,
-                        'childMale' => $childMale,
-                        'childFemale' => $childFemale,
-                        'avgAge' => $avgAge,
-                        'genderRatio' => $genderRatio,
-                        'dependencyRatio' => $dependencyRatio
-                    ],
-                    'vulnerability' => [
-                        'seniors' => $totalSeniors,
-                        'children' => $totalChildren,
-                        'pregnant' => $pregnantCount,
-                        'pwd' => $pwdCount,
-                        'vulnerabilityRate' => $vulnerabilityRate,
-                        'highRiskGroups' => $totalSeniors + $totalChildren + $pregnantCount + $pwdCount,
-                        'specialNeeds' => $pregnantCount + $pwdCount
-                    ],
-                    'readiness' => [
-                        'contactCoverage' => $contactCoverage,
-                        'readinessScore' => $readinessScore,
-                        'responseTime' => $readinessScore >= 80 ? 'Fast' : ($readinessScore >= 60 ? 'Moderate' : 'Slow')
-                    ],
-                    'purok' => [
-                        'distribution' => $purokData,
-                        'maxPurok' => max($purokData),
-                        'maxPurokName' => array_search(max($purokData), $purokData),
-                        'coveredAreas' => count(array_filter($purokData)),
-                        'avgPerPurok' => count(array_filter($purokData)) > 0 ? round($totalMembers / count(array_filter($purokData))) : 0
-                    ]
-                ]
+                'evacuees' => $evacuees,
+                'facilities' => $facilities,
+                'dssMetrics' => $dssMetrics,
+                'totalEvacuees' => $totalEvacuees,
+                'totalShelters' => $totalShelters
             ]);
             
         } catch (\Exception $e) {

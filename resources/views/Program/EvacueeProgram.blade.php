@@ -233,7 +233,26 @@
 
         table { width:100%; border-collapse:collapse; background:var(--white); }
 
-        thead th { background:var(--slate-light); color:var(--text-muted); font-size:12px; letter-spacing:0.6px; text-transform:uppercase; text-align:left; padding:14px 16px; }
+        thead th { background:var(--slate-light); color:var(--text-muted); font-size:12px; letter-spacing:0.6px; text-transform:uppercase; text-align:left; padding:14px 16px; position: relative; }
+
+        /* Sortable headers */
+        .sortable { cursor: pointer; user-select: none; transition: all 0.2s ease; }
+        .sortable:hover { background: #e2e8f0; color: var(--text-dark); }
+        .sortable .sort-indicator { 
+            position: absolute; 
+            right: 8px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            font-size: 10px; 
+            color: var(--text-muted); 
+            opacity: 0.5; 
+            transition: all 0.2s ease;
+        }
+        .sortable:hover .sort-indicator { opacity: 1; color: var(--teal); }
+        .sortable.asc .sort-indicator::after { content: ' \25b2'; }
+        .sortable.desc .sort-indicator::after { content: ' \25bc'; }
+        .sortable.sorted { color: var(--teal); font-weight: 600; }
+        .sortable.sorted .sort-indicator { opacity: 1; color: var(--teal); }
 
         tbody td { padding:14px 16px; border-top:1px solid var(--border); color:var(--text-dark); font-size:14px; }
 
@@ -480,6 +499,14 @@
 
 <body>
 
+    @php
+        // Use pre-calculated demographic data from controller's dssMetrics
+        $totalMembers = $dssMetrics['total_family_members'] ?? 0;
+        $totalSeniors = $dssMetrics['senior_count'] ?? 0;
+        $totalChildren = $dssMetrics['child_count'] ?? 0;
+        $pregnantCount = $dssMetrics['pregnant_women_count'] ?? 0;
+        $pwdCount = $dssMetrics['disabled_persons_count'] ?? 0;
+    @endphp
     
     <!-- MAIN CONTENT -->
     <main class="main">
@@ -510,213 +537,53 @@
             <div class="stat-card navy">
                 <div class="stat-row-inner">
                     <div>
-                        <div class="stat-label">Total</div>
+                        <div class="stat-label">Total Family</div>
                     </div>
                     <div class="stat-icon-wrap navy">
                         <i class="fas fa-users"></i>
                     </div>
                 </div>
                 <div class="stat-value">{{ number_format($totalEvacuees) }}</div>
-                <div class="stat-label">Current Evacuees</div>
+                <div class="stat-label">Current Families</div>
             </div>
 
             <div class="stat-card teal">
                 <div class="stat-row-inner">
                     <div>
-                        <div class="stat-label">Facilities</div>
+                        <div class="stat-label">Total Facilities</div>
                     </div>
                     <div class="stat-icon-wrap teal">
                         <i class="fas fa-building"></i>
                     </div>
                 </div>
                 <div class="stat-value">{{ number_format($totalShelters) }}</div>
-                <div class="stat-label">Available Shelters</div>
+                <div class="stat-label">Current Shelters</div>
             </div>
         </div>
 
-        <!-- DSS Section for Evacuee Management -->
-        <div class="panel anim delay-2" style="margin-bottom: 24px;">
+        <!-- Evacuation Area Analytics -->
+        <div class="panel anim delay-2">
             <div class="panel-head">
                 <div class="panel-title">
-                    <i class="fas fa-brain" style="color: var(--teal);"></i> 
-                    Decision Support System - Evacuee Aid Management
+                    <i class="fas fa-chart-line"></i> Evacuation Area Analytics
                 </div>
-                <button class="btn export" onclick="exportDSSReport()">
-                    <i class="fas fa-download"></i> EXPORT
+                <button type="button" class="btn-submit green" onclick="refreshAnalytics()" style="padding: 8px 16px; font-size: 12px;">
+                    <i class="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
             <div class="panel-body">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                    
-                    <!-- Food Supply Status -->
-                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="width: 32px; height: 32px; background: var(--green-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-utensils" style="color: var(--green); font-size: 14px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Food Supply Status</div>
-                                <div style="font-size: 11px; color: var(--text-muted);">Daily meal planning</div>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <span style="font-size: 12px; color: var(--text-muted);">Supply Coverage</span>
-                                <span style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--green);" id="foodCoverage">{{ number_format($dssMetrics['food_supply_coverage'], 0) }}%</span>
-                            </div>
-                            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
-                                <div style="width: {{ $dssMetrics['food_supply_coverage'] }}%; height: 100%; background: linear-gradient(90deg, var(--green), #34d399); transition: width 0.3s;" id="foodBar"></div>
-                            </div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
-                            <strong>Status:</strong> <span id="foodStatus">Sufficient for 5 days. Restock needed by Friday.</span>
-                        </div>
-                    </div>
-
-                    <!-- Clothing Inventory -->
-                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="width: 32px; height: 32px; background: var(--blue-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-tshirt" style="color: var(--blue); font-size: 14px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Clothing Inventory</div>
-                                <div style="font-size: 11px; color: var(--text-muted);">Essential clothing items</div>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 12px;">
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Adult Clothes</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="adultClothes">{{ $dssMetrics['clothing_inventory_adult'] }}</div>
-                                </div>
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Children (0-5)</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes0_5">{{ $dssMetrics['clothing_inventory_children_0_5'] }}</div>
-                                </div>
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Children (6-12)</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes6_12">{{ $dssMetrics['clothing_inventory_children_6_12'] }}</div>
-                                </div>
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Children (13-17)</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="childClothes13_17">{{ $dssMetrics['clothing_inventory_children_13_17'] }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
-                            <strong>Need:</strong> <span id="clothingNeeds">@if($dssMetrics['clothing_inventory_children_6_12'] > 0) Priority: {{ $dssMetrics['clothing_inventory_children_6_12'] }} children (6-12 years) need clothing. @else No children aged 6-12 currently in evacuation center. @endif</span>
-                        </div>
-                    </div>
-
-                    <!-- Medical Supplies -->
-                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="width: 32px; height: 32px; background: var(--rose-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-medkit" style="color: var(--rose); font-size: 14px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Medical Supplies</div>
-                                <div style="font-size: 11px; color: var(--text-muted);">Health & hygiene items</div>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <span style="font-size: 12px; color: var(--text-muted);">Stock Level</span>
-                                <span style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--rose);" id="medicalStock">{{ number_format($dssMetrics['medical_supply_level'], 0) }}%</span>
-                            </div>
-                            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
-                                <div style="width: {{ $dssMetrics['medical_supply_level'] }}%; height: 100%; background: linear-gradient(90deg, var(--rose), #fb7185); transition: width 0.3s;" id="medicalBar"></div>
-                            </div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
-                            <strong>Alert:</strong> <span id="medicalAlert">Critical: First aid kits running low.</span>
-                        </div>
-                    </div>
-
-                    <!-- Shelter Capacity -->
-                    <div style="background: var(--slate-light); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="width: 32px; height: 32px; background: var(--amber-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-home" style="color: var(--amber); font-size: 14px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">Shelter Capacity</div>
-                                <div style="font-size: 11px; color: var(--text-muted);">Occupancy rate</div>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Occupied</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="occupiedSpaces">{{ $totalEvacuees }}</div>
-                                </div>
-                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                                    <div style="color: var(--text-muted); font-size: 10px;">Available</div>
-                                    <div style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-dark);" id="availableSpaces">{{ $dssMetrics['available_spaces'] }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-mid); line-height: 1.5;">
-                            <strong>Status:</strong> <span id="shelterStatus">{{ number_format($dssMetrics['occupancy_rate'], 0) }}% occupied. {{ $dssMetrics['occupancy_rate'] > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.' }}</span>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Aid Distribution Planning -->
-                <div style="background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--teal), var(--blue)); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-hands-helping" style="color: white; font-size: 16px;"></i>
-                        </div>
-                        <div>
-                            <div style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: var(--text-dark);">Aid Distribution Planning</div>
-                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">Smart allocation based on evacuee needs</div>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
-                            <div style="font-size: 20px; font-weight: 700; color: var(--green);" id="dailyMeals">{{ number_format($dssMetrics['daily_meals_needed']) }}</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">Daily Meals Needed</div>
-                        </div>
-                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
-                            <div style="font-size: 20px; font-weight: 700; color: var(--blue);" id="waterSupply">{{ number_format($dssMetrics['daily_water_requirement']) }}L</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">Daily Water Requirement</div>
-                        </div>
-                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
-                            <div style="font-size: 20px; font-weight: 700; color: var(--amber);" id="hygieneKits">{{ number_format($dssMetrics['hygiene_kits_needed']) }}</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">Hygiene Kits Needed</div>
-                        </div>
-                        <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
-                            <div style="font-size: 20px; font-weight: 700; color: var(--rose);" id="blanketSupply">{{ number_format($dssMetrics['blankets_needed']) }}</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">Blankets Required</div>
-                        </div>
-                    </div>
-
-                    <div style="background: var(--slate-light); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 13px;">Priority Distribution Actions:</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-mid); line-height: 1.6;">
-                            <li id="priority1" style="margin-bottom: 4px;">Distribute emergency food packs to elderly and children first</li>
-                            <li id="priority2" style="margin-bottom: 4px;">Set up additional water stations in high-occupancy areas</li>
-                            <li id="priority3" style="margin-bottom: 4px;">Deploy medical team for health screening and first aid</li>
-                            <li id="priority4">Arrange clothing distribution based on family size and ages</li>
-                        </ul>
-                    </div>
-
-                    <canvas id="aidDistributionChart" width="400" height="200" style="width: 100%; height: 200px; background: white; border-radius: 8px; border: 1px solid var(--border);"></canvas>
-                </div>
-
-                <!-- DSS Action Buttons -->
-                <div style="display: flex; justify-content: flex-end; align-items: center;">
-                    <div style="font-size: 12px; color: var(--text-muted);">
-                        <i class="fas fa-info-circle"></i> Last updated: <span id="lastUpdate">{{ now()->format('M d, Y H:i') }}</span>
+                <div id="analyticsContent">
+                    <!-- Analytics will be dynamically loaded here -->
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                        <div>Loading evacuation area analytics...</div>
                     </div>
                 </div>
             </div>
         </div>
 
+        
+        
         <!-- Main Panel -->
         <div class="panel anim delay-2">
             <div class="panel-head">
@@ -732,7 +599,7 @@
                     <select class="select" id="evacuationAreaFilter" onchange="filterByEvacuationArea()">
                         <option value="">EVACUATION AREA</option>
                         @forelse($facilities as $facility)
-                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }} - {{ $facility['available_spaces'] }} Available</option>
+                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }}</option>
                         @empty
                             <option value="Purok I">Purok I</option>
                             <option value="Purok II">Purok II</option>
@@ -755,14 +622,17 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Fullname</th>
-                                <th>Age</th>
-                                <th>Gender</th>
-                                <th>Evacuation Status</th>
-                                <th>Evacuation Area</th>
-                                <th>Room Number</th>
-                                <th>Evacuation Date</th>
+                                <th class="sortable" onclick="sortTable(0)">ID <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(1)">Family Head <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(2)">Gender <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(3)">Age <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(4)">Members <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(5)">Purok <span class="sort-indicator"></span></th>
+                                <th>Contact</th>
+                                <th class="sortable" onclick="sortTable(7)">Status <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(8)">Evacuation Area <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(9)">Room <span class="sort-indicator"></span></th>
+                                <th class="sortable" onclick="sortTable(10)">Date <span class="sort-indicator"></span></th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -771,24 +641,70 @@
                                 @foreach($evacuees as $evacuee)
                                     <tr>
                                         <td>{{ str_pad($evacuee['id'], 4, '0', STR_PAD_LEFT) }}</td>
-                                        <td>{{ $evacuee['fullname'] }}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div>
+                                                    <div style="font-weight: 600; color: #1f2937; font-size: 14px; cursor: pointer; text-decoration: underline; text-decoration-color: #0ea5a0; text-underline-offset: 2px;" onclick="viewFamilyDetails('{{ $evacuee['id'] }}', '{{ $evacuee['family_head_name'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}', '{{ $evacuee['total_members'] }}', '{{ $evacuee['dependent_count'] }}', '{{ $evacuee['contact_number'] }}', '{{ $evacuee['purok'] }}', {{ $evacuee['has_pregnant'] ? 'true' : 'false' }}, {{ $evacuee['has_pwd'] ? 'true' : 'false' }})" title="Click to view family details">
+                                                        {{ $evacuee['family_head_name'] }}
+                                                    </div>
+                                                    <div style="font-size: 12px; color: #6b7280;">
+                                                        {{ $evacuee['gender'] == 'Male' ? 'Male Head' : 'Female Head' }}
+                                                    </div>
+                                                </div>
+                                                @if($evacuee['has_pregnant'])
+                                                    <span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; margin-left: 8px;">
+                                                        <i class="fas fa-baby" style="font-size: 8px;"></i> Pregnant
+                                                    </span>
+                                                @endif
+                                                @if($evacuee['has_pwd'])
+                                                    <span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; margin-left: 8px;">
+                                                        <i class="fas fa-wheelchair" style="font-size: 8px;"></i> PWD
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; 
+                                                {{ $evacuee['gender'] == 'Male' ? 'background: #dbeafe; color: #1e40af;' : 'background: #fce7f3; color: #9d174d;' }}">
+                                                <i class="fas fa-{{ $evacuee['gender'] == 'Male' ? 'mars' : 'venus' }}" style="font-size: 9px;"></i>
+                                                {{ $evacuee['gender'] }}
+                                            </span>
+                                        </td>
                                         <td>{{ $evacuee['age'] }}</td>
-                                        <td>{{ $evacuee['gender'] }}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 6px;">
+                                                <span style="background: #0ea5a0; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                    {{ $evacuee['total_members'] }}
+                                                </span>
+                                                <span style="color: #6b7280; font-size: 11px;">Head + {{ $evacuee['dependent_count'] }} dependents</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ $evacuee['purok'] }}</td>
+                                        <td>
+                                            @if($evacuee['contact_number'])
+                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                                    <i class="fas fa-phone" style="color: #10b981; font-size: 10px;"></i>
+                                                    <span style="color: #374151; font-size: 13px;">{{ $evacuee['contact_number'] }}</span>
+                                                </div>
+                                            @else
+                                                <span style="color: #9ca3af; font-size: 12px; font-style: italic;">No Contact</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $evacuee['evacuation_status'] }}</td>
                                         <td>{{ $evacuee['evacuation_area'] }}</td>
                                         <td>{{ $evacuee['room_number'] ?? '-' }}</td>
                                         <td>{{ $evacuee['evacuation_date'] }}</td>
                                         <td>
                                             <div class="actions">
-                                                <a href="#" title="View" onclick="viewEvacueeDetails('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}')"><i class="fas fa-eye"></i></a>
-                                                <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('{{ $evacuee['id'] }}', '{{ $evacuee['fullname'] }}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
+                                                <a href="#" title="View Family" onclick="viewFamilyDetails('{{ $evacuee['id'] }}', '{{ $evacuee['family_head_name'] }}', '{{ $evacuee['gender'] }}', '{{ $evacuee['age'] }}', '{{ $evacuee['evacuation_status'] }}', '{{ $evacuee['evacuation_area'] }}', '{{ $evacuee['room_number'] ?? 'N/A' }}', '{{ $evacuee['evacuation_date'] }}', '{{ $evacuee['total_members'] }}', '{{ $evacuee['dependent_count'] }}', '{{ $evacuee['contact_number'] }}', '{{ $evacuee['purok'] }}', {{ $evacuee['has_pregnant'] ? 'true' : 'false' }}, {{ $evacuee['has_pwd'] ? 'true' : 'false' }})" style="color: #0ea5a0;"><i class="fas fa-eye"></i></a>
+                                                <a href="#" title="Release" onclick="event.preventDefault(); releaseEvacuee('{{ $evacuee['id'] }}', '{{ $evacuee['family_head_name'] }}')" style="color: #f59e0b;"><i class="fas fa-door-open"></i></a>
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="9" style="text-align:center; color:var(--text-muted); padding:12px 16px; font-size:12px;">No evacuees found. Add evacuees to see them here.</td>
+                                    <td colspan="11" style="text-align:center; color:var(--text-muted); padding:12px 16px; font-size:12px;">No evacuees found. Add evacuees to see them here.</td>
                                 </tr>
                             @endif
                         </tbody>
@@ -905,7 +821,7 @@
                     <select name="area" id="evacuationAreaSelect" required class="form-control" onchange="loadFacilityCapacity(); checkFormValidity()">
                         <option value="" disabled selected>Select Area</option>
                         @forelse($facilities as $facility)
-                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }} - {{ $facility['available_spaces'] }} Available</option>
+                            <option value="{{ $facility['name'] }}">{{ $facility['name'] }}</option>
                         @empty
                             <option value="Barangay Hall">Barangay Hall</option>
                             <option value="Evacuation Center 1">Evacuation Center 1</option>
@@ -1186,25 +1102,26 @@ let currentResidents = [];
 
 let allResidentsByPurok = {};
 
-
-
 // Filter by evacuation area
-
 function filterByEvacuationArea() {
-
   const selectedArea = document.getElementById('evacuationAreaFilter').value;
-
   const tableRows = document.querySelectorAll('tbody tr');
 
   // Calculate DSS metrics for filtered evacuees
   let filteredEvacueeCount = 0;
+  let filteredTotalFamilyMembers = 0; // Track total family members for accurate calculations
   let filteredSeniorCount = 0;
   let filteredChild0_5Count = 0;
   let filteredChild6_12Count = 0;
   let filteredChild13_17Count = 0;
   let filteredMaleCount = 0;
   let filteredFemaleCount = 0;
+  let filteredPregnantCount = 0;
+  let filteredPWDCount = 0;
   let filteredDailyMeals = 0;
+
+  const visibleRows = [];
+  const evacueesData = @json($evacuees);
 
   tableRows.forEach(row => {
 
@@ -1213,20 +1130,38 @@ function filterByEvacuationArea() {
       return;
     }
 
-    const evacuationAreaCell = row.cells[5]; // Evacuation Area is column 5 (0-indexed)
+    const evacuationAreaCell = row.cells[8]; // Evacuation Area is column 8 (0-indexed)
     const evacuationArea = evacuationAreaCell ? evacuationAreaCell.textContent.trim() : '';
     const ageCell = row.cells[3]; // Age is column 3 (0-indexed)
-    const genderCell = row.cells[4]; // Gender is column 4 (0-indexed)
+    const genderCell = row.cells[2]; // Gender is column 2 (0-indexed)
+    const membersCell = row.cells[4]; // Total Members is column 4 (0-indexed)
+    const idCell = row.cells[0]; // ID is column 0 (0-indexed)
 
     const isVisible = (selectedArea === '' || evacuationArea === selectedArea);
     row.style.display = isVisible ? '' : 'none';
 
     if (isVisible) {
+      visibleRows.push(row);
       // Count visible evacuees for DSS
       filteredEvacueeCount++;
       
       const age = parseInt(ageCell.textContent.trim(), 10);
       const gender = genderCell.textContent.trim();
+      const evacueeId = idCell ? parseInt(idCell.textContent.trim(), 10) : null;
+      
+      // Get total family members from the Members column (column 4)
+      const membersText = membersCell ? membersCell.textContent.trim() : '';
+      const totalMembers = parseInt(membersText.match(/\d+/)?.[0] || '1', 10);
+      filteredTotalFamilyMembers += totalMembers;
+      
+      // Get pregnant and PWD counts from original evacuees data
+      if (evacueeId) {
+        const evacuee = evacueesData.find(e => e.id === evacueeId);
+        if (evacuee) {
+          filteredPregnantCount += evacuee.pregnant_count || 0;
+          filteredPWDCount += evacuee.pwd_count || 0;
+        }
+      }
       
       if (age >= 60) {
         filteredSeniorCount++;
@@ -1246,43 +1181,53 @@ function filterByEvacuationArea() {
         filteredFemaleCount++;
       }
       
-      // Calculate meals for this evacuee
-      if (age <= 2) {
-        filteredDailyMeals += 6; // Infants: 6 small meals per day
-      } else if (age <= 12) {
-        filteredDailyMeals += 5; // Children: 3 meals + 2 snacks
-      } else if (age <= 17) {
-        filteredDailyMeals += 3; // Teens: 3 meals per day
-      } else {
-        filteredDailyMeals += 3; // Adults: 3 meals per day
-      }
+      // Calculate meals for this evacuee (age-based, multiplied by family size)
+      let mealsPerPerson = 3; // Default for adults
+      if (age <= 2) mealsPerPerson = 6; // Infants: 6 small meals
+      else if (age <= 12) mealsPerPerson = 5; // Children: 3 meals + 2 snacks
+      else if (age <= 17) mealsPerPerson = 3; // Teens: 3 meals
+      
+      filteredDailyMeals += mealsPerPerson * totalMembers;
     }
   });
+
+  // Apply sorting to visible rows if a sort is active
+  if (sortState.column >= 0 && visibleRows.length > 0) {
+    visibleRows.sort((a, b) => {
+      const aValue = getCellValue(a, sortState.column);
+      const bValue = getCellValue(b, sortState.column);
+      return compareValues(aValue, bValue, sortState.direction);
+    });
+    
+    // Reorder visible rows in the DOM
+    const tbody = document.querySelector('tbody');
+    visibleRows.forEach(row => tbody.appendChild(row));
+  }
 
   // Update DSS display with filtered data
   if (selectedArea === '') {
     // Reset to show all data when filter is cleared
     resetDSSToAllData();
   } else {
-    updateDSSForFilteredArea(filteredEvacueeCount, filteredSeniorCount, filteredChild0_5Count, filteredChild6_12Count, filteredChild13_17Count, filteredMaleCount, filteredFemaleCount, filteredDailyMeals, selectedArea);
+    updateDSSForFilteredArea(filteredEvacueeCount, filteredTotalFamilyMembers, filteredSeniorCount, filteredChild0_5Count, filteredChild6_12Count, filteredChild13_17Count, filteredMaleCount, filteredFemaleCount, filteredPregnantCount, filteredPWDCount, filteredDailyMeals, selectedArea);
   }
 
   // Show message if no results
-  const visibleRows = Array.from(tableRows).filter(row => 
+  const finalVisibleRows = Array.from(tableRows).filter(row => 
     row.style.display !== 'none' && !row.querySelector('td[colspan]')
   );
 
   const existingNoResults = document.querySelector('tbody tr td[colspan]');
-  if (visibleRows.length === 0 && !existingNoResults) {
+  if (finalVisibleRows.length === 0 && !existingNoResults) {
     const tbody = document.querySelector('tbody');
     const noResultsRow = document.createElement('tr');
     noResultsRow.innerHTML = `
-      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+      <td colspan="12" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
         No evacuees found in "${selectedArea || 'selected area'}"
       </td>
     `;
     tbody.appendChild(noResultsRow);
-  } else if (visibleRows.length > 0 && existingNoResults) {
+  } else if (finalVisibleRows.length > 0 && existingNoResults) {
     existingNoResults.parentElement.remove();
   }
   
@@ -1296,7 +1241,7 @@ function filterByEvacuationArea() {
   }
 }
 
-function updateDSSForFilteredArea(evacueeCount, seniorCount, child0_5Count, child6_12Count, child13_17Count, maleCount, femaleCount, dailyMeals, selectedArea) {
+function updateDSSForFilteredArea(evacueeCount, totalFamilyMembers, seniorCount, child0_5Count, child6_12Count, child13_17Count, maleCount, femaleCount, pregnantCount, pwdCount, dailyMeals, selectedArea) {
   // Update DSS title to show filtered area
   const dssTitle = document.querySelector('.panel-title');
   if (selectedArea) {
@@ -1305,21 +1250,25 @@ function updateDSSForFilteredArea(evacueeCount, seniorCount, child0_5Count, chil
     dssTitle.innerHTML = '<i class="fas fa-brain" style="color: var(--teal);"></i> Decision Support System - Evacuee Aid Management';
   }
 
-  // Calculate filtered metrics
+  // Calculate filtered metrics with proper minimum thresholds (matching backend)
   const filteredMetrics = {
     evacueeCount: evacueeCount,
+    totalFamilyMembers: totalFamilyMembers,
     daily_meals_needed: dailyMeals,
-    daily_water_requirement: evacueeCount * 4,
-    hygiene_kits_needed: Math.ceil(evacueeCount * 0.8),
-    blankets_needed: Math.ceil(evacueeCount * 0.7),
-    clothing_inventory_adult: Math.ceil(evacueeCount * 0.6),
+    daily_water_requirement: totalFamilyMembers * 4, // Use total family members
+    hygiene_kits_needed: Math.max(1, Math.ceil(totalFamilyMembers * 0.8)), // Minimum 1 kit
+    blankets_needed: Math.max(2, Math.ceil(totalFamilyMembers * 0.7)), // Minimum 2 blankets
+    first_aid_kits_needed: Math.ceil(totalFamilyMembers / 10), // 1 kit per 10 people
+    clothing_inventory_adult: Math.ceil(totalFamilyMembers * 0.6),
     clothing_inventory_children_0_5: child0_5Count,
     clothing_inventory_children_6_12: child6_12Count,
     clothing_inventory_children_13_17: child13_17Count,
+    pregnant_women_count: pregnantCount,
+    pwd_count: pwdCount,
     available_spaces: 'N/A', // Not applicable for filtered view
     occupancy_rate: 'N/A', // Not applicable for filtered view
-    food_supply_coverage: Math.max(30, 100 - (evacueeCount / 10) * 20), // Simulated
-    medical_supply_level: Math.max(25, 95 - (evacueeCount / 10) * 15), // Simulated
+    food_supply_coverage: Math.max(30, 100 - (totalFamilyMembers / 10) * 20), // Simulated
+    medical_supply_level: Math.max(25, 95 - (totalFamilyMembers / 10) * 15), // Simulated
   };
 
   // Update display elements
@@ -1335,6 +1284,13 @@ function updateDSSForFilteredArea(evacueeCount, seniorCount, child0_5Count, chil
   if (document.getElementById('blanketSupply')) {
     document.getElementById('blanketSupply').textContent = filteredMetrics.blankets_needed.toLocaleString();
   }
+  if (document.getElementById('firstAidKits')) {
+    document.getElementById('firstAidKits').textContent = filteredMetrics.first_aid_kits_needed.toLocaleString();
+  }
+
+  // Validate DSS calculations and display results
+  const validationResults = validateDSSCalculations(filteredMetrics);
+  displayValidationResults(validationResults);
 
   // Update clothing inventory
   if (document.getElementById('adultClothes')) {
@@ -1348,6 +1304,22 @@ function updateDSSForFilteredArea(evacueeCount, seniorCount, child0_5Count, chil
   }
   if (document.getElementById('childClothes13_17')) {
     document.getElementById('childClothes13_17').textContent = filteredMetrics.clothing_inventory_children_13_17.toLocaleString();
+  }
+
+  // Update pregnant and PWD counts
+  if (document.getElementById('pregnantWomenCount')) {
+    document.getElementById('pregnantWomenCount').textContent = filteredMetrics.pregnant_women_count.toLocaleString();
+  }
+  if (document.getElementById('pwdMembersCount')) {
+    document.getElementById('pwdMembersCount').textContent = filteredMetrics.pwd_count.toLocaleString();
+  }
+
+  // Update total members and children counts
+  if (document.getElementById('totalMembersCount')) {
+    document.getElementById('totalMembersCount').textContent = filteredMetrics.totalFamilyMembers.toLocaleString();
+  }
+  if (document.getElementById('childrenCount')) {
+    document.getElementById('childrenCount').textContent = (filteredMetrics.clothing_inventory_children_0_5 + filteredMetrics.clothing_inventory_children_6_12 + filteredMetrics.clothing_inventory_children_13_17).toLocaleString();
   }
 
   // Update shelter info
@@ -1415,6 +1387,13 @@ function resetDSSToAllData() {
   if (document.getElementById('blanketSupply')) {
     document.getElementById('blanketSupply').textContent = originalMetrics.blankets_needed.toLocaleString();
   }
+  if (document.getElementById('firstAidKits')) {
+    document.getElementById('firstAidKits').textContent = originalMetrics.first_aid_kits_needed.toLocaleString();
+  }
+
+  // Validate original metrics and display results
+  const validationResults = validateDSSCalculations(originalMetrics);
+  displayValidationResults(validationResults);
 
   // Reset clothing inventory
   if (document.getElementById('adultClothes')) {
@@ -1428,6 +1407,22 @@ function resetDSSToAllData() {
   }
   if (document.getElementById('childClothes13_17')) {
     document.getElementById('childClothes13_17').textContent = originalMetrics.clothing_inventory_children_13_17.toLocaleString();
+  }
+
+  // Reset pregnant and PWD counts
+  if (document.getElementById('pregnantWomenCount')) {
+    document.getElementById('pregnantWomenCount').textContent = originalMetrics.pregnant_women_count.toLocaleString();
+  }
+  if (document.getElementById('pwdMembersCount')) {
+    document.getElementById('pwdMembersCount').textContent = originalMetrics.pwd_count.toLocaleString();
+  }
+
+  // Reset total members and children counts
+  if (document.getElementById('totalMembersCount')) {
+    document.getElementById('totalMembersCount').textContent = originalMetrics.totalFamilyMembers.toLocaleString();
+  }
+  if (document.getElementById('childrenCount')) {
+    document.getElementById('childrenCount').textContent = (originalMetrics.clothing_inventory_children_0_5 + originalMetrics.clothing_inventory_children_6_12 + originalMetrics.clothing_inventory_children_13_17).toLocaleString();
   }
 
   // Reset shelter info
@@ -1482,6 +1477,7 @@ function searchEvacuees() {
 
   // Calculate DSS metrics for searched evacuees
   let searchedEvacueeCount = 0;
+  let searchedTotalFamilyMembers = 0; // Track total family members for accurate calculations
   let searchedSeniorCount = 0;
   let searchedChild0_5Count = 0;
   let searchedChild6_12Count = 0;
@@ -1490,6 +1486,8 @@ function searchEvacuees() {
   let searchedFemaleCount = 0;
   let searchedDailyMeals = 0;
 
+  const visibleRows = [];
+  
   tableRows.forEach(row => {
     if (row.querySelector('td[colspan]')) {
       // Skip "No evacuees found" rows
@@ -1506,14 +1504,21 @@ function searchEvacuees() {
     row.style.display = isVisible ? '' : 'none';
 
     if (isVisible) {
+      visibleRows.push(row);
       // Count visible evacuees for DSS
       searchedEvacueeCount++;
       
       const ageCell = row.cells[3]; // Age is column 3 (0-indexed)
-      const genderCell = row.cells[4]; // Gender is column 4 (0-indexed)
+      const genderCell = row.cells[2]; // Gender is column 2 (0-indexed)
+      const membersCell = row.cells[4]; // Total Members is column 4 (0-indexed)
       
       const age = parseInt(ageCell.textContent.trim(), 10);
       const gender = genderCell.textContent.trim();
+      
+      // Get total family members from the Members column (column 4)
+      const membersText = membersCell ? membersCell.textContent.trim() : '';
+      const totalMembers = parseInt(membersText.match(/\d+/)?.[0] || '1', 10);
+      searchedTotalFamilyMembers += totalMembers;
       
       if (age >= 60) {
         searchedSeniorCount++;
@@ -1533,39 +1538,254 @@ function searchEvacuees() {
         searchedFemaleCount++;
       }
       
-      // Calculate meals for this evacuee
-      if (age <= 2) {
-        searchedDailyMeals += 6; // Infants: 6 small meals per day
-      } else if (age <= 12) {
-        searchedDailyMeals += 5; // Children: 3 meals + 2 snacks
-      } else if (age <= 17) {
-        searchedDailyMeals += 3; // Teens: 3 meals per day
-      } else {
-        searchedDailyMeals += 3; // Adults: 3 meals per day
-      }
+      // Calculate meals for this evacuee (age-based, multiplied by family size)
+      let mealsPerPerson = 3; // Default for adults
+      if (age <= 2) mealsPerPerson = 6; // Infants: 6 small meals
+      else if (age <= 12) mealsPerPerson = 5; // Children: 3 meals + 2 snacks
+      else if (age <= 17) mealsPerPerson = 3; // Teens: 3 meals
+      
+      searchedDailyMeals += mealsPerPerson * totalMembers;
     }
   });
 
+  // Apply sorting to visible rows if a sort is active
+  if (sortState.column >= 0 && visibleRows.length > 0) {
+    visibleRows.sort((a, b) => {
+      const aValue = getCellValue(a, sortState.column);
+      const bValue = getCellValue(b, sortState.column);
+      return compareValues(aValue, bValue, sortState.direction);
+    });
+    
+    // Reorder visible rows in the DOM
+    const tbody = document.querySelector('tbody');
+    visibleRows.forEach(row => tbody.appendChild(row));
+  }
+
   // Update DSS display with searched data
-  updateDSSForFilteredArea(searchedEvacueeCount, searchedSeniorCount, searchedChild0_5Count, searchedChild6_12Count, searchedChild13_17Count, searchedMaleCount, searchedFemaleCount, searchedDailyMeals, searchTerm ? `Search: "${searchTerm}"` : '');
+  updateDSSForFilteredArea(searchedEvacueeCount, searchedTotalFamilyMembers, searchedSeniorCount, searchedChild0_5Count, searchedChild6_12Count, searchedChild13_17Count, searchedMaleCount, searchedFemaleCount, searchedDailyMeals, searchTerm ? `Search: "${searchTerm}"` : '');
 
   // Show message if no results
-  const visibleRows = Array.from(tableRows).filter(row => 
+  const finalVisibleRows = Array.from(tableRows).filter(row => 
     row.style.display !== 'none' && !row.querySelector('td[colspan]')
   );
   
   const existingNoResults = document.querySelector('tbody tr td[colspan]');
-  if (visibleRows.length === 0 && !existingNoResults) {
+  if (finalVisibleRows.length === 0 && !existingNoResults) {
     const tbody = document.querySelector('tbody');
     const noResultsRow = document.createElement('tr');
     noResultsRow.innerHTML = `
-      <td colspan="9" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
+      <td colspan="12" style="text-align:center; color:#9ca3af; padding:12px 16px; font-size:12px;">
         No evacuees found matching "${searchTerm}"
       </td>
     `;
     tbody.appendChild(noResultsRow);
-  } else if (visibleRows.length > 0 && existingNoResults) {
+  } else if (finalVisibleRows.length > 0 && existingNoResults) {
     existingNoResults.parentElement.remove();
+  }
+}
+
+// Global sorting state
+let sortState = {
+  column: -1,
+  direction: 'asc'
+};
+
+// Main sorting function
+function sortTable(columnIndex) {
+  const table = document.querySelector('tbody');
+  const rows = Array.from(table.querySelectorAll('tr')).filter(row => 
+    !row.querySelector('td[colspan]') && row.style.display !== 'none'
+  );
+  
+  // Toggle sort direction if same column, otherwise default to ascending
+  if (sortState.column === columnIndex) {
+    sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState.column = columnIndex;
+    sortState.direction = 'asc';
+  }
+  
+  // Update header classes
+  updateSortHeaders(columnIndex);
+  
+  // Sort the rows
+  rows.sort((a, b) => {
+    const aValue = getCellValue(a, columnIndex);
+    const bValue = getCellValue(b, columnIndex);
+    return compareValues(aValue, bValue, sortState.direction);
+  });
+  
+  // Reorder the rows in the DOM
+  rows.forEach(row => table.appendChild(row));
+  
+  // Reapply any active filters
+  reapplyActiveFilters();
+}
+
+// Get cell value for sorting
+function getCellValue(row, columnIndex) {
+  const cell = row.cells[columnIndex];
+  if (!cell) return '';
+  
+  let value = cell.textContent.trim();
+  
+  // Handle special cases for different columns
+  switch(columnIndex) {
+    case 0: // ID - Extract numeric value
+      return parseInt(value.replace(/\D/g, ''), 10) || 0;
+    case 3: // Age
+      return parseInt(value, 10) || 0;
+    case 4: // Members - Extract the first number (total members)
+      const match = value.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    case 10: // Date
+      return new Date(value) || new Date(0);
+    default:
+      return value.toLowerCase(); // Text columns
+  }
+}
+
+// Compare values for sorting
+function compareValues(a, b, direction) {
+  let comparison = 0;
+  
+  if (typeof a === 'number' && typeof b === 'number') {
+    comparison = a - b;
+  } else if (a instanceof Date && b instanceof Date) {
+    comparison = a.getTime() - b.getTime();
+  } else {
+    comparison = a.toString().localeCompare(b.toString());
+  }
+  
+  return direction === 'desc' ? -comparison : comparison;
+}
+
+// Update sort header indicators
+function updateSortHeaders(activeColumn) {
+  const headers = document.querySelectorAll('th.sortable');
+  headers.forEach((header, index) => {
+    header.classList.remove('asc', 'desc', 'sorted');
+    if (index === activeColumn) {
+      header.classList.add(sortState.direction, 'sorted');
+    }
+  });
+}
+
+// Reapply active filters after sorting
+function reapplyActiveFilters() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const selectedArea = document.getElementById('evacuationAreaFilter').value;
+  
+  if (searchTerm) {
+    searchEvacuees();
+  } else if (selectedArea) {
+    filterByEvacuationArea();
+  }
+}
+
+// DSS Calculation Validation and Cross-Checks
+function validateDSSCalculations(metrics) {
+  const validationResults = {
+    isValid: true,
+    warnings: [],
+    errors: []
+  };
+
+  // Validate water requirements (minimum 4L per person)
+  if (metrics.daily_water_requirement < metrics.totalFamilyMembers * 4) {
+    validationResults.errors.push('Water requirement is below minimum standard (4L per person)');
+    validationResults.isValid = false;
+  }
+
+  // Validate meal calculations
+  const minimumMeals = metrics.totalFamilyMembers * 3; // 3 meals minimum per person
+  if (metrics.daily_meals_needed < minimumMeals) {
+    validationResults.warnings.push('Meal count seems low for the number of people');
+  }
+
+  // Validate hygiene kits minimum
+  if (metrics.hygiene_kits_needed < 1 && metrics.totalFamilyMembers > 0) {
+    validationResults.errors.push('At least 1 hygiene kit required when people are present');
+    validationResults.isValid = false;
+  }
+
+  // Validate blankets minimum
+  if (metrics.blankets_needed < 2 && metrics.totalFamilyMembers > 0) {
+    validationResults.errors.push('At least 2 blankets required when people are present');
+    validationResults.isValid = false;
+  }
+
+  // Cross-check: Total people vs aid ratios
+  const expectedHygieneKits = Math.max(1, Math.ceil(metrics.totalFamilyMembers * 0.8));
+  if (Math.abs(metrics.hygiene_kits_needed - expectedHygieneKits) > 1) {
+    validationResults.warnings.push('Hygiene kit calculation may be inconsistent');
+  }
+
+  const expectedBlankets = Math.max(2, Math.ceil(metrics.totalFamilyMembers * 0.7));
+  if (Math.abs(metrics.blankets_needed - expectedBlankets) > 1) {
+    validationResults.warnings.push('Blanket calculation may be inconsistent');
+  }
+
+  // Validate first aid kits
+  const expectedFirstAid = Math.ceil(metrics.totalFamilyMembers / 10);
+  if (metrics.first_aid_kits_needed !== expectedFirstAid) {
+    validationResults.warnings.push('First aid kit calculation may be inconsistent');
+  }
+
+  return validationResults;
+}
+
+// Display validation results
+function displayValidationResults(validationResults) {
+  // Remove any existing validation alerts
+  const existingAlerts = document.querySelectorAll('.dss-validation-alert');
+  existingAlerts.forEach(alert => alert.remove());
+
+  if (validationResults.errors.length > 0 || validationResults.warnings.length > 0) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'dss-validation-alert';
+    alertDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${validationResults.isValid ? '#fef3c7' : '#fee2e2'};
+      color: ${validationResults.isValid ? '#92400e' : '#991b1b'};
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid ${validationResults.isValid ? '#f59e0b' : '#ef4444'};
+      font-size: 12px;
+      max-width: 300px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    `;
+
+    let content = `<strong>DSS Validation ${validationResults.isValid ? 'Warnings' : 'Errors'}:</strong><br>`;
+    
+    if (validationResults.errors.length > 0) {
+      content += '<br><strong>Errors:</strong><ul style="margin: 4px 0; padding-left: 16px;">';
+      validationResults.errors.forEach(error => {
+        content += `<li>${error}</li>`;
+      });
+      content += '</ul>';
+    }
+    
+    if (validationResults.warnings.length > 0) {
+      content += '<br><strong>Warnings:</strong><ul style="margin: 4px 0; padding-left: 16px;">';
+      validationResults.warnings.forEach(warning => {
+        content += `<li>${warning}</li>`;
+      });
+      content += '</ul>';
+    }
+
+    alertDiv.innerHTML = content;
+    document.body.appendChild(alertDiv);
+
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.parentNode.removeChild(alertDiv);
+      }
+    }, 8000);
   }
 }
 
@@ -1635,9 +1855,109 @@ function loadResidentsByPurok() {
 
         currentResidents.forEach(resident => {
 
-          const item = document.createElement('div');
+          const familyCard = document.createElement('div');
 
-          item.style.cssText = 'padding:8px 0; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center;';
+          familyCard.style.cssText = 'background:white; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:12px; overflow:hidden;';
+
+          
+
+          // Build family members HTML
+
+          let familyMembersHtml = '';
+
+          if (resident.family_members && resident.family_members.length > 0) {
+
+            resident.family_members.forEach(member => {
+
+              const memberIcon = member.type === 'Family Head' ? 'home' : 
+
+                               member.type === 'Wife' ? 'female' :
+
+                               member.type === 'Son' || member.type === 'Grandfather' ? 'male' :
+
+                               member.type === 'Daughter' || member.type === 'Grandmother' ? 'female' : 'user';
+
+              const memberColor = member.type === 'Family Head' ? '#0ea5a0' :
+
+                                member.type === 'Wife' ? '#ec4899' :
+
+                                member.type === 'Son' || member.type === 'Grandfather' ? '#3b82f6' :
+
+                                member.type === 'Daughter' || member.type === 'Grandmother' ? '#f43f5e' : '#6b7280';
+
+              familyMembersHtml += `
+
+                <div style="display:flex; align-items:center; gap:6px; padding:4px 0; font-size:12px; color:#374151;">
+
+                  <i class="fas fa-${memberIcon}" style="color:${memberColor}; font-size:10px; width:12px;"></i>
+
+                  <span>${member.name}</span>
+
+                  <span style="color:#6b7280;">(${member.age}yrs)</span>
+
+                  ${member.pwd ? '<span style="background:#e0e7ff; color:#6366f1; padding:1px 4px; border-radius:4px; font-size:9px;">PWD</span>' : ''}
+
+                  ${member.pregnant ? '<span style="background:#fce7f3; color:#ec4899; padding:1px 4px; border-radius:4px; font-size:9px;">Preg</span>' : ''}
+
+                </div>
+
+              `;
+
+            });
+
+          }
+
+          
+
+          // Build aid needs summary
+
+          let aidNeedsHtml = '';
+
+          if (resident.aid_needs) {
+
+            const aid = resident.aid_needs;
+
+            aidNeedsHtml = `
+
+              <div style="background:#f8fafc; padding:8px; border-radius:6px; margin-top:8px;">
+
+                <div style="font-size:11px; font-weight:600; color:#374151; margin-bottom:4px;">
+
+                  <i class="fas fa-box" style="color:#0ea5a0; margin-right:4px;"></i>Aid Requirements:
+
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; font-size:10px; color:#6b7280;">
+
+                  <div>🍽️ ${aid.daily_meals} meals/day</div>
+
+                  <div>💧 ${aid.water_liters}L water/day</div>
+
+                  <div>🧼 ${aid.hygiene_kits} hygiene kits</div>
+
+                  <div>🛏️ ${aid.blankets} blankets</div>
+
+                </div>
+
+                ${aid.special_needs && aid.special_needs.length > 0 ? `
+
+                  <div style="margin-top:4px; padding:4px 6px; background:#fef3c7; border-radius:4px; font-size:9px; color:#92400e;">
+
+                    <i class="fas fa-exclamation-triangle" style="margin-right:2px;"></i>
+
+                    ${aid.special_needs.join(', ')}
+
+                  </div>
+
+                ` : ''}
+
+              </div>
+
+            `;
+
+          }
+
+          
 
           // Add visual indicator for evacuation status
 
@@ -1647,25 +1967,76 @@ function loadResidentsByPurok() {
 
             '<span style="color:#16a34a; font-size:11px; margin-left:8px;"><i class="fas fa-check-circle"></i> Available</span>';
 
-          item.innerHTML = `
+          
 
-            <span style="font-size:14px; color:#374151;">${resident.name} ${resident.qty ? resident.qty : ''} <span style="color:#6b7280; font-size:12px;">(${resident.age} yrs, ${resident.gender})</span></span>
+          familyCard.innerHTML = `
 
-            ${statusIndicator}
+            <div style="padding:12px; border-bottom:1px solid #f3f4f6;">
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+
+                <div>
+
+                  <div style="font-weight:600; color:#1f2937; font-size:14px; display:flex; align-items:center; gap:6px;">
+
+                    <i class="fas fa-home" style="color:#0ea5a0; font-size:12px;"></i>
+
+                    ${resident.family_head_name}
+
+                    <span style="background:#e5e7eb; color:#374151; padding:2px 6px; border-radius:10px; font-size:11px; font-weight:500;">
+
+                      ${resident.total_members} members
+
+                    </span>
+
+                  </div>
+
+                  <div style="color:#6b7280; font-size:12px; margin-top:2px;">
+
+                    ${resident.contact_number ? `📱 ${resident.contact_number}` : 'No contact info'}
+
+                  </div>
+
+                </div>
+
+                ${statusIndicator}
+
+              </div>
+
+            </div>
+
+            
+
+            <div style="padding:12px;">
+
+              <div style="font-size:11px; font-weight:600; color:#374151; margin-bottom:6px;">
+
+                <i class="fas fa-users" style="color:#0ea5a0; margin-right:4px;"></i>Family Members:
+
+              </div>
+
+              ${familyMembersHtml || '<div style="color:#9ca3af; font-size:12px; font-style:italic;">No family members data available</div>'}
+
+              ${aidNeedsHtml}
+
+            </div>
 
           `;
 
-          residentsList.appendChild(item);
+          residentsList.appendChild(familyCard);
 
         });
 
         
 
-        residentCount.textContent = `${currentResidents.length} resident${currentResidents.length > 1 ? 's' : ''}`;
+        const totalFamilyMembers = currentResidents.reduce((sum, resident) => sum + (resident.total_members || 1), 0);
+
+        residentCount.textContent = `${currentResidents.length} familie${currentResidents.length > 1 ? 's' : ''} (${totalFamilyMembers} member${totalFamilyMembers > 1 ? 's' : ''})`;
 
         residentsData.value = JSON.stringify(currentResidents);
 
         // Check form validity instead of just enabling button
+
         checkFormValidity();
 
       } else {
@@ -1762,7 +2133,7 @@ function loadFacilityCapacity() {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <span style="font-weight:600; color:#374151;">Available:</span>
               <span style="color:${facility.available_spaces > 0 ? '#16a34a' : '#dc2626'}; font-weight:600;">
-                ${facility.available_spaces} spaces
+                ${facility.available_spaces} families
               </span>
             </div>
             <div style="margin-top:6px;">
@@ -2135,6 +2506,9 @@ function hideReleasedEvacuees() {
 document.addEventListener('DOMContentLoaded', function() {
   hideReleasedEvacuees();
   
+  // Load evacuation area analytics
+  loadEvacuationAreaAnalytics();
+  
   // Auto-refresh capacity display if evacuation area is pre-selected
   const evacuationAreaSelect = document.getElementById('evacuationAreaSelect');
   if (evacuationAreaSelect && evacuationAreaSelect.value) {
@@ -2142,8 +2516,241 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// View Family Details Function
+function viewFamilyDetails(id, familyHeadName, gender, age, evacuationStatus, evacuationArea, roomNumber, evacuationDate, totalMembers, dependentCount, contactNumber, purok, hasPregnant, hasPWD) {
+    // Create a detailed family view modal with all family members
+    const modalOverlay = document.createElement('div');
+    modalOverlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(13, 27, 42, 0.55);
+        backdrop-filter: blur(2px);
+        z-index: 500;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const modalBox = document.createElement('div');
+    modalBox.style.cssText = `
+        background: white;
+        border-radius: 18px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 0;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    `;
+    
+    // Fetch both family data and analytics data for accurate counts
+    Promise.all([
+        fetch(`/api/residents/by-purok?purok=${encodeURIComponent(purok)}`).then(response => response.json()),
+        fetch('/api/analytics-data').then(response => response.json())
+    ])
+    .then(([familyData, analyticsData]) => {
+        const families = familyData.residents || [];
+        const family = families.find(f => f.family_head_name === familyHeadName);
+        
+        // Get accurate DSS metrics from analytics data
+        const dssMetrics = analyticsData.dssMetrics || {};
+        
+        if (family) {
+                const membersHTML = family.family_members.map((member, index) => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid #f3f4f6;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 120px;">
+                            <div style="font-weight: 600; color: #1f2937; font-size: 14px;">${member.fullname}</div>
+                                <div style="font-size: 12px; color: #6b7280;">${member.age} years</div>
+                        </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${member.pwd ? '<span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500;"><i class="fas fa-wheelchair" style="font-size: 8px;"></i> PWD</span>' : ''}
+                            ${member.pregnant ? '<span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500;"><i class="fas fa-baby" style="font-size: 8px;"></i> Pregnant</span>' : ''}
+                            <i class="fas fa-chevron-down" id="chevron-${index}" style="color: #6b7280; font-size: 12px; margin-left: 4px; transition: transform 0.2s ease;"></i>
+                        </div>
+                    </div>
+                    <div id="member-details-${index}" style="display: none; padding: 16px; background: #f8fafc; border-radius: 8px; margin: 8px 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+                            <div>
+                                <strong style="color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Relationship:</strong>
+                                <div style="font-size: 14px; color: #1f2937; font-weight: 500;">${member.relationship}</div>
+                            </div>
+                            <div>
+                                <strong style="color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Age:</strong>
+                                <div style="font-size: 14px; color: #1f2937;">${member.age} years</div>
+                            </div>
+                            <div>
+                                <strong style="color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Gender:</strong>
+                                <div style="font-size: 14px; color: #1f2937;">${member.gender}</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+                            <div>
+                                <strong style="color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Special Needs:</strong>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    ${member.pwd ? '<span style="background: #e0e7ff; color: #6366f1; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 500;"><i class="fas fa-wheelchair" style="font-size: 10px; margin-right: 4px;"></i>PWD</span>' : '<span style="color: #6b7280; font-size: 11px;">No disability</span>'}
+                                    ${member.pregnant ? '<span style="background: #fce7f3; color: #ec4899; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 500;"><i class="fas fa-baby" style="font-size: 10px; margin-right: 4px;"></i>Pregnant</span>' : '<span style="color: #6b7280; font-size: 11px;">Not pregnant</span>'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 12px;">
+                            <button onclick="toggleFamilyMember(${index})" style="background: #6b7280; color: #374151; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                <i class="fas fa-chevron-up" id="chevron-up-${index}" style="margin-right: 4px;"></i>
+                                Show Less
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                modalBox.innerHTML = `
+                    <div style="padding: 24px 28px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <div>
+                                <h2 style="color: #1f2937; font-size: 20px; font-weight: 700; margin: 0;">
+                                    <i class="fas fa-home" style="color: #0ea5a0; margin-right: 8px;"></i>
+                                    ${familyHeadName}
+                                </h2>
+                                <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">
+                                    ${gender} • ${age} years • ${totalMembers} members • ${purok}
+                                </div>
+                            </div>
+                            <button onclick="closeFamilyModal()" style="background: none; border: none; font-size: 24px; color: #6b7280; cursor: pointer; padding: 4px;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <h3 style="color: #1f2937; font-size: 16px; font-weight: 600; margin-bottom: 12px;">Family Demographics</h3>
+                            <div style="color: #6b7280; font-size: 12px; margin-bottom: 8px;">Counts reflect this family's member demographics</div>
+                        </div>
+                        
+                        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+                                <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 24px; font-weight: 600; color: #0ea5a0; margin-bottom: 8px;">
+                                        <i class="fas fa-users" style="font-size: 20px; color: #0ea5a0; margin-bottom: 8px;"></i>
+                                    </div>
+                                    <div style="font-size: 14px; color: #1f2937; font-weight: 500;">Total Members</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #0ea5a0;">${totalMembers}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 24px; font-weight: 600; color: #0ea5a0; margin-bottom: 8px;">
+                                        <i class="fas fa-baby-carriage" style="font-size: 20px; color: #ec4899; margin-bottom: 8px;"></i>
+                                    </div>
+                                    <div style="font-size: 14px; color: #1f2937; font-weight: 500;">Pregnant Women</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #ec4899;">${family.family_members.filter(m => m.pregnant).length}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 24px; font-weight: 600; color: #e0e7ff; margin-bottom: 8px;">
+                                        <i class="fas fa-wheelchair" style="font-size: 20px; color: #e0e7ff; margin-bottom: 8px;"></i>
+                                    </div>
+                                    <div style="font-size: 14px; color: #1f2937; font-weight: 500;">PWD Members</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #e0e7ff;">${family.family_members.filter(m => m.pwd).length}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 24px; font-weight: 600; color: #f59e0b; margin-bottom: 8px;">
+                                        <i class="fas fa-child" style="font-size: 20px; color: #3b82f6; margin-bottom: 8px;"></i>
+                                    </div>
+                                    <div style="font-size: 14px; color: #1f2937; font-weight: 500;">Children (0-17)</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #3b82f6;">${family.family_members.filter(m => m.age < 18).length}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 24px; font-weight: 600; color: #6366f1; margin-bottom: 8px;">
+                                        <i class="fas fa-user-clock" style="font-size: 20px; color: #6366f1; margin-bottom: 8px;"></i>
+                                    </div>
+                                    <div style="font-size: 14px; color: #1f2937; font-weight: 500;">Seniors (60+)</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #6366f1;">${family.family_members.filter(m => m.age >= 60).length}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                modalBox.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #6b7280;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #f59e0b; margin-bottom: 16px;"></i>
+                        <h3 style="color: #1f2937; margin-bottom: 16px;">Family Not Found</h3>
+                        <p>Unable to find family information for <strong>${familyHeadName}</strong></p>
+                        <button onclick="closeFamilyModal()" style="background: #0ea5a0; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 16px;">
+                            Close
+                        </button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching family details:', error);
+            modalBox.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #dc2626;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #f59e0b; margin-bottom: 16px;"></i>
+                    <h3 style="color: #1f2937; margin-bottom: 16px;">Error Loading Family</h3>
+                    <p>Unable to load family information. Please try again.</p>
+                    <button onclick="closeFamilyModal()" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 16px;">
+                        Close
+                    </button>
+                </div>
+            `;
+        });
+    
+    modalOverlay.appendChild(modalBox);
+    document.body.appendChild(modalOverlay);
+    
+    // Show modal
+    modalOverlay.style.display = 'flex';
+    
+    // Close modal when clicking outside
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            closeFamilyModal();
+        }
+    });
+}
+
+// Close Family Modal Function
+function closeFamilyModal() {
+    const modalOverlay = document.querySelector('div[style*="position: fixed"]');
+    if (modalOverlay) {
+        modalOverlay.remove();
+    }
+}
+
+// Toggle Family Member Details Function
+function toggleFamilyMember(index) {
+    const detailsDiv = document.getElementById(`member-details-${index}`);
+    const chevronDown = document.getElementById(`chevron-${index}`);
+    const chevronUp = document.getElementById(`chevron-up-${index}`);
+    
+    if (detailsDiv.style.display === 'none') {
+        // Show details
+        detailsDiv.style.display = 'block';
+        if (chevronDown) {
+            chevronDown.style.display = 'none';
+        }
+        if (chevronUp) {
+            chevronUp.style.display = 'inline-block';
+        }
+    } else {
+        // Hide details
+        detailsDiv.style.display = 'none';
+        if (chevronDown) {
+            chevronDown.style.display = 'inline-block';
+        }
+        if (chevronUp) {
+            chevronUp.style.display = 'none';
+        }
+    }
+}
+
 // View Evacuee Details Function
-function viewEvacueeDetails(id, fullname, age, gender, evacuationStatus, evacuationArea, roomNumber, evacuationDate) {
+function viewEvacueeDetails(id, fullname, age, gender, evacuationStatus, evacuationArea, roomNumber, evacuationDate, relationship, familyHeadName) {
   // Create a detailed view modal or alert with all evacuee information
   const detailsHTML = `
     <div style="max-width: 500px; margin: 0 auto;">
@@ -2156,6 +2763,14 @@ function viewEvacueeDetails(id, fullname, age, gender, evacuationStatus, evacuat
         <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
           <strong style="color: #666;">Full Name:</strong>
           <span>${fullname}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Relationship:</strong>
+          <span>${relationship || 'N/A'}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
+          <strong style="color: #666;">Family Head:</strong>
+          <span>${familyHeadName || 'N/A'}</span>
         </div>
         <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 8px;">
           <strong style="color: #666;">Age:</strong>
@@ -2531,7 +3146,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update calculations
                 updateAidCalculations();
                 updateDSSRecommendations();
-                drawAidDistributionChart();
                 
                 // Update timestamp
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
@@ -2545,30 +3159,70 @@ document.addEventListener('DOMContentLoaded', () => {
             const dssMetrics = @json($dssMetrics);
             
             // Update with real metrics from controller
-            document.getElementById('dailyMeals').textContent = dssMetrics.daily_meals_needed.toLocaleString();
-            document.getElementById('waterSupply').textContent = dssMetrics.daily_water_requirement.toLocaleString() + 'L';
-            document.getElementById('hygieneKits').textContent = dssMetrics.hygiene_kits_needed.toLocaleString();
-            document.getElementById('blanketSupply').textContent = dssMetrics.blankets_needed.toLocaleString();
-            
-            // Update clothing inventory
-            document.getElementById('adultClothes').textContent = dssMetrics.clothing_inventory_adult.toLocaleString();
-            document.getElementById('childClothes0_5').textContent = dssMetrics.clothing_inventory_children_0_5.toLocaleString();
-            document.getElementById('childClothes6_12').textContent = dssMetrics.clothing_inventory_children_6_12.toLocaleString();
-            document.getElementById('childClothes13_17').textContent = dssMetrics.clothing_inventory_children_13_17.toLocaleString();
+            if (document.getElementById('dailyMeals')) {
+                document.getElementById('dailyMeals').textContent = dssMetrics.daily_meals_needed.toLocaleString();
+            }
+            if (document.getElementById('waterSupply')) {
+                document.getElementById('waterSupply').textContent = dssMetrics.daily_water_requirement.toLocaleString() + 'L';
+            }
+            if (document.getElementById('hygieneKits')) {
+                document.getElementById('hygieneKits').textContent = dssMetrics.hygiene_kits_needed.toLocaleString();
+            }
+            if (document.getElementById('blanketSupply')) {
+                document.getElementById('blanketSupply').textContent = dssMetrics.blankets_needed.toLocaleString();
+            }
+            if (document.getElementById('firstAidKits')) {
+                document.getElementById('firstAidKits').textContent = dssMetrics.first_aid_kits_needed.toLocaleString();
+            }
+
+            // Update demographic counts
+            if (document.getElementById('pregnantWomenCount')) {
+                document.getElementById('pregnantWomenCount').textContent = dssMetrics.pregnant_women_count.toLocaleString();
+            }
+            if (document.getElementById('pwdMembersCount')) {
+                document.getElementById('pwdMembersCount').textContent = dssMetrics.pwd_count.toLocaleString();
+            }
+            if (document.getElementById('totalMembersCount')) {
+                document.getElementById('totalMembersCount').textContent = dssMetrics.totalFamilyMembers.toLocaleString();
+            }
+            if (document.getElementById('childrenCount')) {
+                document.getElementById('childrenCount').textContent = (dssMetrics.clothing_inventory_children_0_5 + dssMetrics.clothing_inventory_children_6_12 + dssMetrics.clothing_inventory_children_13_17).toLocaleString();
+            }
+            if (document.getElementById('childClothes0_5')) {
+                document.getElementById('childClothes0_5').textContent = dssMetrics.clothing_inventory_children_0_5.toLocaleString();
+            }
+            if (document.getElementById('childClothes6_12')) {
+                document.getElementById('childClothes6_12').textContent = dssMetrics.clothing_inventory_children_6_12.toLocaleString();
+            }
+            if (document.getElementById('childClothes13_17')) {
+                document.getElementById('childClothes13_17').textContent = dssMetrics.clothing_inventory_children_13_17.toLocaleString();
+            }
             
             // Update available spaces
-            document.getElementById('availableSpaces').textContent = dssMetrics.available_spaces.toLocaleString();
+            if (document.getElementById('availableSpaces')) {
+                document.getElementById('availableSpaces').textContent = dssMetrics.available_spaces.toLocaleString();
+            }
             
             // Update shelter status with real occupancy rate
             const occupancyRate = Math.round(dssMetrics.occupancy_rate);
-            document.getElementById('shelterStatus').textContent = `${occupancyRate}% occupied. ${occupancyRate > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.'}`;
+            if (document.getElementById('shelterStatus')) {
+                document.getElementById('shelterStatus').textContent = `${occupancyRate}% occupied. ${occupancyRate > 80 ? 'Critical capacity - prepare overflow areas.' : 'Monitor capacity closely.'}`;
+            }
             
             // Update supply levels
-            document.getElementById('foodCoverage').textContent = Math.round(dssMetrics.food_supply_coverage) + '%';
-            document.getElementById('foodBar').style.width = dssMetrics.food_supply_coverage + '%';
+            if (document.getElementById('foodCoverage')) {
+                document.getElementById('foodCoverage').textContent = Math.round(dssMetrics.food_supply_coverage) + '%';
+            }
+            if (document.getElementById('foodBar')) {
+                document.getElementById('foodBar').style.width = dssMetrics.food_supply_coverage + '%';
+            }
             
-            document.getElementById('medicalStock').textContent = Math.round(dssMetrics.medical_supply_level) + '%';
-            document.getElementById('medicalBar').style.width = dssMetrics.medical_supply_level + '%';
+            if (document.getElementById('medicalStock')) {
+                document.getElementById('medicalStock').textContent = Math.round(dssMetrics.medical_supply_level) + '%';
+            }
+            if (document.getElementById('medicalBar')) {
+                document.getElementById('medicalBar').style.width = dssMetrics.medical_supply_level + '%';
+            }
         }
 
         function updateDSSRecommendations() {
@@ -2638,76 +3292,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Update DOM elements
-            document.getElementById('foodStatus').textContent = foodStatus;
-            document.getElementById('clothingNeeds').textContent = clothingNeed;
-            document.getElementById('medicalAlert').textContent = medicalAlert;
+            const foodStatusEl = document.getElementById('foodStatus');
+            if (foodStatusEl) foodStatusEl.textContent = foodStatus;
             
-            document.getElementById('priority1').textContent = priorities[0];
-            document.getElementById('priority2').textContent = priorities[1];
-            document.getElementById('priority3').textContent = priorities[2];
-            document.getElementById('priority4').textContent = priorities[3];
+            const clothingNeedsEl = document.getElementById('clothingNeeds');
+            if (clothingNeedsEl) clothingNeedsEl.textContent = clothingNeed;
+            
+            const medicalAlertEl = document.getElementById('medicalAlert');
+            if (medicalAlertEl) medicalAlertEl.textContent = medicalAlert;
+            
+            // Update priority elements if they exist
+            const priority1El = document.getElementById('priority1');
+            if (priority1El) priority1El.textContent = priorities[0];
+            
+            const priority2El = document.getElementById('priority2');
+            if (priority2El) priority2El.textContent = priorities[1];
+            
+            const priority3El = document.getElementById('priority3');
+            if (priority3El) priority3El.textContent = priorities[2];
+            
+            const priority4El = document.getElementById('priority4');
+            if (priority4El) priority4El.textContent = priorities[3];
         }
 
-        function drawAidDistributionChart() {
-            const canvas = document.getElementById('aidDistributionChart');
-            const ctx = canvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Sample data for aid distribution
-            const data = [
-                { label: 'Food', value: 35, color: '#10b981' },
-                { label: 'Water', value: 25, color: '#3b82f6' },
-                { label: 'Clothing', value: 20, color: '#8b5cf6' },
-                { label: 'Medical', value: 15, color: '#ef4444' },
-                { label: 'Other', value: 5, color: '#f59e0b' }
-            ];
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = Math.min(centerX, centerY) - 40;
-            
-            let currentAngle = -Math.PI / 2;
-            
-            data.forEach((segment, index) => {
-                const sliceAngle = (segment.value / 100) * 2 * Math.PI;
-                
-                // Draw pie slice
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-                ctx.lineTo(centerX, centerY);
-                ctx.fillStyle = segment.color;
-                ctx.fill();
-                
-                // Draw label
-                const labelAngle = currentAngle + sliceAngle / 2;
-                const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
-                const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
-                
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 11px DM Sans';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(segment.value + '%', labelX, labelY);
-                
-                currentAngle += sliceAngle;
-            });
-            
-            // Draw legend
-            ctx.font = '11px DM Sans';
-            ctx.textAlign = 'left';
-            let legendY = 20;
-            
-            data.forEach(segment => {
-                ctx.fillStyle = segment.color;
-                ctx.fillRect(10, legendY - 8, 12, 12);
-                
-                ctx.fillStyle = '#374151';
-                ctx.fillText(segment.label + ' (' + segment.value + '%)', 28, legendY);
-                legendY += 20;
-            });
-        }
 
         function generateAidDistributionPlan() {
             showToast('Generating aid distribution plan...');
@@ -3029,6 +3636,471 @@ Quality Improvements:
             URL.revokeObjectURL(url);
         }
 
+        // Evacuation Area Analytics Functions
+        function loadEvacuationAreaAnalytics() {
+            const evacuees = @json($evacuees);
+            const facilities = @json($facilities);
+            const dssMetrics = @json($dssMetrics);
+            
+            // Analyze data by evacuation area using accurate data
+            const areaAnalysis = analyzeEvacuationAreas(evacuees, facilities, dssMetrics);
+            
+            // Display analytics
+            displayEvacuationAreaAnalytics(areaAnalysis, dssMetrics);
+        }
+
+        function analyzeEvacuationAreas(evacuees, facilities, dssMetrics) {
+            // Group evacuees by evacuation area
+            const areaGroups = {};
+            
+            evacuees.forEach(evacuee => {
+                const area = evacuee.evacuation_area || 'Unknown';
+                if (!areaGroups[area]) {
+                    areaGroups[area] = {
+                        area: area,
+                        evacuees: [],
+                        totalMembers: 0,
+                        maleCount: 0,
+                        femaleCount: 0,
+                        seniorCount: 0,
+                        childCount: 0,
+                        infantCount: 0,
+                        pregnantCount: 0,
+                        pwdCount: 0,
+                        rooms: new Set(),
+                        dailyMealsNeeded: 0,
+                        waterNeeded: 0,
+                        hygieneKitsNeeded: 0,
+                        blanketsNeeded: 0
+                    };
+                }
+                
+                const group = areaGroups[area];
+                group.evacuees.push(evacuee);
+                group.totalMembers += evacuee.total_members || 1;
+                
+                // Count demographics from family members for accuracy
+                if (evacuee.family_members && Array.isArray(evacuee.family_members)) {
+                    evacuee.family_members.forEach(member => {
+                        const age = parseInt(member.age) || 0;
+                        const gender = member.gender || 'Male';
+                        
+                        if (gender === 'Male') group.maleCount++;
+                        else group.femaleCount++;
+                        
+                        if (age >= 60) group.seniorCount++;
+                        else if (age < 18) group.childCount++;
+                        if (age <= 5) group.infantCount++;
+                        
+                        if (member.pregnant) group.pregnantCount++;
+                        if (member.pwd) group.pwdCount++;
+                        
+                        // Calculate needs based on actual family member ages
+                        group.dailyMealsNeeded += calculateDailyMeals(age, 1);
+                        group.waterNeeded += 4; // 4 liters per person per day
+                        group.hygieneKitsNeeded += Math.ceil(1 * 0.8);
+                        group.blanketsNeeded += Math.ceil(1 * 0.7);
+                    });
+                } else {
+                    // Fallback to family head data if family members not available
+                    if (evacuee.gender === 'Male') group.maleCount++;
+                    else group.femaleCount++;
+                    
+                    if (evacuee.age >= 60) group.seniorCount++;
+                    else if (evacuee.age < 18) group.childCount++;
+                    if (evacuee.age <= 5) group.infantCount++;
+                    
+                    group.pregnantCount += evacuee.pregnant_count || 0;
+                    group.pwdCount += evacuee.pwd_count || 0;
+                    
+                    // Calculate needs
+                    const familySize = evacuee.total_members || 1;
+                    group.dailyMealsNeeded += calculateDailyMeals(evacuee.age, familySize);
+                    group.waterNeeded += familySize * 4; // 4 liters per person per day
+                    group.hygieneKitsNeeded += Math.ceil(familySize * 0.8);
+                    group.blanketsNeeded += Math.ceil(familySize * 0.7);
+                }
+                
+                if (evacuee.room_number) group.rooms.add(evacuee.room_number);
+            });
+            
+            // Convert to array and add facility info
+            const areas = Object.values(areaGroups);
+            
+            // Add facility capacity information
+            areas.forEach(area => {
+                const facility = facilities.find(f => f.name === area.area);
+                if (facility) {
+                    area.capacity = facility.capacity || 0;
+                    area.available_spaces = facility.available_spaces || 0;
+                    area.occupancy_rate = area.capacity > 0 ? (area.totalMembers / area.capacity) * 100 : 0;
+                } else {
+                    area.capacity = 'Unknown';
+                    area.available_spaces = 'Unknown';
+                    area.occupancy_rate = 0;
+                }
+                
+                // Calculate aid priority based on multiple factors
+                area.aidPriority = calculateAidPriority(area);
+                
+                // Generate specific recommendations
+                area.recommendations = generateAreaRecommendations(area);
+            });
+            
+            // Sort by aid priority (highest first)
+            areas.sort((a, b) => b.aidPriority - a.aidPriority);
+            
+            return areas;
+        }
+
+        function calculateDailyMeals(age, familySize) {
+            let mealsPerPerson = 3; // Default for adults
+            
+            if (age <= 2) mealsPerPerson = 6; // Infants: 6 small meals
+            else if (age <= 12) mealsPerPerson = 5; // Children: 3 meals + 2 snacks
+            else if (age <= 17) mealsPerPerson = 3; // Teens: 3 meals
+            
+            return mealsPerPerson * familySize;
+        }
+
+        function calculateAidPriority(area) {
+            let priority = 0;
+            
+            // High occupancy increases priority
+            if (area.occupancy_rate > 90) priority += 30;
+            else if (area.occupancy_rate > 75) priority += 20;
+            else if (area.occupancy_rate > 50) priority += 10;
+            
+            // Vulnerable populations increase priority
+            if (area.seniorCount > 0) priority += area.seniorCount * 3;
+            if (area.infantCount > 0) priority += area.infantCount * 4;
+            if (area.pregnantCount > 0) priority += area.pregnantCount * 5;
+            if (area.pwdCount > 0) priority += area.pwdCount * 4;
+            
+            // Large populations increase priority
+            if (area.totalMembers > 50) priority += 15;
+            else if (area.totalMembers > 25) priority += 10;
+            else if (area.totalMembers > 10) priority += 5;
+            
+            return Math.min(priority, 100); // Cap at 100
+        }
+
+        function generateAreaRecommendations(area) {
+            const recommendations = [];
+            
+            // Capacity recommendations
+            if (area.occupancy_rate > 90) {
+                recommendations.push({
+                    type: 'critical',
+                    icon: 'exclamation-triangle',
+                    text: `Critical overcrowding at ${Math.round(area.occupancy_rate)}%. Activate overflow shelters immediately.`
+                });
+            } else if (area.occupancy_rate > 75) {
+                recommendations.push({
+                    type: 'warning',
+                    icon: 'exclamation-circle',
+                    text: `High occupancy at ${Math.round(area.occupancy_rate)}%. Prepare backup facilities.`
+                });
+            }
+            
+            // Vulnerable group recommendations
+            if (area.infantCount > 0) {
+                recommendations.push({
+                    type: 'info',
+                    icon: 'baby',
+                    text: `Urgent: Baby formula, diapers, and infant care supplies needed for ${area.infantCount} infants.`
+                });
+            }
+            
+            if (area.seniorCount > 0) {
+                recommendations.push({
+                    type: 'info',
+                    icon: 'user-clock',
+                    text: `Elderly care: Medication management and mobility assistance for ${area.seniorCount} seniors.`
+                });
+            }
+            
+            if (area.pregnantCount > 0) {
+                recommendations.push({
+                    type: 'info',
+                    icon: 'baby-carriage',
+                    text: `Maternal care: Prenatal supplies and monitoring for ${area.pregnantCount} pregnant women.`
+                });
+            }
+            
+            // Supply recommendations
+            if (area.dailyMealsNeeded > 100) {
+                recommendations.push({
+                    type: 'info',
+                    icon: 'utensils',
+                    text: `High food demand: ${area.dailyMealsNeeded} daily meals required. Consider additional kitchen facilities.`
+                });
+            }
+            
+            if (area.waterNeeded > 200) {
+                recommendations.push({
+                    type: 'info',
+                    icon: 'tint',
+                    text: `Water supply: ${area.waterNeeded} liters daily needed. Ensure adequate water delivery.`
+                });
+            }
+            
+            return recommendations.slice(0, 3); // Return top 3 recommendations
+        }
+
+        function displayEvacuationAreaAnalytics(areas, dssMetrics) {
+            const analyticsContent = document.getElementById('analyticsContent');
+            
+            if (areas.length === 0) {
+                analyticsContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Evacuation Data Available</div>
+                        <div style="font-size: 14px;">Add evacuees to see evacuation area analytics.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Use accurate DSS metrics for summary cards
+            let html = `
+                <div style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <div style="background: var(--navy-light); color: var(--navy); padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${areas.length}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Active Areas</div>
+                        </div>
+                        <div style="background: var(--teal-light); color: var(--teal); padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${dssMetrics.total_family_members || areas.reduce((sum, area) => sum + area.totalMembers, 0)}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total People</div>
+                        </div>
+                        <div style="background: #fce7f3; color: #ec4899; padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${dssMetrics.pregnant_women_count || areas.reduce((sum, area) => sum + area.pregnantCount, 0)}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Pregnant Women</div>
+                        </div>
+                        <div style="background: #e0e7ff; color: #6366f1; padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${dssMetrics.disabled_persons_count || areas.reduce((sum, area) => sum + area.pwdCount, 0)}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">PWD Members</div>
+                        </div>
+                        <div style="background: var(--amber-light); color: var(--amber); padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${areas.reduce((sum, area) => sum + area.rooms.size, 0)}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Occupied Rooms</div>
+                        </div>
+                        <div style="background: var(--rose-light); color: var(--rose); padding: 16px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">${areas.filter(a => a.aidPriority >= 50).length}</div>
+                            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">High Priority Areas</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Demographics Summary using DSS Metrics -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <div style="background: #f0fdf4; color: #16a34a; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${dssMetrics.senior_count || 0}</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Seniors (60+)</div>
+                        </div>
+                        <div style="background: #fef3c7; color: #d97706; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${dssMetrics.child_count || 0}</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Children (&lt;18)</div>
+                        </div>
+                        <div style="background: #dbeafe; color: #2563eb; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${dssMetrics.male_count || 0}</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Male</div>
+                        </div>
+                        <div style="background: #fce7f3; color: #ec4899; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${dssMetrics.female_count || 0}</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Female</div>
+                        </div>
+                        <div style="background: #e0e7ff; color: #6366f1; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${dssMetrics.daily_meals_needed || 0}</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Daily Meals</div>
+                        </div>
+                        <div style="background: #ecfdf5; color: #059669; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">${(dssMetrics.daily_water_requirement || 0).toLocaleString()}L</div>
+                            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Water/Day</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; gap: 16px;">
+            `;
+            
+            areas.forEach((area, index) => {
+                const priorityColor = area.aidPriority >= 70 ? 'var(--rose)' : 
+                                   area.aidPriority >= 40 ? 'var(--amber)' : 'var(--green)';
+                
+                const occupancyColor = area.occupancy_rate > 90 ? 'var(--rose)' :
+                                    area.occupancy_rate > 75 ? 'var(--amber)' : 'var(--green)';
+                
+                html += `
+                    <div style="background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative;">
+                        ${area.aidPriority >= 50 ? '<div style="position: absolute; top: -8px; right: 16px; background: ' + priorityColor + '; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">HIGH PRIORITY</div>' : ''}
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="color: var(--text-dark); font-size: 18px; font-weight: 700; margin: 0 0 4px 0;">
+                                    <i class="fas fa-map-marker-alt" style="color: var(--teal); margin-right: 8px;"></i>${area.area}
+                                </h3>
+                                <div style="color: var(--text-muted); font-size: 14px;">
+                                    ${area.totalMembers} evacuees • ${area.rooms.size} rooms occupied
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 24px; font-weight: 700; color: ${priorityColor}; margin-bottom: 4px;">
+                                    ${Math.round(area.aidPriority)}%
+                                </div>
+                                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Aid Priority</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-users" style="color: var(--navy); margin-right: 4px;"></i>${area.totalMembers}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Total People</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-percentage" style="color: ${occupancyColor}; margin-right: 4px;"></i>${Math.round(area.occupancy_rate)}%
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Occupancy</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-baby" style="color: #ec4899; margin-right: 4px;"></i>${area.pregnantCount}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Pregnant</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-wheelchair" style="color: #6366f1; margin-right: 4px;"></i>${area.pwdCount}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">PWD</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-utensils" style="color: var(--teal); margin-right: 4px;"></i>${area.dailyMealsNeeded}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Daily Meals</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: var(--slate-light); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                                    <i class="fas fa-tint" style="color: var(--blue); margin-right: 4px;"></i>${area.waterNeeded}L
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Water/Day</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Demographics</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                    <div><i class="fas fa-mars" style="color: #3b82f6; margin-right: 4px;"></i>${area.maleCount} Male</div>
+                                    <div><i class="fas fa-venus" style="color: #ec4899; margin-right: 4px;"></i>${area.femaleCount} Female</div>
+                                    <div><i class="fas fa-user-clock" style="color: #6366f1; margin-right: 4px;"></i>${area.seniorCount} Seniors</div>
+                                    <div><i class="fas fa-child" style="color: #10b981; margin-right: 4px;"></i>${area.childCount} Children</div>
+                                    ${area.infantCount > 0 ? `<div style="grid-column: 1 / -1;"><i class="fas fa-baby" style="color: #f59e0b; margin-right: 4px;"></i>${area.infantCount} Infants (0-5)</div>` : ''}
+                                    ${area.pregnantCount > 0 ? `<div style="grid-column: 1 / -1;"><i class="fas fa-baby-carriage" style="color: #ec4899; margin-right: 4px;"></i>${area.pregnantCount} Pregnant</div>` : ''}
+                                    ${area.pwdCount > 0 ? `<div style="grid-column: 1 / -1;"><i class="fas fa-wheelchair" style="color: #8b5cf6; margin-right: 4px;"></i>${area.pwdCount} PWD</div>` : ''}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Supply Needs</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                    <div><i class="fas fa-box" style="color: var(--teal); margin-right: 4px;"></i>${area.hygieneKitsNeeded} Hygiene Kits</div>
+                                    <div><i class="fas fa-bed" style="color: var(--amber); margin-right: 4px;"></i>${area.blanketsNeeded} Blankets</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${area.recommendations.length > 0 ? `
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Priority Recommendations</div>
+                                <div style="display: grid; gap: 8px;">
+                                    ${area.recommendations.map(rec => `
+                                        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 12px; border-radius: 6px; font-size: 12px; 
+                                            ${rec.type === 'critical' ? 'background: #fef2f2; border-left: 3px solid var(--rose); color: #991b1b;' : 
+                                              rec.type === 'warning' ? 'background: #fffbeb; border-left: 3px solid var(--amber); color: #92400e;' : 
+                                              'background: #f0fdf4; border-left: 3px solid var(--green); color: #166534;'}">
+                                            <i class="fas fa-${rec.icon}" style="margin-top: 2px; flex-shrink: 0;"></i>
+                                            <span>${rec.text}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            analyticsContent.innerHTML = html;
+        }
+
+        function refreshAnalytics() {
+            const analyticsContent = document.getElementById('analyticsContent');
+            analyticsContent.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                    <div>Refreshing evacuation area analytics...</div>
+                </div>
+            `;
+            
+            // Fetch fresh data from backend
+            fetch('/api/analytics-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update global data with fresh data
+                        window.freshEvacuees = data.evacuees;
+                        window.freshFacilities = data.facilities;
+                        window.freshDssMetrics = data.dssMetrics;
+                        
+                        // Re-analyze and display with fresh data
+                        const areaAnalysis = analyzeEvacuationAreas(data.evacuees, data.facilities, data.dssMetrics);
+                        displayEvacuationAreaAnalytics(areaAnalysis, data.dssMetrics);
+                        
+                        // Update the main page statistics as well
+                        updatePageStatistics(data.dssMetrics, data.totalEvacuees, data.totalShelters);
+                        
+                        showToast('Evacuation area analytics refreshed with latest data');
+                    } else {
+                        throw new Error(data.message || 'Failed to refresh analytics');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing analytics:', error);
+                    analyticsContent.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--rose);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 12px;"></i>
+                            <div>Error refreshing analytics. Please try again.</div>
+                        </div>
+                    `;
+                    showToast('Error refreshing analytics', 'error');
+                });
+        }
+        
+        function updatePageStatistics(dssMetrics, totalEvacuees, totalShelters) {
+            // Update the main stats cards at the top of the page
+            const totalFamilyCard = document.querySelector('.stat-card.navy .stat-value');
+            const totalFacilitiesCard = document.querySelector('.stat-card.teal .stat-value');
+            
+            if (totalFamilyCard) {
+                totalFamilyCard.textContent = totalEvacuees.toLocaleString();
+            }
+            if (totalFacilitiesCard) {
+                totalFacilitiesCard.textContent = totalShelters.toLocaleString();
+            }
+            
+            // Update any DSS-related displays if they exist
+            if (typeof resetDSSToAllData === 'function') {
+                // Update the global dssMetrics variable used by DSS functions
+                window.updatedDssMetrics = dssMetrics;
+                resetDSSToAllData();
+            }
+        }
+
         function exportDSSReport() {
             showToast('Generating comprehensive evacuee needs report...');
             
@@ -3302,7 +4374,6 @@ Report Generated by: B-DEAMS Decision Support System`;
             setTimeout(() => {
                 updateAidCalculations();
                 updateDSSRecommendations();
-                drawAidDistributionChart();
             }, 500);
         });
 </script>

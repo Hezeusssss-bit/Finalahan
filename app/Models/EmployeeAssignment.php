@@ -11,7 +11,7 @@ class EmployeeAssignment extends Model
     
     protected $fillable = [
         'employee_id',
-        'evacuation_center',
+        'purok',
         'status',
         'responsibilities',
         'notes'

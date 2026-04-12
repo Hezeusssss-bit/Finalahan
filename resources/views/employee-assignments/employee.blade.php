@@ -367,10 +367,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <div class="assignment-card active">
             <div class="assignment-header">
               <div>
-                <div class="assignment-title">{{ $assignment->evacuation_center }}</div>
+                <div class="assignment-title">{{ $assignment->purok }}</div>
                 <div class="assignment-location">
                   <i class="fas fa-map-marker-alt"></i>
-                  {{ $assignment->evacuation_center }}
+                  {{ $assignment->purok }}
                 </div>
               </div>
               <span class="status-badge status-active">
@@ -428,10 +428,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
           <div class="assignment-card completed">
             <div class="assignment-header">
               <div>
-                <div class="assignment-title">{{ $assignment->evacuation_center }}</div>
+                <div class="assignment-title">{{ $assignment->purok }}</div>
                 <div class="assignment-location">
                   <i class="fas fa-map-marker-alt"></i>
-                  {{ $assignment->evacuation_center }}
+                  {{ $assignment->purok }}
                 </div>
               </div>
               <span class="status-badge status-completed">

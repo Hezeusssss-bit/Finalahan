@@ -37,7 +37,44 @@ class ProgramController extends Controller
         $upcomingRequirements = $this->calculateAssistanceRequirements($upcomingPrograms);
         $ongoingRequirements = $this->calculateAssistanceRequirements($ongoingPrograms);
         
-        return view('Program.program', compact('upcomingPrograms', 'ongoingPrograms', 'completedPrograms', 'upcomingRequirements', 'ongoingRequirements'));
+        // Get facilities for evacuee program selection
+        $facilities = \App\Models\Facility::select('id', 'name', 'capacity', 'status')
+            ->where('status', 'available')
+            ->orderBy('name')
+            ->get();
+        
+        // Get evacuee data for DSS analytics (same logic as EvacueeProgram)
+        $evacueesData = \App\Models\Evacuee::with('resident')
+            ->where('evacuation_status', '!=', 'Released')
+            ->get();
+        
+        $evacuees = collect();
+        
+        foreach ($evacueesData as $evacuee) {
+            $resident = $evacuee->resident;
+            
+            if ($resident) {
+                // Create evacuee record for family head
+                $evacuees->push([
+                    'id' => $evacuee->id,
+                    'family_head_name' => $resident->family_head_fullname ?? 'Unknown',
+                    'gender' => $resident->gender ?? 'Male',
+                    'age' => $resident->family_head_age ?? 0,
+                    'evacuation_status' => $evacuee->evacuation_status,
+                    'evacuation_area' => $evacuee->evacuation_area,
+                    'room_number' => $evacuee->room_number,
+                    'evacuation_date' => $evacuee->evacuation_date ? $evacuee->evacuation_date->format('Y-m-d') : null,
+                    'total_members' => $this->calculateTotalFamilyMembers($resident),
+                    'dependent_count' => $this->calculateTotalFamilyMembers($resident) - 1,
+                    'contact_number' => $resident->contact_number ?? '',
+                    'purok' => $resident->description ?? '',
+                    'has_pregnant' => $resident->wife_pregnant ?? false,
+                    'has_pwd' => $this->hasPWDInFamily($resident)
+                ]);
+            }
+        }
+        
+        return view('Program.program', compact('upcomingPrograms', 'ongoingPrograms', 'completedPrograms', 'upcomingRequirements', 'ongoingRequirements', 'facilities', 'evacuees'));
     }
     
     /**
@@ -230,6 +267,33 @@ class ProgramController extends Controller
         }
         
         return $requirements;
+    }
+    
+    /**
+     * Calculate total family members
+     */
+    private function calculateTotalFamilyMembers($resident)
+    {
+        $count = 0;
+        
+        if ($resident->family_head_fullname) $count++;
+        if ($resident->wife_fullname) $count++;
+        if ($resident->son_fullname) $count++;
+        if ($resident->daughter_fullname) $count++;
+        if ($resident->grandmother_fullname) $count++;
+        if ($resident->grandfather_fullname) $count++;
+        
+        return $count;
+    }
+    
+    /**
+     * Check if family has PWD member
+     */
+    private function hasPWDInFamily($resident)
+    {
+        return ($resident->family_head_pwd || $resident->wife_pwd || $resident->son_pwd || 
+                $resident->daughter_pwd || $resident->grandmother_pwd || $resident->grandfather_pwd ||
+                $resident->pwd_in_family === 'Yes');
     }
     
     /**
