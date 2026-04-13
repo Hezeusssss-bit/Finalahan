@@ -4,34 +4,64 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
     $message = $_POST['message'];
+    $messageType = $_POST['message_type'] ?? 'program_announcement';
     $selectedPurok = $_POST['purok'] ?? '';
+    $selectedEvacuationArea = $_POST['evacuation_area'] ?? '';
     
     $conn = new mysqli("localhost","root","","mswd");
     
     $url = "https://www.iprogsms.com/api/v1/sms_messages";
     $api_token = "4c6d97157878d401afe5862e8360c89034b1857b";
     
-    // Filter by selected purok if provided
-    if (!empty($selectedPurok)) {
-        $query = "SELECT contact_number FROM residents WHERE contact_number IS NOT NULL AND description = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $selectedPurok);
-        $result = $stmt->execute();
-        $result = $stmt->get_result();
-        echo "Sending program announcement to residents in: $selectedPurok\n";
+    // Handle different message types
+    if ($messageType === 'aid_distribution') {
+        // Handle evacuee aid distribution SMS
+        if (!empty($selectedEvacuationArea)) {
+            // Get evacuees from specific evacuation area
+            $query = "SELECT r.contact_number FROM residents r 
+                     JOIN evacuees e ON r.id = e.resident_id 
+                     WHERE r.contact_number IS NOT NULL 
+                     AND e.evacuation_area = ? 
+                     AND e.evacuation_status != 'Released'";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $selectedEvacuationArea);
+            $result = $stmt->execute();
+            $result = $stmt->get_result();
+            echo "Sending aid distribution notice to evacuees in: $selectedEvacuationArea\n";
+        } else {
+            // Get all evacuees
+            $query = "SELECT r.contact_number FROM residents r 
+                     JOIN evacuees e ON r.id = e.resident_id 
+                     WHERE r.contact_number IS NOT NULL 
+                     AND e.evacuation_status != 'Released'";
+            $result = $conn->query($query);
+            echo "Sending aid distribution notice to ALL evacuees\n";
+        }
     } else {
-        $query = "SELECT contact_number FROM residents WHERE contact_number IS NOT NULL";
-        $result = $conn->query($query);
-        echo "Sending program announcement to ALL residents\n";
+        // Handle regular program announcement SMS
+        if (!empty($selectedPurok)) {
+            $query = "SELECT contact_number FROM residents WHERE contact_number IS NOT NULL AND description = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $selectedPurok);
+            $result = $stmt->execute();
+            $result = $stmt->get_result();
+            echo "Sending program announcement to residents in: $selectedPurok\n";
+        } else {
+            $query = "SELECT contact_number FROM residents WHERE contact_number IS NOT NULL";
+            $result = $conn->query($query);
+            echo "Sending program announcement to ALL residents\n";
+        }
     }
 
     // Debug: Check how many residents we found
     $residentCount = $result->num_rows;
 
     echo "<div class='output-container'>";
-    echo "<div class='output-header'>Program Announcement Transmission Log</div>";
+    $outputHeader = ($messageType === 'aid_distribution') ? 'Aid Distribution SMS Transmission Log' : 'Program Announcement Transmission Log';
+    echo "<div class='output-header'>$outputHeader</div>";
     echo "<pre class='output-content'>";
-    echo "Found {$residentCount} residents with contact numbers.\n";
+    $recipientType = ($messageType === 'aid_distribution') ? 'evacuees' : 'residents';
+    echo "Found {$residentCount} {$recipientType} with contact numbers.\n";
     
     if ($residentCount == 0) {
         echo "No residents found with contact numbers.\n";
@@ -607,6 +637,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             </div>
         </div>
 
+        <!-- Evacuee Aid Distribution SMS Panel -->
+        <div class="panel anim delay-2">
+            <div class="panel-head">
+                <div class="panel-title">
+                    <i class="fas fa-hands-helping"></i> Evacuee Aid Distribution SMS
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="announcement-indicator" style="background: var(--amber);">
+                    <i class="fas fa-box"></i> AID DISTRIBUTION NOTIFICATION MODE
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="evacuationArea">Target Evacuation Area</label>
+                    <select id="evacuationArea" class="form-control" name="evacuation_area" onchange="loadEvacuees()">
+                        <option value="">All Evacuation Areas</option>
+                        <!-- Evacuation areas will be loaded via JavaScript -->
+                    </select>
+                </div>
+
+                <div class="residents-display" id="evacueesDisplay" style="display: none;">
+                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-size: 14px;">
+                        <i class="fas fa-users" style="color: var(--amber); margin-right: 6px;"></i>
+                        Evacuees in Selected Area
+                    </div>
+                    <div id="evacueesList">
+                        <!-- Evacuees will be loaded here via JavaScript -->
+                    </div>
+                </div>
+                
+                <form method="POST" id="evacueeSmsForm">
+                    @csrf
+                    <input type="hidden" name="message_type" value="aid_distribution">
+                    <input type="hidden" name="evacuation_area" id="selectedEvacuationArea" value="">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="aidMessage">Aid Distribution Message</label>
+                        <textarea name="message" id="aidMessage" class="form-control" required placeholder="Compose your aid distribution message..."></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-size: 14px;">
+                            <i class="fas fa-magic" style="color: var(--amber); margin-right: 6px;"></i>
+                            Aid Distribution Templates
+                        </div>
+                        <div class="quick-grid">
+                            <button type="button" class="btn btn-amber" onclick="setAidDistributionMessage()">
+                                <i class="fas fa-box"></i> General Aid Distribution
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setFoodAidMessage()">
+                                <i class="fas fa-utensils"></i> Food Distribution
+                            </button>
+                            <button type="button" class="btn btn-amber" onclick="setMedicalAidMessage()">
+                                <i class="fas fa-medkit"></i> Medical Aid
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-amber btn-block">
+                        <i class="fas fa-paper-plane"></i>
+                        <span id="evacueeSubmitBtnText">SEND AID DISTRIBUTION NOTICE TO ALL EVACUEES</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </main>
     
     <script>
@@ -835,6 +931,255 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
             });
             
             residentsList.innerHTML = html;
+        }
+        
+        // Load evacuation areas on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvacuationAreas();
+        });
+        
+        function loadEvacuationAreas() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/evacuees/sms', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success && response.evacuation_areas) {
+                            const select = document.getElementById('evacuationArea');
+                            response.evacuation_areas.forEach(area => {
+                                const option = document.createElement('option');
+                                option.value = area;
+                                option.textContent = area;
+                                select.appendChild(option);
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error parsing evacuation areas:', e);
+                    }
+                }
+            };
+            
+            xhr.send();
+        }
+        
+        function loadEvacuees() {
+            const evacuationAreaSelect = document.getElementById('evacuationArea');
+            const evacueesDisplay = document.getElementById('evacueesDisplay');
+            const evacueesList = document.getElementById('evacueesList');
+            const selectedEvacuationAreaHidden = document.getElementById('selectedEvacuationArea');
+            const evacueeSubmitBtnText = document.getElementById('evacueeSubmitBtnText');
+            
+            const selectedEvacuationArea = evacuationAreaSelect.value;
+            
+            // Update hidden field and button text
+            selectedEvacuationAreaHidden.value = selectedEvacuationArea;
+            if (selectedEvacuationArea) {
+                evacueeSubmitBtnText.textContent = `SEND AID DISTRIBUTION NOTICE TO ${selectedEvacuationArea.toUpperCase()}`;
+                setAidDistributionMessage(); // Auto-generate message
+            } else {
+                evacueeSubmitBtnText.textContent = 'SEND AID DISTRIBUTION NOTICE TO ALL EVACUEES';
+                setAidDistributionMessage(); // Auto-generate message
+            }
+            
+            if (selectedEvacuationArea === '') {
+                evacueesDisplay.style.display = 'none';
+                return;
+            }
+            
+            // Show loading state
+            evacueesDisplay.style.display = 'block';
+            evacueesList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Loading evacuees...</p>';
+            
+            // Create AJAX request to get evacuees for selected area
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/evacuees/sms?evacuation_area=' + encodeURIComponent(selectedEvacuationArea), true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success && response.evacuees) {
+                            displayEvacuees(response.evacuees);
+                        } else {
+                            evacueesList.innerHTML = '<p style="text-align: center; color: var(--rose);">Error loading evacuees</p>';
+                        }
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        evacueesList.innerHTML = '<p style="text-align: center; color: var(--rose);">Error parsing response</p>';
+                    }
+                } else {
+                    evacueesList.innerHTML = '<p style="text-align: center; color: var(--rose);">Error loading evacuees (Status: ' + xhr.status + ')</p>';
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('Network error occurred');
+                evacueesList.innerHTML = '<p style="text-align: center; color: var(--rose);">Network error</p>';
+            };
+            
+            xhr.send();
+        }
+        
+        function displayEvacuees(evacuees) {
+            const evacueesList = document.getElementById('evacueesList');
+            
+            if (evacuees.length === 0) {
+                evacueesList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No evacuees found with contact numbers in this area</p>';
+                return;
+            }
+            
+            let html = '';
+            evacuees.forEach(function(evacuee) {
+                const initials = evacuee.family_head_name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+                const contactNumber = evacuee.contact_number || 'N/A';
+                const totalMembers = evacuee.total_members || 1;
+                
+                html += `
+                    <div class="resident-item">
+                        <div class="resident-info">
+                            <div class="resident-avatar" style="background: var(--amber);">${initials}</div>
+                            <div class="resident-details">
+                                <h4>${evacuee.family_head_name}</h4>
+                                <p> ${contactNumber} | ${totalMembers} members</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${evacuee.has_pregnant ? '<span style="background: #fce7f3; color: #ec4899; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500;"><i class="fas fa-baby" style="font-size: 8px;"></i> Pregnant</span>' : ''}
+                            ${evacuee.has_pwd ? '<span style="background: #e0e7ff; color: #6366f1; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500;"><i class="fas fa-wheelchair" style="font-size: 8px;"></i> PWD</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            evacueesList.innerHTML = html;
+        }
+        
+        function setAidDistributionMessage() {
+            const selectedEvacuationArea = document.getElementById('evacuationArea').value;
+            let message = `AID DISTRIBUTION NOTICE\n\n`;
+            
+            message += `Good news! Aid distribution is scheduled for evacuees.\n`;
+            
+            if (selectedEvacuationArea) {
+                message += `\nLocation: ${selectedEvacuationArea}\n`;
+                message += `This distribution is specifically for evacuees at ${selectedEvacuationArea}.\n`;
+            } else {
+                message += `\nLocation: All Evacuation Centers\n`;
+                message += `This distribution is for all evacuees across all evacuation centers.\n`;
+            }
+            
+            message += `\nPlease bring:\n`;
+            message += `· Valid identification\n`;
+            message += `· Evacuee registration card (if available)\n`;
+            message += `· Bags/containers for received items\n\n`;
+            
+            message += `Distribution Items:\n`;
+            message += `· Food supplies and groceries\n`;
+            message += `· Clean drinking water\n`;
+            message += `· Hygiene kits\n`;
+            message += `· Blankets and sleeping mats\n`;
+            message += `· Medical supplies (as needed)\n\n`;
+            
+            message += `Distribution Schedule:\n`;
+            message += `Time: 8:00 AM - 5:00 PM\n`;
+            message += `Please follow the schedule for your area to avoid crowding.\n\n`;
+            
+            message += `Special Assistance:\n`;
+            message += `· Priority for senior citizens (60+)\n`;
+            message += `· Special lane for pregnant women and PWDs\n`;
+            message += `· Help available for families with children 0-5 years\n\n`;
+            
+            message += `For questions, please approach the evacuation center staff.\n`;
+            message += `\n~ B-DEAMS Aid Distribution System`;
+            
+            document.getElementById('aidMessage').value = message;
+        }
+        
+        function setFoodAidMessage() {
+            const selectedEvacuationArea = document.getElementById('evacuationArea').value;
+            let message = `FOOD AID DISTRIBUTION NOTICE\n\n`;
+            
+            message += `Emergency food distribution for evacuees!\n`;
+            
+            if (selectedEvacuationArea) {
+                message += `\nDistribution Point: ${selectedEvacuationArea}\n`;
+            } else {
+                message += `\nDistribution Point: All Evacuation Centers\n`;
+            }
+            
+            message += `\nFood Items Available:\n`;
+            message += `· Rice (5kg per family)\n`;
+            message += `· Canned goods\n`;
+            message += `· Instant noodles\n`;
+            message += `· Drinking water (5 gallons per family)\n`;
+            message += `· Infant formula (for families with babies)\n`;
+            message += `· Baby food (for children 0-5 years)\n\n`;
+            
+            message += `Distribution Schedule:\n`;
+            message += `Today: 9:00 AM - 3:00 PM\n\n`;
+            
+            message += `Requirements:\n`;
+            message += `· Bring your own bags/containers\n`;
+            message += `· Present evacuation ID if available\n`;
+            message += `· One representative per family\n\n`;
+            
+            message += `Priority will be given to:\n`;
+            message += `· Families with children 0-5 years\n`;
+            message += `· Pregnant women\n`;
+            message += `· Senior citizens\n\n`;
+            
+            message += `Please maintain social distancing during distribution.\n`;
+            message += `\n~ B-DEAMS Food Distribution Service`;
+            
+            document.getElementById('aidMessage').value = message;
+        }
+        
+        function setMedicalAidMessage() {
+            const selectedEvacuationArea = document.getElementById('evacuationArea').value;
+            let message = `MEDICAL AID DISTRIBUTION NOTICE\n\n`;
+            
+            message += `Free medical assistance and supplies for evacuees!\n`;
+            
+            if (selectedEvacuationArea) {
+                message += `\nMedical Station: ${selectedEvacuationArea}\n`;
+            } else {
+                message += `\nMedical Station: All Evacuation Centers\n`;
+            }
+            
+            message += `\nMedical Services Available:\n`;
+            message += `· General health check-ups\n`;
+            message += `· Free medicines (common illnesses)\n`;
+            message += `· First aid treatment\n`;
+            message += `· Blood pressure monitoring\n`;
+            message += `· Medical consultations\n\n`;
+            
+            message += `Medical Supplies Available:\n`;
+            message += `· Prescription medications (bring prescription)\n`;
+            message += `· Over-the-counter medicines\n`;
+            message += `· Vitamins (especially for children and seniors)\n`;
+            message += `· Medical supplies for chronic conditions\n`;
+            message += `· Prenatal vitamins for pregnant women\n\n`;
+            
+            message += `Schedule:\n`;
+            message += `Medical Team Available: 8:00 AM - 12:00 PM\n`;
+            message += `Medicine Distribution: 1:00 PM - 4:00 PM\n\n`;
+            
+            message += `Special Attention:\n`;
+            message += `· Senior citizens (60+) with chronic conditions\n`;
+            message += `· Pregnant women (prenatal check-ups)\n`;
+            message += `· Children with special medical needs\n`;
+            message += `· PWDs requiring medical assistance\n\n`;
+            
+            message += `Please bring any existing medications or medical records.\n`;
+            message += `Emergency cases will be prioritized.\n\n`;
+            
+            message += `~ B-DEAMS Medical Assistance Program`;
+            
+            document.getElementById('aidMessage').value = message;
         }
     </script>
 

@@ -4736,6 +4736,27 @@
                         @endphp
                         
                         @php
+                        // Use the same dssMetrics structure as EvacueeProgram for accurate family-based calculations
+                        $totalMembers = $dssMetrics['total_family_members'] ?? 0;
+                        $totalSeniors = $dssMetrics['senior_count'] ?? 0;
+                        $totalChildren = $dssMetrics['child_count'] ?? 0;
+                        $totalPregnant = $dssMetrics['pregnant_women_count'] ?? 0;
+                        $totalPWD = $dssMetrics['disabled_persons_count'] ?? 0;
+                        
+                        // For infants, estimate based on children breakdown from dssMetrics if available
+                        $totalInfants = 0;
+                        if(isset($dssMetrics['clothing_inventory_children_0_5'])) {
+                            $totalInfants = $dssMetrics['clothing_inventory_children_0_5'];
+                        } else {
+                            // Fallback: estimate infants as 25% of total children
+                            $totalInfants = floor($totalChildren * 0.25);
+                        }
+                        
+                        // Calculate remaining children (non-infants)
+                        $totalChildrenNonInfants = $totalChildren - $totalInfants;
+                        @endphp
+                        
+                        @php
                         // Calculate assistance requirements for Medical Mission based on actual demographics
                         $assistanceRequirements = [];
                         
@@ -6446,306 +6467,128 @@
 
 
 
-
-
-
         // ── Evacuee Aid Distribution Functions ──
 
 
 
         function calculateEvacueeAidNeeds() {
-
-
-
             showToast('Calculating evacuee aid requirements...');
 
-
-
-            
-
-
-
-            // Simulate API call to get evacuee data
-
-
-
             setTimeout(() => {
-
-
-
                 const evacueeData = {
-
-
-
-                    totalEvacuees: {{ $totalEvacuees }},
-
-
-
+                    totalEvacuees: {{ $totalMembers ?? $totalEvacuees }},
+                    totalFamilyMembers: {{ $totalMembers ?? 0 }},
                     demographics: {
-
-
-
-                        seniors: Math.floor({{ $totalEvacuees }} * 0.25),
-
-
-
-                        children: Math.floor({{ $totalEvacuees }} * 0.35),
-
-
-
-                        infants: Math.floor({{ $totalEvacuees }} * 0.15),
-
-
-
-                        pregnant: Math.floor({{ $totalEvacuees }} * 0.08),
-
-
-
-                        pwd: Math.floor({{ $totalEvacuees }} * 0.12)
-
-
-
-                    }
-
-
-
+                        seniors: {{ $totalSeniors ?? 0 }},
+                        children: {{ $totalChildrenNonInfants ?? $totalChildren ?? 0 }},
+                        infants: {{ $totalInfants ?? 0 }},
+                        pregnant: {{ $totalPregnant ?? 0 }},
+                        pwd: {{ $totalPWD ?? 0 }}
+                    },
+                    dssMetrics: @json($dssMetrics ?? [])
                 };
 
-
-
-
-
-
-
-                // Calculate needs based on evacuee data
-
-
-
-                const needs = calculateAidRequirements(evacueeData);
-
-
-
-                displayAidRequirements(needs, evacueeData);
-
-
-
-                showToast('Aid requirements calculated successfully');
-
-
-
-            }, 1500);
-
-
-
-        }
-
-
-
-
-
-
-
-        function calculateAidRequirements(data) {
-
-
-
-            const total = data.totalEvacuees;
-
-
-
-            const demo = data.demographics;
-
-
-
-            
-
-
-
-            return {
-
-
-
-                dailyMeals: total * 3 + (demo.infants * 3), // 3 meals per person + extra for infants
-
-
-
-                waterLiters: total * 4, // 4 liters per person per day
-
-
-
-                hygieneKits: Math.ceil(total * 0.8), // 0.8 kits per person
-
-
-
-                blankets: Math.ceil(total * 0.7), // 0.7 blankets per person
-
-
-
-                criticalRequirements: [
-
-
-
-                    `Immediate food supply for ${total * 3} daily meals`,
-
-
-
-                    `${Math.ceil(total / 25)} sanitation facilities needed`,
-
-
-
-                    `${Math.ceil(demo.seniors * 0.3)} medical staff for elderly care`,
-
-
-
-                    `${Math.ceil(demo.infants * 0.5)} caregivers for infant support`
-
-
-
-                ],
-
-
-
-                vulnerableGroups: [
-
-
-
-                    `${demo.seniors} elderly residents requiring special medical attention`,
-
-
-
-                    `${demo.infants} infants needing formula, diapers, and pediatric care`,
-
-
-
-                    `${demo.pregnant} pregnant women requiring prenatal care and nutrition`,
-
-
-
-                    `${demo.pwd} persons with disabilities needing accessibility support`
-
-
-
-                ]
-
-
-
-            };
-
-
-
-        }
-
-
-
-
-
-
-
-        function displayAidRequirements(needs, data) {
-
-
-
-            // Update the main statistics
-
-
-
-            document.getElementById('evacueeTotal').textContent = data.totalEvacuees.toLocaleString();
-
-
-
-            document.getElementById('dailyMeals').textContent = needs.dailyMeals.toLocaleString();
-
-
-
-            document.getElementById('waterLiters').textContent = needs.waterLiters.toLocaleString();
-
-
-
-            document.getElementById('hygieneKits').textContent = needs.hygieneKits.toLocaleString();
-
-
-
-            document.getElementById('blanketCount').textContent = needs.blankets.toLocaleString();
-
-
-
-
-
-
-
-            // Update critical requirements
-
-
-
-            const criticalDiv = document.getElementById('criticalRequirements');
-
-
-
-            criticalDiv.innerHTML = needs.criticalRequirements.map(req => 
-
-
-
-                `<div style="margin-bottom: 6px;">• <strong>${req}</strong></div>`
-
-
-
-            ).join('');
-
-
-
-
-
-
-
-            // Update vulnerable groups
-
-
-
-            const vulnerableDiv = document.getElementById('vulnerableGroups');
-
-
-
-            vulnerableDiv.innerHTML = needs.vulnerableGroups.map(group => 
-
-
-
-                `<div style="margin-bottom: 6px;">• ${group}</div>`
-
-
-
-            ).join('');
-
-
-
-        }
-
-
-
-
-
-
-
-        function generateDistributionPlan() {
-
-
-
-            showToast('Generating comprehensive distribution plan...');
-
-
-
-            
-
-
-
-            setTimeout(() => {
-
-
-
-                const evacueeCount = {{ $totalEvacuees }};
-
-
-
-                const planContent = `EVACUEE AID DISTRIBUTION PLAN
+        const needs = calculateAidRequirements(evacueeData);
+        displayAidRequirements(needs, evacueeData);
+        showToast('Aid requirements calculated successfully');
+    }, 1500);
+}
+
+function calculateAidRequirements(data) {
+    const total = data.totalEvacuees;
+    const demo = data.demographics;
+
+    const infantMeals = demo.infants * 6; 
+    const childMeals = demo.children * 4; 
+    const adultMeals = (total - demo.infants - demo.children) * 3; 
+    const totalDailyMeals = infantMeals + childMeals + adultMeals;
+
+    const criticalRequirements = [
+        `Immediate food supply for ${totalDailyMeals} daily meals (${infantMeals} infant, ${childMeals} child, ${adultMeals} adult)`,
+        `${Math.ceil(total * 4)} liters water per day (4L per person)`,
+        `${Math.ceil(total / 25)} sanitation facilities needed (1 per 25 people)`,
+        `${Math.ceil(demo.seniors * 0.3)} medical staff for elderly care`,
+        `${Math.ceil(demo.infants * 0.5)} caregivers for infant support`,
+        `${Math.ceil(demo.pwd * 0.4)} accessibility assistants`,
+        `${Math.ceil(demo.pregnant * 0.3)} maternal health specialists`
+    ];
+
+    if (demo.seniors > 0) {
+        criticalRequirements.push(`${Math.ceil(demo.seniors * 0.6)} chronic medication management kits`);
+        criticalRequirements.push(`${Math.ceil(demo.seniors * 0.4)} mobility assistance devices`);
+    }
+
+    if (demo.infants > 0) {
+        criticalRequirements.push(`${demo.infants * 7} baby formula cans per week`);
+        criticalRequirements.push(`${demo.infants * 3} diaper packs per week`);
+    }
+
+    if (demo.pregnant > 0) {
+        criticalRequirements.push(`${demo.pregnant} prenatal care packages`);
+        criticalRequirements.push(`${Math.ceil(demo.pregnant * 2)} nutrition supplement kits`);
+    }
+
+    const vulnerableGroups = [];
+
+    if (demo.seniors > 0) {
+        vulnerableGroups.push(`${demo.seniors} elderly residents (60+) requiring medical attention, mobility assistance, and special dietary needs`);
+    }
+
+    if (demo.infants > 0) {
+        vulnerableGroups.push(`${demo.infants} infants (0-2 years) needing formula, diapers, pediatric care, and constant supervision`);
+    }
+
+    if (demo.children > 0) {
+        vulnerableGroups.push(`${demo.children} children (3-17 years) requiring educational support, child protection services, and recreational activities`);
+    }
+
+    if (demo.pregnant > 0) {
+        vulnerableGroups.push(`${demo.pregnant} pregnant women requiring prenatal care, nutrition supplements, and maternal health monitoring`);
+    }
+
+    if (demo.pwd > 0) {
+        vulnerableGroups.push(`${demo.pwd} persons with disabilities needing accessibility support, specialized equipment, and inclusive services`);
+    }
+
+    const chronicPatients = Math.ceil(demo.seniors * 0.2);
+    if (chronicPatients > 0) {
+        vulnerableGroups.push(`${chronicPatients} chronic illness patients requiring ongoing medication and regular medical monitoring`);
+    }
+
+    return {
+        dailyMeals: totalDailyMeals,
+        waterLiters: total * 4,
+        hygieneKits: Math.ceil(total * 0.8),
+        blankets: Math.ceil(total * 0.7),
+        criticalRequirements: criticalRequirements,
+        vulnerableGroups: vulnerableGroups
+    };
+}
+
+function displayAidRequirements(needs, data) {
+    document.getElementById('evacueeTotal').textContent = data.totalEvacuees.toLocaleString();
+    document.getElementById('dailyMeals').textContent = needs.dailyMeals.toLocaleString();
+    document.getElementById('waterLiters').textContent = needs.waterLiters.toLocaleString();
+    document.getElementById('hygieneKits').textContent = needs.hygieneKits.toLocaleString();
+    document.getElementById('blanketCount').textContent = needs.blankets.toLocaleString();
+
+    const criticalDiv = document.getElementById('criticalRequirements');
+    criticalDiv.innerHTML = needs.criticalRequirements.map(req => 
+        `<div style="margin-bottom: 6px;">· <strong>${req}</strong></div>`
+    ).join('');
+
+    const vulnerableDiv = document.getElementById('vulnerableGroups');
+    vulnerableDiv.innerHTML = needs.vulnerableGroups.map(group => 
+        `<div style="margin-bottom: 6px;">· ${group}</div>`
+    ).join('');
+}
+
+function generateDistributionPlan() {
+    showToast('Generating comprehensive distribution plan...');
+
+    setTimeout(() => {
+        const evacueeCount = {{ $totalEvacuees }};
+        const planContent = `EVACUEE AID DISTRIBUTION PLAN
 
 
 
@@ -9591,7 +9434,7 @@ Supply Manager: [Contact Number]
 
 
 
-                            <div style="font-size: 14px; font-weight: 600;">${dssMetrics.daily_meals_needed || 0}</div>
+                            <div style="font-size: 14px; font-weight: 600;">${areas.reduce((sum, area) => sum + (area.dailyMealsNeeded || 0), 0)}</div>
 
 
 

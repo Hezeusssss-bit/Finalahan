@@ -2159,4 +2159,68 @@ public function index(Request $request)
             ], 500);
         }
     }
+    
+    /**
+     * Get evacuees with contact numbers for SMS distribution
+     */
+    public function getEvacueesForSMS(Request $request)
+    {
+        try {
+            $evacuationArea = $request->input('evacuation_area');
+            
+            // Get evacuees data with resident relationships
+            $evacueesQuery = Evacuee::with('resident')
+                ->where('evacuation_status', '!=', 'Released');
+            
+            // Filter by evacuation area if provided
+            if ($evacuationArea) {
+                $evacueesQuery->where('evacuation_area', $evacuationArea);
+            }
+            
+            $evacueesData = $evacueesQuery->get();
+            
+            $evacuees = [];
+            
+            foreach ($evacueesData as $evacuee) {
+                $resident = $evacuee->resident;
+                
+                if ($resident && !empty($resident->contact_number)) {
+                    $evacuees[] = [
+                        'id' => $evacuee->id,
+                        'family_head_name' => $resident->family_head_fullname ?? 'Unknown',
+                        'contact_number' => $resident->contact_number,
+                        'evacuation_area' => $evacuee->evacuation_area,
+                        'room_number' => $evacuee->room_number,
+                        'evacuation_status' => $evacuee->evacuation_status,
+                        'total_members' => $this->calculateTotalFamilyMembers($resident),
+                        'purok' => $resident->description ?? '',
+                        'has_pregnant' => $resident->wife_pregnant ?? false,
+                        'has_pwd' => $this->hasPWDInFamily($resident)
+                    ];
+                }
+            }
+            
+            // Get unique evacuation areas for dropdown
+            $evacuationAreas = Evacuee::where('evacuation_status', '!=', 'Released')
+                ->whereNotNull('evacuation_area')
+                ->distinct()
+                ->pluck('evacuation_area')
+                ->sort()
+                ->values();
+            
+            return response()->json([
+                'success' => true,
+                'evacuees' => $evacuees,
+                'evacuation_areas' => $evacuationAreas,
+                'total_count' => count($evacuees)
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Get evacuees for SMS error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving evacuee data.'
+            ], 500);
+        }
+    }
 }

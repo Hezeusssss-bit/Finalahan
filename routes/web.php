@@ -72,6 +72,7 @@ Route::middleware('authCheck')->group(function () {
     Route::get('/api/analytics-data', [ProductController::class, 'getAnalyticsData'])->name('analytics.data');
     Route::post('/evacuees/{evacueeId}/release', [ProductController::class, 'releaseEvacuee'])->name('evacuees.release');
 Route::get('/evacuees/{evacueeId}', [ProductController::class, 'showEvacuee'])->name('evacuees.show');
+Route::get('/api/evacuees/sms', [ProductController::class, 'getEvacueesForSMS'])->name('evacuees.sms');
 });
 
 // Employee Management (temporarily outside auth for testing)
