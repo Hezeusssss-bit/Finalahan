@@ -37,6 +37,12 @@ class ProgramController extends Controller
         $upcomingRequirements = $this->calculateAssistanceRequirements($upcomingPrograms);
         $ongoingRequirements = $this->calculateAssistanceRequirements($ongoingPrograms);
         
+        // Combine all assistance requirements for the Assistance Requirements Details section
+        $allAssistanceRequirements = array_merge(
+            $upcomingRequirements,
+            $ongoingRequirements
+        );
+        
         // Get facilities for evacuee program selection
         $facilities = \App\Models\Facility::select('id', 'name', 'capacity', 'status')
             ->where('status', 'available')
@@ -74,7 +80,65 @@ class ProgramController extends Controller
             }
         }
         
-        return view('Program.program', compact('upcomingPrograms', 'ongoingPrograms', 'completedPrograms', 'upcomingRequirements', 'ongoingRequirements', 'facilities', 'evacuees'));
+        // Calculate vulnerable groups data (same as home.blade.php)
+        $residents = \App\Models\Resident::all();
+        $totalPregnant = 0;
+        $totalPWD = 0;
+        $totalSeniors = 0;
+        $totalChildren = 0;
+        
+        foreach($residents as $resident) {
+            // Count pregnant women
+            if ($resident->wife_pregnant && $resident->wife_fullname) {
+                $totalPregnant++;
+            }
+            
+            // Count PWD
+            if ($resident->family_head_pwd || $resident->wife_pwd || $resident->son_pwd || 
+                $resident->daughter_pwd || $resident->grandmother_pwd || $resident->grandfather_pwd ||
+                $resident->pwd_in_family === 'Yes') {
+                $totalPWD++;
+            }
+            
+            // Count seniors (60+)
+            if ($resident->family_head_age >= 60 && $resident->family_head_fullname) $totalSeniors++;
+            if ($resident->wife_age >= 60 && $resident->wife_fullname) $totalSeniors++;
+            if ($resident->grandmother_age >= 60 && $resident->grandmother_fullname) $totalSeniors++;
+            if ($resident->grandfather_age >= 60 && $resident->grandfather_fullname) $totalSeniors++;
+            
+            // Count children (<18)
+            if ($resident->family_head_age < 18 && $resident->family_head_fullname) $totalChildren++;
+            if ($resident->wife_age < 18 && $resident->wife_fullname) $totalChildren++;
+            if ($resident->son_age < 18 && $resident->son_fullname) $totalChildren++;
+            if ($resident->daughter_age < 18 && $resident->daughter_fullname) $totalChildren++;
+        }
+        
+        $vulnerableGroups = [
+            'pregnant_count' => $totalPregnant,
+            'pwd_count' => $totalPWD,
+            'senior_count' => $totalSeniors,
+            'children_count' => $totalChildren,
+            'total_vulnerable' => $totalPregnant + $totalPWD + $totalSeniors + $totalChildren
+        ];
+        
+        // Get all unique puroks from residents
+        $databasePuroks = \App\Models\Resident::whereNotNull('description')
+            ->where('description', '!=', '')
+            ->distinct()
+            ->pluck('description')
+            ->sort()
+            ->values();
+        
+        // Standard puroks that should always be available
+        $standardPuroks = collect(['Purok I', 'Purok II', 'Purok III', 'Purok IV', 'Purok V']);
+        
+        // Merge database puroks with standard puroks, remove duplicates, and sort
+        $allPuroks = $databasePuroks->merge($standardPuroks)
+            ->unique()
+            ->sort()
+            ->values();
+        
+        return view('Program.program', compact('upcomingPrograms', 'ongoingPrograms', 'completedPrograms', 'upcomingRequirements', 'ongoingRequirements', 'facilities', 'evacuees', 'allAssistanceRequirements', 'vulnerableGroups', 'allPuroks'));
     }
     
     /**

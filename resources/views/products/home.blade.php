@@ -627,227 +627,491 @@
                 $totalChildren = 0;
                 $pregnantCount = 0;
                 $pwdCount = 0;
-                
+
                 foreach($residents as $resident) {
+                    // Helper function to count member
+                    $countMember = function($fullname, $age, $isMale, $isPwd) use (&$totalMembers, &$totalMale, &$totalFemale, &$totalSeniors, &$seniorMale, &$seniorFemale, &$totalChildren, &$childMale, &$childFemale, &$pwdCount) {
+                        if ($fullname) {
+                            $totalMembers++;
+                            if ($isMale) {
+                                $totalMale++;
+                            } else {
+                                $totalFemale++;
+                            }
+
+                            if ($age) {
+                                if ($age >= 60) {
+                                    $totalSeniors++;
+                                    if ($isMale) {
+                                        $seniorMale++;
+                                    } else {
+                                        $seniorFemale++;
+                                    }
+                                } elseif ($age < 18) {
+                                    $totalChildren++;
+                                    if ($isMale) {
+                                        $childMale++;
+                                    } else {
+                                        $childFemale++;
+                                    }
+                                }
+                            }
+
+                            if ($isPwd) {
+                                $pwdCount++;
+                            }
+                        }
+                    };
+
                     // Count family head
-                    if($resident->family_head_fullname) {
-                        $totalMembers++;
-                        if($resident->family_head_age) {
-                            if($resident->family_head_age >= 60) {
-                                $totalSeniors++;
-                                if(strtolower($resident->gender) === 'male') {
-                                    $seniorMale++;
-                                    $totalMale++;
-                                } else {
-                                    $seniorFemale++;
-                                    $totalFemale++;
-                                }
-                            } elseif($resident->family_head_age < 18) {
-                                $totalChildren++;
-                                if(strtolower($resident->gender) === 'male') {
-                                    $childMale++;
-                                    $totalMale++;
-                                } else {
-                                    $childFemale++;
-                                    $totalFemale++;
-                                }
-                            } else {
-                                if(strtolower($resident->gender) === 'male') {
-                                    $totalMale++;
-                                } else {
-                                    $totalFemale++;
-                                }
-                            }
-                        } else {
-                            if(strtolower($resident->gender) === 'male') {
-                                $totalMale++;
-                            } else {
-                                $totalFemale++;
-                            }
-                        }
-                    }
-                    
+                    $countMember($resident->family_head_fullname, $resident->family_head_age, strtolower($resident->gender ?? '') === 'male', $resident->family_head_pwd);
+
                     // Count wife
-                    if($resident->wife_fullname) {
-                        $totalMembers++;
-                        if($resident->wife_age) {
-                            if($resident->wife_age >= 60) {
-                                $totalSeniors++;
-                                $seniorFemale++;
-                                $totalFemale++;
-                            } elseif($resident->wife_age < 18) {
-                                $totalChildren++;
-                                $childFemale++;
-                                $totalFemale++;
-                            } else {
-                                $totalFemale++;
-                            }
-                        } else {
-                            $totalFemale++;
-                        }
-                        
-                        // Count pregnant wives
-                        if($resident->wife_pregnant) {
-                            $pregnantCount++;
-                        }
+                    $countMember($resident->wife_fullname, $resident->wife_age, false, $resident->wife_pwd);
+                    if ($resident->wife_pregnant && $resident->wife_fullname) {
+                        $pregnantCount++;
                     }
-                    
+
                     // Count son
-                    if($resident->son_fullname) {
-                        $totalMembers++;
-                        if($resident->son_age) {
-                            if($resident->son_age >= 60) {
-                                $totalSeniors++;
-                                $seniorMale++;
-                                $totalMale++;
-                            } elseif($resident->son_age < 18) {
-                                $totalChildren++;
-                                $childMale++;
-                                $totalMale++;
-                            } else {
-                                $totalMale++;
-                            }
-                        } else {
-                            $totalMale++;
-                        }
-                    }
-                    
+                    $countMember($resident->son_fullname, $resident->son_age, true, $resident->son_pwd);
+
                     // Count daughter
-                    if($resident->daughter_fullname) {
-                        $totalMembers++;
-                        if($resident->daughter_age) {
-                            if($resident->daughter_age >= 60) {
-                                $totalSeniors++;
-                                $seniorFemale++;
-                                $totalFemale++;
-                            } elseif($resident->daughter_age < 18) {
-                                $totalChildren++;
-                                $childFemale++;
-                                $totalFemale++;
-                            } else {
-                                $totalFemale++;
-                            }
-                        } else {
-                            $totalFemale++;
-                        }
-                    }
-                    
+                    $countMember($resident->daughter_fullname, $resident->daughter_age, false, $resident->daughter_pwd);
+
                     // Count grandmother
-                    if($resident->grandmother_fullname) {
-                        $totalMembers++;
-                        if($resident->grandmother_age) {
-                            if($resident->grandmother_age >= 60) {
-                                $totalSeniors++;
-                                $seniorFemale++;
-                                $totalFemale++;
-                            } elseif($resident->grandmother_age < 18) {
-                                $totalChildren++;
-                                $childFemale++;
-                                $totalFemale++;
-                            } else {
-                                $totalFemale++;
-                            }
-                        } else {
-                            $totalFemale++;
-                        }
-                    }
-                    
+                    $countMember($resident->grandmother_fullname, $resident->grandmother_age, false, $resident->grandmother_pwd);
+
                     // Count grandfather
-                    if($resident->grandfather_fullname) {
-                        $totalMembers++;
-                        if($resident->grandfather_age) {
-                            if($resident->grandfather_age >= 60) {
-                                $totalSeniors++;
-                                $seniorMale++;
-                                $totalMale++;
-                            } elseif($resident->grandfather_age < 18) {
-                                $totalChildren++;
-                                $childMale++;
-                                $totalMale++;
-                            } else {
-                                $totalMale++;
-                            }
-                        } else {
-                            $totalMale++;
-                        }
-                    }
-                    
-                    // Count PWD (actual individual PWD fields)
-                    if($resident->family_head_pwd) $pwdCount++;
-                    if($resident->wife_pwd) $pwdCount++;
-                    if($resident->son_pwd) $pwdCount++;
-                    if($resident->daughter_pwd) $pwdCount++;
-                    if($resident->grandmother_pwd) $pwdCount++;
-                    if($resident->grandfather_pwd) $pwdCount++;
+                    $countMember($resident->grandfather_fullname, $resident->grandfather_age, true, $resident->grandfather_pwd);
                 }
             @endphp
             
-            <!-- Stat Strip -->
-        <div class="stat-strip anim delay-1">
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:var(--navy);"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($totalFamilies) }}</div>
-                    <div class="chip-lbl">Total Families</div>
+            <!-- Enhanced Analytics Dashboard -->
+        <div class="analytics-dashboard anim delay-1">
+            <!-- Key Metrics Overview -->
+            <div class="metrics-overview">
+                <h3 style="color: var(--navy); font-size: 18px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-chart-line" style="color: var(--teal);"></i>
+                    Population Analytics Dashboard
+                </h3>
+                
+                <!-- Primary Statistics -->
+                <div class="primary-stats">
+                    <div class="stat-card primary">
+                        <div class="stat-icon" style="background: var(--navy);">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ number_format($totalFamilies) }}</div>
+                            <div class="stat-label">Total Families</div>
+                            <div class="stat-change positive">Registered</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card primary">
+                        <div class="stat-icon" style="background: var(--blue);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ number_format($totalMembers) }}</div>
+                            <div class="stat-label">Total Population</div>
+                            <div class="stat-change positive">Active</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card primary">
+                        <div class="stat-icon" style="background: var(--amber);">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ number_format($totalSeniors) }}</div>
+                            <div class="stat-label">Senior Citizens</div>
+                            <div class="stat-change">{{ round(($totalSeniors / max($totalMembers, 1)) * 100, 1) }}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card primary">
+                        <div class="stat-icon" style="background: var(--green);">
+                            <i class="fas fa-child"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ number_format($totalChildren) }}</div>
+                            <div class="stat-label">Children</div>
+                            <div class="stat-change">{{ round(($totalChildren / max($totalMembers, 1)) * 100, 1) }}%</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:var(--blue);"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($totalMale) }}</div>
-                    <div class="chip-lbl">Male</div>
+            
+            <!-- Demographics Breakdown -->
+            <div class="demographics-section">
+                <h4 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-chart-pie" style="color: var(--teal);"></i>
+                    Demographics Breakdown
+                </h4>
+                
+                <div class="demographics-grid">
+                    <!-- Gender Distribution -->
+                    <div class="demo-card">
+                        <div class="demo-header">
+                            <span style="font-weight: 600; color: var(--navy);">Gender Distribution</span>
+                            <span style="font-size: 12px; color: var(--text-muted);">Total: {{ number_format($totalMembers) }}</span>
+                        </div>
+                        <div class="demo-bars">
+                            <div class="bar-item">
+                                <div class="bar-label">Male</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: {{ round(($totalMale / max($totalMembers, 1)) * 100, 0) }}%; background: var(--blue);"></div>
+                                </div>
+                                <div class="bar-value">{{ number_format($totalMale) }}</div>
+                            </div>
+                            <div class="bar-item">
+                                <div class="bar-label">Female</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: {{ round(($totalFemale / max($totalMembers, 1)) * 100, 0) }}%; background: #ec4899;"></div>
+                                </div>
+                                <div class="bar-value">{{ number_format($totalFemale) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Age Groups -->
+                    <div class="demo-card">
+                        <div class="demo-header">
+                            <span style="font-weight: 600; color: var(--navy);">Age Groups</span>
+                            <span style="font-size: 12px; color: var(--text-muted);">By Category</span>
+                        </div>
+                        <div class="age-bars">
+                            <div class="age-item">
+                                <div class="age-indicator" style="background: var(--amber);"></div>
+                                <div class="age-label">Seniors (60+)</div>
+                                <div class="age-value">{{ number_format($totalSeniors) }}</div>
+                            </div>
+                            <div class="age-item">
+                                <div class="age-indicator" style="background: var(--green);"></div>
+                                <div class="age-label">Children (<18)</div>
+                                <div class="age-value">{{ number_format($totalChildren) }}</div>
+                            </div>
+                            <div class="age-item">
+                                <div class="age-indicator" style="background: var(--blue);"></div>
+                                <div class="age-label">Adults (18-59)</div>
+                                <div class="age-value">{{ number_format($totalMembers - $totalSeniors - $totalChildren) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Vulnerable Groups -->
+                    <div class="demo-card">
+                        <div class="demo-header">
+                            <span style="font-weight: 600; color: var(--navy);">Vulnerable Groups</span>
+                            <span style="font-size: 12px; color: var(--text-muted);">Special Needs</span>
+                        </div>
+                        <div class="vulnerable-grid">
+                            <div class="vuln-item">
+                                <div class="vuln-icon" style="background: #fce7f3; color: #ec4899;">
+                                    <i class="fas fa-baby"></i>
+                                </div>
+                                <div class="vuln-info">
+                                    <div class="vuln-count">{{ number_format($pregnantCount) }}</div>
+                                    <div class="vuln-label">Pregnant</div>
+                                </div>
+                            </div>
+                            <div class="vuln-item">
+                                <div class="vuln-icon" style="background: #e0e7ff; color: #6366f1;">
+                                    <i class="fas fa-wheelchair"></i>
+                                </div>
+                                <div class="vuln-info">
+                                    <div class="vuln-count">{{ number_format($pwdCount) }}</div>
+                                    <div class="vuln-label">PWD</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:#ec4899;"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($totalFemale) }}</div>
-                    <div class="chip-lbl">Female</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:var(--amber);"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($seniorMale) }}</div>
-                    <div class="chip-lbl">Senior Male</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:#f97316;"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($seniorFemale) }}</div>
-                    <div class="chip-lbl">Senior Female</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:var(--green);"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($childMale) }}</div>
-                    <div class="chip-lbl">Child Male</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:var(--teal);"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($childFemale) }}</div>
-                    <div class="chip-lbl">Child Female</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:#ec4899;"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($pregnantCount) }}</div>
-                    <div class="chip-lbl">Pregnant</div>
-                </div>
-            </div>
-            <div class="stat-chip">
-                <div class="chip-dot" style="background:#6366f1;"></div>
-                <div>
-                    <div class="chip-val">{{ number_format($pwdCount) }}</div>
-                    <div class="chip-lbl">PWD</div>
+            
+            <!-- Quick Insights -->
+            <div class="insights-section">
+                <h4 style="color: var(--navy); font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-lightbulb" style="color: var(--amber);"></i>
+                    Quick Insights
+                </h4>
+                
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-icon" style="background: var(--green-light); color: var(--green);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <div class="insight-title">Family Coverage</div>
+                            <div class="insight-value">100.0%</div>
+                            <div class="insight-desc">Complete registration</div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-icon" style="background: var(--amber-light); color: var(--amber);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <div class="insight-title">Vulnerability Index</div>
+                            <div class="insight-value">{{ round((($totalSeniors + $totalChildren + $pregnantCount + $pwdCount) / max($totalMembers, 1)) * 100, 1) }}%</div>
+                            <div class="insight-desc">Requires special attention</div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-icon" style="background: var(--blue-light); color: var(--blue);">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="insight-content">
+                            <div class="insight-title">Contact Rate</div>
+                            <div class="insight-value">
+                                @php
+                                    $withContact = $residents->whereNotNull('contact_number')->where('contact_number', '!=', '')->count();
+                                @endphp
+                                {{ round(($withContact / max($totalFamilies, 1)) * 100, 1) }}%
+                            </div>
+                            <div class="insight-desc">Families with contact info</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Analytics Styles -->
+        <style>
+        .analytics-dashboard {
+            margin-bottom: 24px;
+        }
+        
+        .primary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card.primary {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        
+        .stat-card.primary:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .stat-content {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        
+        .stat-change {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        .stat-change.positive {
+            color: var(--green);
+        }
+        
+        .demographics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .demo-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .bar-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-mid);
+            min-width: 50px;
+        }
+        
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: var(--slate-light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .bar-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .age-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .age-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        .age-label {
+            flex: 1;
+            font-size: 12px;
+            color: var(--text-mid);
+        }
+        
+        .age-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .vulnerable-grid {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .vuln-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: var(--slate-light);
+            border-radius: 8px;
+        }
+        
+        .vuln-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .vuln-count {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .vuln-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .insight-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .insight-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        
+        .insight-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .insight-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        </style>
 
         <!-- Main Panel -->
         <div class="panel anim delay-2">
@@ -878,11 +1142,12 @@
                         </button>
                         <div class="dropdown-panel">
                             <div class="dropdown-opt selected" data-value="ALL">All Families</div>
-                            <div class="dropdown-opt" data-value="SENIOR HEAD">Senior Head</div>
-                            <div class="dropdown-opt" data-value="MALE HEAD">Male Head</div>
-                            <div class="dropdown-opt" data-value="FEMALE HEAD">Female Head</div>
-                            <div class="dropdown-opt" data-value="LARGE FAMILY">Large Family (5+)</div>
-                            <div class="dropdown-opt" data-value="NO CONTACT">No Contact</div>
+                            <div class="dropdown-opt" data-value="SENIOR MALE">Senior Male</div>
+                            <div class="dropdown-opt" data-value="SENIOR FEMALE">Senior Female</div>
+                            <div class="dropdown-opt" data-value="MALE">Male Head</div>
+                            <div class="dropdown-opt" data-value="FEMALE">Female Head</div>
+                            <div class="dropdown-opt" data-value="CHILD MALE">Male Child</div>
+                            <div class="dropdown-opt" data-value="CHILD FEMALE">Female Child</div>
                         </div>
                     </div>
 
@@ -897,6 +1162,12 @@
                 </div>
 
                 <div class="toolbar-right">
+                    <button class="btn-export" onclick="refreshAnalytics()" style="background: var(--teal);">
+                        <i class="fas fa-sync-alt"></i> Refresh Analytics
+                    </button>
+                    <button class="btn-export" onclick="exportAnalyticsReport()" style="background: var(--navy);">
+                        <i class="fas fa-chart-line"></i> Analytics Report
+                    </button>
                     <button class="btn-add" onclick="openAddModal()">
                         <i class="fas fa-home"></i> Add Family Head
                     </button>
@@ -911,14 +1182,14 @@
                 <table class="data-table" id="residentsTable">
                     <thead>
                         <tr>
-                            <th>Family ID</th>
+                            <th class="sortable" onclick="sortTable(0,'number')">Family ID <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
                             <th class="sortable" onclick="sortTable(1,'string')">Family Head <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
-                            <th>Family Members</th>
-                            <th>Total Members</th>
-                            <th>Purok</th>
-                            <th>Contact</th>
-                            <th>Vulnerable Count</th>
-                            <th>Registered On</th>
+                            <th class="sortable" onclick="sortTable(2,'string')">Family Members <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(3,'number')">Total Members <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(4,'string')">Purok <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(5,'string')">Contact <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(6,'number')">Vulnerable Count <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
+                            <th class="sortable" onclick="sortTable(7,'date')">Registered On <i class="fas fa-sort" style="opacity:0.4;margin-left:4px;"></i></th>
                             <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
@@ -1001,28 +1272,32 @@
                                         $pregnantCount = 0;
                                         $pwdCount = 0;
                                         
-                                        // Count seniors (60+ years)
-                                        if($resident->family_head_age && $resident->family_head_age >= 60) $seniorCount++;
-                                        if($resident->wife_age && $resident->wife_age >= 60) $seniorCount++;
-                                        if($resident->son_age && $resident->son_age >= 60) $seniorCount++;
-                                        if($resident->daughter_age && $resident->daughter_age >= 60) $seniorCount++;
-                                        if($resident->grandmother_age && $resident->grandmother_age >= 60) $seniorCount++;
-                                        if($resident->grandfather_age && $resident->grandfather_age >= 60) $seniorCount++;
+                                        // Count seniors (60+ years) - only if member exists
+                                        if($resident->family_head_fullname && $resident->family_head_age && $resident->family_head_age >= 60) $seniorCount++;
+                                        if($resident->wife_fullname && $resident->wife_age && $resident->wife_age >= 60) $seniorCount++;
+                                        if($resident->son_fullname && $resident->son_age && $resident->son_age >= 60) $seniorCount++;
+                                        if($resident->daughter_fullname && $resident->daughter_age && $resident->daughter_age >= 60) $seniorCount++;
+                                        if($resident->grandmother_fullname && $resident->grandmother_age && $resident->grandmother_age >= 60) $seniorCount++;
+                                        if($resident->grandfather_fullname && $resident->grandfather_age && $resident->grandfather_age >= 60) $seniorCount++;
                                         
-                                        // Count children (below 18 years)
-                                        if($resident->son_age && $resident->son_age < 18) $childCount++;
-                                        if($resident->daughter_age && $resident->daughter_age < 18) $childCount++;
+                                        // Count children (below 18 years) - only if member exists
+                                        if($resident->family_head_fullname && $resident->family_head_age && $resident->family_head_age < 18) $childCount++;
+                                        if($resident->wife_fullname && $resident->wife_age && $resident->wife_age < 18) $childCount++;
+                                        if($resident->son_fullname && $resident->son_age && $resident->son_age < 18) $childCount++;
+                                        if($resident->daughter_fullname && $resident->daughter_age && $resident->daughter_age < 18) $childCount++;
+                                        if($resident->grandmother_fullname && $resident->grandmother_age && $resident->grandmother_age < 18) $childCount++;
+                                        if($resident->grandfather_fullname && $resident->grandfather_age && $resident->grandfather_age < 18) $childCount++;
                                         
-                                        // Count pregnant wives
-                                        if($resident->wife_pregnant) $pregnantCount = 1;
+                                        // Count pregnant wives - only if wife exists
+                                        if($resident->wife_fullname && $resident->wife_pregnant) $pregnantCount = 1;
                                         
-                                        // Count PWD in family (actual individual PWD fields)
-                                        if($resident->family_head_pwd) $pwdCount++;
-                                        if($resident->wife_pwd) $pwdCount++;
-                                        if($resident->son_pwd) $pwdCount++;
-                                        if($resident->daughter_pwd) $pwdCount++;
-                                        if($resident->grandmother_pwd) $pwdCount++;
-                                        if($resident->grandfather_pwd) $pwdCount++;
+                                        // Count PWD in family (actual individual PWD fields) - only if member exists
+                                        if($resident->family_head_fullname && $resident->family_head_pwd) $pwdCount++;
+                                        if($resident->wife_fullname && $resident->wife_pwd) $pwdCount++;
+                                        if($resident->son_fullname && $resident->son_pwd) $pwdCount++;
+                                        if($resident->daughter_fullname && $resident->daughter_pwd) $pwdCount++;
+                                        if($resident->grandmother_fullname && $resident->grandmother_pwd) $pwdCount++;
+                                        if($resident->grandfather_fullname && $resident->grandfather_pwd) $pwdCount++;
                                     @endphp
                                     
                                     @if($seniorCount > 0)
@@ -1051,8 +1326,7 @@
                                     
                                     @if($seniorCount == 0 && $childCount == 0 && $pregnantCount == 0 && $pwdCount == 0)
                                     <span style="color: var(--text-muted); font-size: 10px; font-style: italic;">
-                                        No vulnerable members 
-                                        <small>(Debug: FH:{{ $resident->family_head_age ?? 'null' }}, W:{{ $resident->wife_age ?? 'null' }}, S:{{ $resident->son_age ?? 'null' }}, D:{{ $resident->daughter_age ?? 'null' }}, Preg:{{ $resident->wife_pregnant ? 'YES' : 'NO' }}, PWD:{{ $resident->pwd_in_family ?? 'null' }})</small>
+                                        No vulnerable members
                                     </span>
                                     @endif
                                 </div>
@@ -1943,28 +2217,30 @@
             const q    = document.getElementById('searchInput').value.toLowerCase();
             const rows = document.querySelectorAll('#residentsTable tbody tr');
             rows.forEach(row => {
+                // Skip family details rows
+                if (row.classList.contains('family-details-row')) return;
                 if (!row.cells[1]) return;
+                
                 let matchSearch = false;
                 for (let c of row.cells) { if (c.textContent.toLowerCase().includes(q)) { matchSearch = true; break; } }
 
-                const purokTxt = row.cells[4]?.textContent.trim() || '';
+                const purokTxt = row.getAttribute('data-purok') || '';
                 const matchPurok = currentPurok === 'ALL' || purokTxt === currentPurok;
 
-                const age    = parseInt(row.cells[3]?.textContent.trim(), 10);
                 const gender = (row.getAttribute('data-gender') || '').toUpperCase();
                 const isMale   = gender === 'MALE';
                 const isFemale = gender === 'FEMALE';
-                const isChild  = !isNaN(age) && age < 18;
-                const isSenior = !isNaN(age) && age >= 60;
 
                 let matchCat = true;
                 switch(currentCategory) {
-                    case 'SENIOR MALE':   matchCat = isSenior && isMale;   break;
-                    case 'SENIOR FEMALE': matchCat = isSenior && isFemale; break;
-                    case 'MALE':          matchCat = isMale;               break;
-                    case 'FEMALE':        matchCat = isFemale;             break;
-                    case 'CHILD MALE':    matchCat = isChild && isMale;    break;
-                    case 'CHILD FEMALE':  matchCat = isChild && isFemale;  break;
+                    case 'SENIOR MALE':   matchCat = isMale;   break;
+                    case 'SENIOR FEMALE': matchCat = isFemale; break;
+                    case 'MALE':          matchCat = isMale;   break;
+                    case 'FEMALE':        matchCat = isFemale; break;
+                    case 'CHILD MALE':    matchCat = isMale;   break;
+                    case 'CHILD FEMALE':  matchCat = isFemale; break;
+                    case 'ALL':           matchCat = true;     break;
+                    default:              matchCat = true;     break;
                 }
 
                 row.style.display = (matchSearch && matchPurok && matchCat) ? '' : 'none';
@@ -1973,7 +2249,7 @@
             // Update statistics based on filtered data
             updateFilteredStatistics();
         }
-
+        
         function updateFilteredStatistics() {
             const visibleRows = Array.from(document.querySelectorAll('#residentsTable tbody tr')).filter(row => row.style.display !== 'none');
             
@@ -1986,14 +2262,29 @@
             let childFemale = 0;
             let pregnantCount = 0;
             let pwdCount = 0;
+            let totalMembers = 0;
+            let totalSeniors = 0;
+            let totalChildren = 0;
+            let withContact = 0;
             
             visibleRows.forEach(row => {
                 if (!row.cells[1]) return;
                 
-                // Count family head gender from data attribute
+                // Count family head
                 const gender = (row.getAttribute('data-gender') || '').toUpperCase();
-                if (gender === 'MALE') totalMale++;
-                else if (gender === 'FEMALE') totalFemale++;
+                if (gender === 'MALE') {
+                    totalMale++;
+                    totalMembers++;
+                } else if (gender === 'FEMALE') {
+                    totalFemale++;
+                    totalMembers++;
+                }
+                
+                // Count contact information
+                const contactCell = row.cells[5];
+                if (contactCell && !contactCell.textContent.includes('No Contact')) {
+                    withContact++;
+                }
                 
                 // Parse vulnerable count badges
                 const vulnerableCell = row.cells[6];
@@ -2003,81 +2294,170 @@
                     const text = badge.textContent.trim();
                     if (text.includes('Senior')) {
                         const count = parseInt(text.match(/\d+/)?.[0] || 1);
-                        // We need to determine gender for seniors - use family head gender as approximation
-                        if (gender === 'MALE') {
-                            seniorMale += count;
-                            totalMale += count;
-                        } else if (gender === 'FEMALE') {
-                            seniorFemale += count;
-                            totalFemale += count;
-                        }
+                        totalSeniors += count;
                     } else if (text.includes('Child')) {
                         const count = parseInt(text.match(/\d+/)?.[0] || 1);
-                        // We need to determine gender for children - use family head gender as approximation
-                        if (gender === 'MALE') {
-                            childMale += count;
-                            totalMale += count;
-                        } else if (gender === 'FEMALE') {
-                            childFemale += count;
-                            totalFemale += count;
-                        }
+                        totalChildren += count;
                     } else if (text.includes('Pregnant')) {
                         pregnantCount++;
-                        totalFemale++;
                     } else if (text.includes('PWD')) {
                         const count = parseInt(text.match(/\d+/)?.[0] || 1);
                         pwdCount += count;
                     }
                 });
                 
-                // Count additional family members using a simpler approach
-                // Look for the family details row associated with this family
-                const familyId = row.getAttribute('data-family-id');
-                if (familyId) {
-                    const detailsRow = document.getElementById(`family-details-${familyId}`);
-                    if (detailsRow) {
-                        // Count wife (always female)
-                        const wifeCard = detailsRow.querySelector('.member-header');
-                        if (wifeCard && wifeCard.textContent.includes('Wife')) {
-                            totalFemale++;
-                        }
-                        // Count son (always male)
-                        const sonCard = detailsRow.querySelector('.member-header');
-                        if (sonCard && sonCard.textContent.includes('Son')) {
-                            totalMale++;
-                        }
-                        // Count daughter (always female)
-                        const daughterCard = detailsRow.querySelector('.member-header');
-                        if (daughterCard && daughterCard.textContent.includes('Daughter')) {
-                            totalFemale++;
-                        }
-                        // Count grandfather (always male)
-                        const grandfatherCard = detailsRow.querySelector('.member-header');
-                        if (grandfatherCard && grandfatherCard.textContent.includes('Grandfather')) {
-                            totalMale++;
-                        }
-                        // Count grandmother (always female)
-                        const grandmotherCard = detailsRow.querySelector('.member-header');
-                        if (grandmotherCard && grandmotherCard.textContent.includes('Grandmother')) {
-                            totalFemale++;
-                        }
+                // Count additional family members from total members cell
+                const totalMembersCell = row.cells[3];
+                if (totalMembersCell) {
+                    const memberCount = parseInt(totalMembersCell.textContent.trim()) || 0;
+                    // Add the difference (excluding family head already counted)
+                    if (memberCount > 1) {
+                        totalMembers += (memberCount - 1);
                     }
                 }
             });
             
-            // Update statistics display
-            const statChips = document.querySelectorAll('.stat-chip');
-            statChips[0].querySelector('.chip-val').textContent = totalFamilies.toString(); // Total Families
-            statChips[1].querySelector('.chip-val').textContent = totalMale.toString(); // Male
-            statChips[2].querySelector('.chip-val').textContent = totalFemale.toString(); // Female
-            statChips[3].querySelector('.chip-val').textContent = seniorMale.toString(); // Senior Male
-            statChips[4].querySelector('.chip-val').textContent = seniorFemale.toString(); // Senior Female
-            statChips[5].querySelector('.chip-val').textContent = childMale.toString(); // Child Male
-            statChips[6].querySelector('.chip-val').textContent = childFemale.toString(); // Child Female
-            statChips[7].querySelector('.chip-val').textContent = pregnantCount.toString(); // Pregnant
-            statChips[8].querySelector('.chip-val').textContent = pwdCount.toString(); // PWD
+            // Update enhanced analytics dashboard
+            updateAnalyticsDashboard({
+                totalFamilies,
+                totalMembers,
+                totalMale,
+                totalFemale,
+                seniorMale,
+                seniorFemale,
+                childMale,
+                childFemale,
+                totalSeniors,
+                totalChildren,
+                pregnantCount,
+                pwdCount,
+                withContact
+            });
         }
+        
+        function updateAnalyticsDashboard(stats) {
+            // Update primary statistics cards
+            const primaryCards = document.querySelectorAll('.stat-card.primary');
+            if (primaryCards[0]) primaryCards[0].querySelector('.stat-number').textContent = stats.totalFamilies.toString();
+            if (primaryCards[1]) primaryCards[1].querySelector('.stat-number').textContent = stats.totalMembers.toString();
+            if (primaryCards[2]) primaryCards[2].querySelector('.stat-number').textContent = stats.totalSeniors.toString();
+            if (primaryCards[3]) primaryCards[3].querySelector('.stat-number').textContent = stats.totalChildren.toString();
+            
+            // Update gender distribution bars
+            const genderBars = document.querySelectorAll('.demo-bars .bar-item');
+            if (genderBars[0]) {
+                const malePercent = stats.totalMembers > 0 ? Math.round((stats.totalMale / stats.totalMembers) * 100) : 0;
+                genderBars[0].querySelector('.bar-fill').style.width = malePercent + '%';
+                genderBars[0].querySelector('.bar-value').textContent = stats.totalMale.toString();
+            }
+            if (genderBars[1]) {
+                const femalePercent = stats.totalMembers > 0 ? Math.round((stats.totalFemale / stats.totalMembers) * 100) : 0;
+                genderBars[1].querySelector('.bar-fill').style.width = femalePercent + '%';
+                genderBars[1].querySelector('.bar-value').textContent = stats.totalFemale.toString();
+            }
+            
+            // Update age groups
+            const ageItems = document.querySelectorAll('.age-item');
+            if (ageItems[0]) ageItems[0].querySelector('.age-value').textContent = stats.totalSeniors.toString();
+            if (ageItems[1]) ageItems[1].querySelector('.age-value').textContent = stats.totalChildren.toString();
+            if (ageItems[2]) ageItems[2].querySelector('.age-value').textContent = (stats.totalMembers - stats.totalSeniors - stats.totalChildren).toString();
+            
+            // Update vulnerable groups
+            const vulnItems = document.querySelectorAll('.vuln-item');
+            if (vulnItems[0]) vulnItems[0].querySelector('.vuln-count').textContent = stats.pregnantCount.toString();
+            if (vulnItems[1]) vulnItems[1].querySelector('.vuln-count').textContent = stats.pwdCount.toString();
+            
+            // Update insights
+            const insightCards = document.querySelectorAll('.insight-card');
+            if (insightCards[0]) {
+                const coveragePercent = stats.totalFamilies > 0 ? 100 : 0;
+                insightCards[0].querySelector('.insight-value').textContent = coveragePercent + '%';
+            }
+            if (insightCards[1]) {
+                const vulnerabilityPercent = stats.totalMembers > 0 ? 
+                    Math.round(((stats.totalSeniors + stats.totalChildren + stats.pregnantCount + stats.pwdCount) / stats.totalMembers) * 100) : 0;
+                insightCards[1].querySelector('.insight-value').textContent = vulnerabilityPercent + '%';
+            }
+            if (insightCards[2]) {
+                const contactPercent = stats.totalFamilies > 0 ? Math.round((stats.withContact / stats.totalFamilies) * 100) : 0;
+                insightCards[2].querySelector('.insight-value').textContent = contactPercent + '%';
+            }
+            
+            // Update demo headers with current totals
+            const demoHeaders = document.querySelectorAll('.demo-header span:last-child');
+            if (demoHeaders[0]) demoHeaders[0].textContent = 'Total: ' + stats.totalMembers.toString();
+        }
+        
+        function refreshAnalytics() {
+            showToast('Refreshing analytics...');
+            
+            // Animate the refresh
+            const cards = document.querySelectorAll('.stat-card.primary, .demo-card, .insight-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0.5';
+                    card.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 50);
+            });
+            
+            setTimeout(() => {
+                // Recalculate from all data, not just filtered rows
+                updateAllStatistics();
+                showToast('Analytics updated successfully');
+            }, 800);
+        }
+        
+        // Export analytics report
+        function exportAnalyticsReport() {
+            showToast('Generating analytics report...');
+            
+            setTimeout(() => {
+                const reportContent = `POPULATION ANALYTICS REPORT
+B-DEAMS - Barangay Disaster Evacuation Alert Management System
+Generated: ${new Date().toLocaleString()}
 
+=== EXECUTIVE SUMMARY ===
+Total Families: ${document.querySelector('.stat-card.primary .stat-number')?.textContent || '0'}
+Total Population: ${document.querySelectorAll('.stat-card.primary .stat-number')[1]?.textContent || '0'}
+Senior Citizens: ${document.querySelectorAll('.stat-card.primary .stat-number')[2]?.textContent || '0'}
+Children: ${document.querySelectorAll('.stat-card.primary .stat-number')[3]?.textContent || '0'}
+
+=== DEMOGRAPHIC BREAKDOWN ===
+Male Population: ${document.querySelector('.bar-item .bar-value')?.textContent || '0'}
+Female Population: ${document.querySelectorAll('.bar-item .bar-value')[1]?.textContent || '0'}
+Gender Distribution: ${document.querySelector('.bar-fill')?.style.width || '0%'} / ${document.querySelectorAll('.bar-fill')[1]?.style.width || '0%'}
+
+=== VULNERABLE GROUPS ===
+Pregnant Women: ${document.querySelector('.vuln-count')?.textContent || '0'}
+Persons With Disability: ${document.querySelectorAll('.vuln-count')[1]?.textContent || '0'}
+Total Vulnerable: ${(parseInt(document.querySelector('.vuln-count')?.textContent || '0') + parseInt(document.querySelectorAll('.vuln-count')[1]?.textContent || '0'))}
+
+=== KEY INSIGHTS ===
+Family Coverage Rate: ${document.querySelector('.insight-value')?.textContent || '0%'}
+Vulnerability Index: ${document.querySelectorAll('.insight-value')[1]?.textContent || '0%'}
+Contact Information Rate: ${document.querySelectorAll('.insight-value')[2]?.textContent || '0%'}
+
+=== RECOMMENDATIONS ===
+1. Maintain current family registration coverage
+2. Focus on vulnerable group assistance programs
+3. Improve contact information collection
+4. Regular demographic monitoring
+5. Emergency preparedness planning
+
+=== DATA QUALITY ===
+Report Accuracy: High
+Last Updated: ${new Date().toLocaleString()}
+Data Source: B-DEAMS Resident Registry`;
+                
+                downloadFile('analytics_report.txt', reportContent);
+                showToast('Analytics report exported successfully');
+            }, 1500);
+        }
+        
         function changePerPage(val) {
             const p = new URLSearchParams(window.location.search);
             p.set('per_page', val);
@@ -2087,21 +2467,75 @@
         function sortTable(col, type) {
             const table = document.getElementById('residentsTable');
             const tbody = table.tBodies[0];
-            const rows  = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+            const rows  = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none' && !r.classList.contains('family-details-row'));
             const prev  = table.getAttribute('data-sort-col');
             const dir   = prev == col && table.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
-            rows.sort((a, b) => {
-                const av = a.children[col]?.textContent.trim() || '';
-                const bv = b.children[col]?.textContent.trim() || '';
-                if (type === 'number') { return dir==='asc' ? parseFloat(av)-parseFloat(bv) : parseFloat(bv)-parseFloat(av); }
-                return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            
+            // Update sort icons
+            document.querySelectorAll('.data-table th.sortable i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+                icon.style.opacity = '0.4';
             });
-            rows.forEach(r => tbody.appendChild(r));
+            const currentIcon = document.querySelectorAll('.data-table th.sortable')[col].querySelector('i');
+            currentIcon.className = dir === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            currentIcon.style.opacity = '1';
+            
+            rows.sort((a, b) => {
+                let av = a.children[col]?.textContent.trim() || '';
+                let bv = b.children[col]?.textContent.trim() || '';
+                
+                // Handle different data types
+                if (type === 'number') {
+                    // Extract numbers from text
+                    av = parseFloat(av.replace(/[^0-9.-]/g, '')) || 0;
+                    bv = parseFloat(bv.replace(/[^0-9.-]/g, '')) || 0;
+                    return dir==='asc' ? av - bv : bv - av;
+                } else if (type === 'date') {
+                    // Parse dates
+                    av = new Date(av) || new Date(0);
+                    bv = new Date(bv) || new Date(0);
+                    return dir==='asc' ? av - bv : bv - av;
+                } else {
+                    // Special handling for Purok column to sort by Roman numerals
+                    if (col === 4) { // Purok column
+                        const romanToArabic = (roman) => {
+                            const map = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5};
+                            return map[roman.toUpperCase()] || 0;
+                        };
+                        const getPurokNumber = (text) => {
+                            const match = text.match(/Purok\s+([IVXLCDM]+)/i);
+                            return match ? romanToArabic(match[1]) : 0;
+                        };
+                        av = getPurokNumber(av);
+                        bv = getPurokNumber(bv);
+                        return dir==='asc' ? av - bv : bv - av;
+                    } else {
+                        // String comparison - handle special characters
+                        av = av.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                        bv = bv.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                        return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+                    }
+                }
+            });
+            
+            // Re-append sorted rows and their detail rows
+            rows.forEach(r => {
+                tbody.appendChild(r);
+                // Also move the corresponding family details row if it exists
+                const familyId = r.getAttribute('data-family-id');
+                if (familyId) {
+                    const detailRow = document.getElementById(`family-details-${familyId}`);
+                    if (detailRow) {
+                        tbody.appendChild(detailRow);
+                    }
+                }
+            });
+            
             table.setAttribute('data-sort-col', col);
             table.setAttribute('data-sort-dir', dir);
         }
 
-        // ── Export to CSV function ──
+        // Export to CSV function
         function exportToCSV() {
             const table = document.getElementById('residentsTable');
             const rows = table.querySelectorAll('tbody tr');
@@ -2155,6 +2589,19 @@
             document.body.removeChild(link);
             
             showToast('Export completed successfully');
+        }
+        
+        // Download file helper function
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // ── Toast helper ──

@@ -3422,15 +3422,15 @@
 
 
 
-                    <button class="filter-btn" onclick="refreshAnalytics()" style="padding: 6px 12px; font-size: 12px;">
+                    <a href="{{ route('upcoming-assistance-requirements') }}" class="filter-btn" style="padding: 6px 12px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
 
 
 
-                        <i class="fas fa-sync-alt"></i> Refresh
+                        <i class="fas fa-sync-alt"></i> View All
 
 
 
-                    </button>
+                    </a>
 
 
 
@@ -3751,35 +3751,39 @@
 
                                     @else
 
-                                        <!-- Standard Display for Other Programs -->
-
-                                        <div style="display: flex; gap: 12px; margin-bottom: 8px;">
-
-                                            <div style="flex: 1; text-align: center; background: var(--blue-light); padding: 8px; border-radius: 8px;">
-
-                                                <div style="font-size: 16px; font-weight: 700; color: var(--blue);">{{ $requirement['total_residents'] }}</div>
-
-                                                <div style="font-size: 10px; color: var(--text-muted);">Family</div>
-
+                                        @if(isset($requirement['assistance_type']) && $requirement['assistance_type'] === 'Educational Assistance')
+                                            <!-- Educational Assistance Display - Show Children, Family, Pregnant Women -->
+                                            <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+                                                <div style="flex: 1; text-align: center; background: #e3f2fd; padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: #1565c0;">{{ $requirement['child_count'] ?? 0 }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">Children</div>
+                                                </div>
+                                                <div style="flex: 1; text-align: center; background: var(--blue-light); padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: var(--blue);">{{ $requirement['total_residents'] }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">Family</div>
+                                                </div>
+                                                <div style="flex: 1; text-align: center; background: #fce4ec; padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: #c2185b;">{{ $requirement['pregnant_count'] ?? 0 }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">Pregnant</div>
+                                                </div>
                                             </div>
-
-                                            <div style="flex: 1; text-align: center; background: var(--amber-light); padding: 8px; border-radius: 8px;">
-
-                                                <div style="font-size: 16px; font-weight: 700; color: #92400e;">{{ $requirement['pwd_count'] }}</div>
-
-                                                <div style="font-size: 10px; color: var(--text-muted);">PWD</div>
-
+                                        @else
+                                            <!-- Standard Display for Other Programs - Show Family, PWD, Seniors -->
+                                            <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+                                                <div style="flex: 1; text-align: center; background: var(--blue-light); padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: var(--blue);">{{ $requirement['total_residents'] }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">Family</div>
+                                                </div>
+                                                <div style="flex: 1; text-align: center; background: var(--amber-light); padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: #92400e;">{{ $requirement['pwd_count'] }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">PWD</div>
+                                                </div>
+                                                <div style="flex: 1; text-align: center; background: var(--green-light); padding: 8px; border-radius: 8px;">
+                                                    <div style="font-size: 16px; font-weight: 700; color: #065f46;">{{ $requirement['senior_count'] }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">Seniors</div>
+                                                </div>
                                             </div>
-
-                                            <div style="flex: 1; text-align: center; background: var(--green-light); padding: 8px; border-radius: 8px;">
-
-                                                <div style="font-size: 16px; font-weight: 700; color: #065f46;">{{ $requirement['senior_count'] }}</div>
-
-                                                <div style="font-size: 10px; color: var(--text-muted);">Seniors</div>
-
-                                            </div>
-
-                                        </div>
+                                        @endif
 
                                     @endif
 
@@ -3842,62 +3846,116 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <!-- Standard Display for Other Programs -->
-                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                            <!-- Enhanced Display for Other Programs -->
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                                 @if(isset($requirement['specific_needs']))
+                                                    <!-- Medical Supplies -->
                                                     @if(isset($requirement['specific_needs']['medicine_kits_needed']) && $requirement['specific_needs']['medicine_kits_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['medicine_kits_needed'] }}</strong> Medicine Kits
-                                                    </div>
-                                                    @endif
-                                                    @if(isset($requirement['specific_needs']['wheelchairs_needed']) && $requirement['specific_needs']['wheelchairs_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['wheelchairs_needed'] }}</strong> Wheelchairs
-                                                    </div>
-                                                    @endif
-                                                    @if(isset($requirement['specific_needs']['blood_pressure_monitors']) && $requirement['specific_needs']['blood_pressure_monitors'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['blood_pressure_monitors'] }}</strong> BP Monitors
-                                                    </div>
-                                                    @endif
-                                                    @if(isset($requirement['specific_needs']['reading_glasses_needed']) && $requirement['specific_needs']['reading_glasses_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['reading_glasses_needed'] }}</strong> Reading Glasses
+                                                    <div style="background: #dcfce7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #166534;">
+                                                        <i class="fas fa-medkit" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['medicine_kits_needed'] }} Medicine Kits
                                                     </div>
                                                     @endif
                                                     @if(isset($requirement['specific_needs']['basic_medicine_kits']) && $requirement['specific_needs']['basic_medicine_kits'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['basic_medicine_kits'] }}</strong> Basic Medicine
+                                                    <div style="background: #dcfce7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #166534;">
+                                                        <i class="fas fa-pills" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['basic_medicine_kits'] }} Basic Medicine
                                                     </div>
                                                     @endif
                                                     @if(isset($requirement['specific_needs']['vitamin_supplements']) && $requirement['specific_needs']['vitamin_supplements'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['vitamin_supplements'] }}</strong> Vitamins
+                                                    <div style="background: #dcfce7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #166534;">
+                                                        <i class="fas fa-capsules" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['vitamin_supplements'] }} Vitamins
                                                     </div>
                                                     @endif
                                                     @if(isset($requirement['specific_needs']['first_aid_kits']) && $requirement['specific_needs']['first_aid_kits'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['first_aid_kits'] }}</strong> First Aid
+                                                    <div style="background: #dcfce7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #166534;">
+                                                        <i class="fas fa-first-aid" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['first_aid_kits'] }} First Aid
                                                     </div>
                                                     @endif
+                                                    
+                                                    <!-- Medical Equipment -->
+                                                    @if(isset($requirement['specific_needs']['wheelchairs_needed']) && $requirement['specific_needs']['wheelchairs_needed'] > 0)
+                                                    <div style="background: #e0f2fe; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #0369a1;">
+                                                        <i class="fas fa-wheelchair" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['wheelchairs_needed'] }} Wheelchairs
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['walking_aids_needed']) && $requirement['specific_needs']['walking_aids_needed'] > 0)
+                                                    <div style="background: #e0f2fe; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #0369a1;">
+                                                        <i class="fas fa-walking" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['walking_aids_needed'] }} Walking Aids
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['mobility_aids_needed']) && $requirement['specific_needs']['mobility_aids_needed'] > 0)
+                                                    <div style="background: #e0f2fe; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #0369a1;">
+                                                        <i class="fas fa-crutch" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['mobility_aids_needed'] }} Mobility Aids
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['blood_pressure_monitors']) && $requirement['specific_needs']['blood_pressure_monitors'] > 0)
+                                                    <div style="background: #e0f2fe; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #0369a1;">
+                                                        <i class="fas fa-heartbeat" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['blood_pressure_monitors'] }} BP Monitors
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['reading_glasses_needed']) && $requirement['specific_needs']['reading_glasses_needed'] > 0)
+                                                    <div style="background: #e0f2fe; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #0369a1;">
+                                                        <i class="fas fa-glasses" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['reading_glasses_needed'] }} Reading Glasses
+                                                    </div>
+                                                    @endif
+                                                    
+                                                    <!-- Services -->
                                                     @if(isset($requirement['specific_needs']['medical_consultations']) && $requirement['specific_needs']['medical_consultations'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['medical_consultations'] }}</strong> Consultations
+                                                    <div style="background: #f3e8ff; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #6b21a8;">
+                                                        <i class="fas fa-stethoscope" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['medical_consultations'] }} Consultations
                                                     </div>
                                                     @endif
+                                                    @if(isset($requirement['specific_needs']['transportation_assistance']) && $requirement['specific_needs']['transportation_assistance'] > 0)
+                                                    <div style="background: #f3e8ff; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #6b21a8;">
+                                                        <i class="fas fa-bus" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['transportation_assistance'] }} Transport
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['medical_supplies_needed']) && $requirement['specific_needs']['medical_supplies_needed'] > 0)
+                                                    <div style="background: #f3e8ff; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #6b21a8;">
+                                                        <i class="fas fa-band-aid" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['medical_supplies_needed'] }} Medical Supplies
+                                                    </div>
+                                                    @endif
+                                                    
+                                                    <!-- Educational Supplies -->
+                                                    @if(isset($requirement['specific_needs']['school_supplies_needed']) && $requirement['specific_needs']['school_supplies_needed'] > 0)
+                                                    <div style="background: #e0f7fa; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #006064;">
+                                                        <i class="fas fa-pencil-ruler" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['school_supplies_needed'] }} School Supplies
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['educational_materials']) && $requirement['specific_needs']['educational_materials'] > 0)
+                                                    <div style="background: #e0f7fa; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #006064;">
+                                                        <i class="fas fa-book" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['educational_materials'] }} Educational Materials
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['backpacks_needed']) && $requirement['specific_needs']['backpacks_needed'] > 0)
+                                                    <div style="background: #e0f7fa; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #006064;">
+                                                        <i class="fas fa-backpack" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['backpacks_needed'] }} Backpacks
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['uniform_assistance']) && $requirement['specific_needs']['uniform_assistance'] > 0)
+                                                    <div style="background: #e0f7fa; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #006064;">
+                                                        <i class="fas fa-tshirt" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['uniform_assistance'] }} Uniforms
+                                                    </div>
+                                                    @endif
+                                                    
+                                                    <!-- Food & Supplies -->
                                                     @if(isset($requirement['specific_needs']['food_packages_needed']) && $requirement['specific_needs']['food_packages_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['food_packages_needed'] }}</strong> Food Packs
+                                                    <div style="background: #fef3c7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #92400e;">
+                                                        <i class="fas fa-box" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['food_packages_needed'] }} Food Packs
                                                     </div>
                                                     @endif
                                                     @if(isset($requirement['specific_needs']['rice_kilos_needed']) && $requirement['specific_needs']['rice_kilos_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['rice_kilos_needed'] }}</strong>kg Rice
+                                                    <div style="background: #fef3c7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #92400e;">
+                                                        <i class="fas fa-bowl-rice" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['rice_kilos_needed'] }}kg Rice
                                                     </div>
                                                     @endif
                                                     @if(isset($requirement['specific_needs']['canned_goods_needed']) && $requirement['specific_needs']['canned_goods_needed'] > 0)
-                                                    <div style="background: var(--slate-light); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: var(--text-mid);">
-                                                        <strong>{{ $requirement['specific_needs']['canned_goods_needed'] }}</strong> Canned Goods
+                                                    <div style="background: #fef3c7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #92400e;">
+                                                        <i class="fas fa-drumstick-bite" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['canned_goods_needed'] }} Canned Goods
+                                                    </div>
+                                                    @endif
+                                                    @if(isset($requirement['specific_needs']['drinking_water_liters']) && $requirement['specific_needs']['drinking_water_liters'] > 0)
+                                                    <div style="background: #fef3c7; padding: 3px 6px; border-radius: 4px; font-size: 9px; color: #92400e;">
+                                                        <i class="fas fa-tint" style="margin-right: 1px;"></i>{{ $requirement['specific_needs']['drinking_water_liters'] }}L Water
                                                     </div>
                                                     @endif
                                                 @else
@@ -4537,165 +4595,106 @@
 
 
 
-                                    // Senior-focused programs
-
-
-
+                                    // Senior-focused programs with specific interventions
                                     if($familySeniors > 0) {
-
-
-
                                         $recommendations[] = 'Senior Citizen Care';
-
-
-
                                         $recommendations[] = 'Medical Mission';
-
-
-
+                                        $recommendations[] = 'Elderly Mobility Assistance';
+                                        if($familySeniors >= 2) {
+                                            $recommendations[] = 'Chronic Medication Management';
+                                        }
                                     }
-
-
-
                                     
-
-
-
-                                    // Child-focused programs
-
-
-
+                                    // Child-focused programs with age-specific interventions
                                     if($familyChildren > 0) {
-
-
-
                                         $recommendations[] = 'Child Protection';
-
-
-
                                         $recommendations[] = 'Educational Support';
-
-
-
+                                        // Check for infants in the family
+                                        $hasInfant = false;
+                                        if($resident->son_age > 0 && $resident->son_age <= 5) $hasInfant = true;
+                                        if($resident->daughter_age > 0 && $resident->daughter_age <= 5) $hasInfant = true;
+                                        if($hasInfant) {
+                                            $recommendations[] = 'Infant Care Program';
+                                            $recommendations[] = 'Baby Formula Distribution';
+                                        }
+                                        if($familyChildren >= 2) {
+                                            $recommendations[] = 'Youth Development Activities';
+                                        }
                                     }
-
-
-
                                     
-
-
-
-                                    // PWD programs
-
-
-
+                                    // PWD programs with accessibility focus
                                     if($familyPWD > 0) {
-
-
-
                                         $recommendations[] = 'PWD Assistance';
-
-
-
                                         $recommendations[] = 'Accessibility Programs';
-
-
-
+                                        $recommendations[] = 'Mobility Equipment Support';
+                                        if($familyPWD >= 2) {
+                                            $recommendations[] = 'Special Needs Transportation';
+                                        }
                                     }
-
-
-
                                     
-
-
-
-                                    // Pregnancy programs
-
-
-
+                                    // Pregnancy programs with comprehensive care
                                     if($isPregnant) {
-
-
-
                                         $recommendations[] = 'Maternal Health';
-
-
-
                                         $recommendations[] = 'Nutrition Program';
-
-
-
+                                        $recommendations[] = 'Prenatal Care Services';
+                                        $recommendations[] = 'Pregnancy Nutrition Supplements';
                                     }
-
-
-
                                     
-
-
-
-                                    // Large family support
-
-
-
+                                    // Large family support with economic assistance
                                     if($memberCount >= 5) {
-
-
-
                                         $recommendations[] = 'Food Security';
-
-
-
                                         $recommendations[] = 'Livelihood Training';
-
-
-
+                                        $recommendations[] = 'Family Economic Assistance';
+                                        if($memberCount >= 7) {
+                                            $recommendations[] = 'Housing Support Program';
+                                        }
                                     }
-
-
-
                                     
-
-
-
-                                    // No contact - need communication programs
-
-
-
+                                    // No contact - need communication programs with urgency
                                     if(!$resident->contact_number) {
-
-
-
                                         $recommendations[] = 'Community Outreach';
-
-
-
                                         $recommendations[] = 'Contact Registration';
-
-
-
+                                        $recommendations[] = 'Emergency Contact Update';
+                                        $recommendations[] = 'Communication Access Program';
                                     }
-
-
-
                                     
-
-
-
-                                    // Default programs if no specific needs
-
-
-
-                                    if(empty($recommendations)) {
-
-
-
-                                        $recommendations = ['Youth Development', 'Skills Training', 'Community Building'];
-
-
-
+                                    // Purok-specific interventions based on location
+                                    if($purok === 'Purok I') {
+                                        $recommendations[] = 'High-Density Area Management';
+                                        // Check if this purok has high population based on families
+                                        if(isset($purokAnalytics[$purok]['total_families']) && $purokAnalytics[$purok]['total_families'] > 10) {
+                                            $recommendations[] = 'Resource Allocation Optimization';
+                                        }
+                                    } elseif($purok === 'Purok II') {
+                                        $recommendations[] = 'Senior-Friendly Community Programs';
+                                        // Check if this purok has many seniors
+                                        if(isset($purokAnalytics[$purok]['senior_count']) && $purokAnalytics[$purok]['senior_count'] > 5) {
+                                            $recommendations[] = 'Elderly Medical Priority';
+                                        }
+                                    } elseif($purok === 'Purok III') {
+                                        $recommendations[] = 'Contact Information Campaign';
+                                        // Check if this purok has many families without contact info
+                                        if(isset($purokAnalytics[$purok]['no_contact_count']) && $purokAnalytics[$purok]['no_contact_count'] > 2) {
+                                            $recommendations[] = 'Communication Protocol Update';
+                                        }
+                                    } elseif($purok === 'Purok IV') {
+                                        $recommendations[] = 'Children Evacuation Planning';
+                                        // Check if this purok has many children
+                                        if(isset($purokAnalytics[$purok]['child_count']) && $purokAnalytics[$purok]['child_count'] > 8) {
+                                            $recommendations[] = 'Child Safety Initiative';
+                                        }
+                                    } elseif($purok === 'Purok V') {
+                                        $recommendations[] = 'Family Resource Distribution';
+                                        // Check if this purok has many large families
+                                        if(isset($purokAnalytics[$purok]['large_family_count']) && $purokAnalytics[$purok]['large_family_count'] > 1) {
+                                            $recommendations[] = 'Large Family Support Network';
+                                        }
                                     }
-
-
+                                    
+                                    // Default programs if no specific needs
+                                    if(empty($recommendations)) {
+                                        $recommendations = ['Youth Development', 'Skills Training', 'Community Building', 'Disaster Preparedness', 'Health Awareness Campaign'];
+                                    }
 
                                     
 
@@ -5263,18 +5262,6 @@
 
 
                 <div style="display: flex; gap: 8px;">
-
-
-
-                    <button class="btn-submit" onclick="calculateEvacueeAidNeeds()" style="padding: 6px 12px; font-size: 12px;">
-
-
-
-                        <i class="fas fa-calculator"></i> Calculate Needs
-
-
-
-                    </button>
 
 
 
@@ -6472,101 +6459,271 @@
 
 
         function calculateEvacueeAidNeeds() {
-            showToast('Calculating evacuee aid requirements...');
+            showToast('Fetching real-time evacuee data...');
+            
+            // Show loading state
+            document.getElementById('evacueeTotal').textContent = '...';
+            document.getElementById('dailyMeals').textContent = '...';
+            document.getElementById('waterLiters').textContent = '...';
+            document.getElementById('hygieneKits').textContent = '...';
+            document.getElementById('blanketCount').textContent = '...';
+            document.getElementById('criticalRequirements').innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin" style="margin-bottom: 8px;"></i><div>Fetching real-time data...</div></div>';
+            document.getElementById('vulnerableGroups').innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin" style="margin-bottom: 8px;"></i><div>Analyzing demographics...</div></div>';
+            
+            // Fetch fresh data from backend (same as EvacueeProgram.blade.php)
+            fetch('/api/analytics-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Process real-time evacuee data
+                        const evacueeData = processRealTimeEvacueeData(data.evacuees, data.facilities, data.dssMetrics);
+                        const needs = calculateAidRequirementsFromRealData(evacueeData, data.dssMetrics);
+                        displayAidRequirements(needs, evacueeData);
+                        showToast('Aid requirements calculated with real-time data');
+                    } else {
+                        throw new Error(data.message || 'Failed to fetch evacuee data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching evacuee data:', error);
+                    // Fallback to static data if API fails
+                    const evacueeData = {
+                        totalEvacuees: {{ $totalMembers ?? $totalEvacuees }},
+                        totalFamilyMembers: {{ $totalMembers ?? 0 }},
+                        demographics: {
+                            seniors: {{ $totalSeniors ?? 0 }},
+                            children: {{ $totalChildrenNonInfants ?? $totalChildren ?? 0 }},
+                            infants: {{ $totalInfants ?? 0 }},
+                            pregnant: {{ $totalPregnant ?? 0 }},
+                            pwd: {{ $totalPWD ?? 0 }}
+                        },
+                        dssMetrics: @json($dssMetrics ?? [])
+                    };
+                    const needs = calculateAidRequirements(evacueeData);
+                    displayAidRequirements(needs, evacueeData);
+                    showToast('Using cached data - real-time fetch failed', 'warning');
+                });
+        }
 
-            setTimeout(() => {
-                const evacueeData = {
-                    totalEvacuees: {{ $totalMembers ?? $totalEvacuees }},
-                    totalFamilyMembers: {{ $totalMembers ?? 0 }},
-                    demographics: {
-                        seniors: {{ $totalSeniors ?? 0 }},
-                        children: {{ $totalChildrenNonInfants ?? $totalChildren ?? 0 }},
-                        infants: {{ $totalInfants ?? 0 }},
-                        pregnant: {{ $totalPregnant ?? 0 }},
-                        pwd: {{ $totalPWD ?? 0 }}
-                    },
-                    dssMetrics: @json($dssMetrics ?? [])
-                };
+        // Process real-time evacuee data (from EvacueeProgram.blade.php)
+        function processRealTimeEvacueeData(evacuees, facilities, dssMetrics) {
+            // Group evacuees by evacuation area
+            const areaGroups = {};
+            
+            evacuees.forEach(evacuee => {
+                const area = evacuee.evacuation_area || 'Unknown';
+                if (!areaGroups[area]) {
+                    areaGroups[area] = {
+                        area: area,
+                        evacuees: [],
+                        totalMembers: 0,
+                        maleCount: 0,
+                        femaleCount: 0,
+                        seniorCount: 0,
+                        childCount: 0,
+                        infantCount: 0,
+                        pregnantCount: 0,
+                        pwdCount: 0,
+                        chronicCount: 0,
+                        rooms: new Set(),
+                        dailyMealsNeeded: 0,
+                        waterNeeded: 0,
+                        hygieneKitsNeeded: 0,
+                        blanketsNeeded: 0
+                    };
+                }
+                
+                const group = areaGroups[area];
+                group.evacuees.push(evacuee);
+                group.totalMembers += evacuee.total_members || 1;
+                
+                // Count demographics from family members for accuracy
+                if (evacuee.family_members && Array.isArray(evacuee.family_members)) {
+                    evacuee.family_members.forEach(member => {
+                        const age = parseInt(member.age) || 0;
+                        const gender = member.gender || 'Male';
+                        
+                        if (gender === 'Male') group.maleCount++;
+                        else group.femaleCount++;
+                        
+                        if (age >= 60) group.seniorCount++;
+                        else if (age < 18) group.childCount++;
+                        if (age <= 5) group.infantCount++;
+                        
+                        if (member.pregnant) group.pregnantCount++;
+                        if (member.pwd) group.pwdCount++;
+                        if (member.chronic_illness) group.chronicCount++;
+                        
+                        // Calculate needs based on actual family member ages
+                        group.dailyMealsNeeded += calculateDailyMeals(age, 1);
+                        group.waterNeeded += 4; // 4 liters per person per day
+                        group.hygieneKitsNeeded += Math.ceil(1 * 0.8);
+                        group.blanketsNeeded += Math.ceil(1 * 0.7);
+                    });
+                } else {
+                    // Fallback to family head data if family members not available
+                    if (evacuee.gender === 'Male') group.maleCount++;
+                    else group.femaleCount++;
+                    
+                    if (evacuee.age >= 60) group.seniorCount++;
+                    else if (evacuee.age < 18) group.childCount++;
+                    if (evacuee.age <= 5) group.infantCount++;
+                    
+                    group.pregnantCount += evacuee.pregnant_count || 0;
+                    group.pwdCount += evacuee.pwd_count || 0;
+                    
+                    // Calculate needs
+                    const familySize = evacuee.total_members || 1;
+                    group.dailyMealsNeeded += calculateDailyMeals(evacuee.age, familySize);
+                    group.waterNeeded += familySize * 4; // 4 liters per person per day
+                    group.hygieneKitsNeeded += Math.ceil(familySize * 0.8);
+                    group.blanketsNeeded += Math.ceil(familySize * 0.7);
+                }
+                
+                if (evacuee.room_number) group.rooms.add(evacuee.room_number);
+            });
+            
+            // Calculate totals across all areas
+            const totals = {
+                totalEvacuees: 0,
+                totalFamilyMembers: 0,
+                totalMaleCount: 0,
+                totalFemaleCount: 0,
+                totalSeniorCount: 0,
+                totalChildCount: 0,
+                totalInfantCount: 0,
+                totalPregnantCount: 0,
+                totalPwdCount: 0,
+                totalChronicCount: 0,
+                totalDailyMeals: 0,
+                totalWaterNeeded: 0,
+                totalHygieneKits: 0,
+                totalBlankets: 0,
+                areas: Object.values(areaGroups)
+            };
+            
+            Object.values(areaGroups).forEach(area => {
+                totals.totalEvacuees += area.evacuees.length;
+                totals.totalFamilyMembers += area.totalMembers;
+                totals.totalMaleCount += area.maleCount;
+                totals.totalFemaleCount += area.femaleCount;
+                totals.totalSeniorCount += area.seniorCount;
+                totals.totalChildCount += area.childCount;
+                totals.totalInfantCount += area.infantCount;
+                totals.totalPregnantCount += area.pregnantCount;
+                totals.totalPwdCount += area.pwdCount;
+                totals.totalChronicCount += area.chronicCount;
+                totals.totalDailyMeals += area.dailyMealsNeeded;
+                totals.totalWaterNeeded += area.waterNeeded;
+                totals.totalHygieneKits += area.hygieneKitsNeeded;
+                totals.totalBlankets += area.blanketsNeeded;
+            });
+            
+            return totals;
+        }
 
-        const needs = calculateAidRequirements(evacueeData);
-        displayAidRequirements(needs, evacueeData);
-        showToast('Aid requirements calculated successfully');
-    }, 1500);
-}
+        function calculateDailyMeals(age, familySize) {
+            let mealsPerPerson = 3; // Default for adults
+            
+            if (age <= 2) mealsPerPerson = 6; // Infants: 6 small meals
+            else if (age <= 12) mealsPerPerson = 5; // Children: 3 meals + 2 snacks
+            else if (age <= 17) mealsPerPerson = 3; // Teens: 3 meals
+            
+            return mealsPerPerson * familySize;
+        }
 
-function calculateAidRequirements(data) {
-    const total = data.totalEvacuees;
-    const demo = data.demographics;
+        // Calculate aid requirements from real-time data (enhanced version from EvacueeProgram)
+        function calculateAidRequirementsFromRealData(evacueeData, dssMetrics) {
+            const total = evacueeData.totalFamilyMembers;
+            const demo = {
+                seniors: evacueeData.totalSeniorCount,
+                children: evacueeData.totalChildCount,
+                infants: evacueeData.totalInfantCount,
+                pregnant: evacueeData.totalPregnantCount,
+                pwd: evacueeData.totalPwdCount
+            };
 
-    const infantMeals = demo.infants * 6; 
-    const childMeals = demo.children * 4; 
-    const adultMeals = (total - demo.infants - demo.children) * 3; 
-    const totalDailyMeals = infantMeals + childMeals + adultMeals;
+            // Use real-time meal calculations
+            const totalDailyMeals = evacueeData.totalDailyMeals;
 
-    const criticalRequirements = [
-        `Immediate food supply for ${totalDailyMeals} daily meals (${infantMeals} infant, ${childMeals} child, ${adultMeals} adult)`,
-        `${Math.ceil(total * 4)} liters water per day (4L per person)`,
-        `${Math.ceil(total / 25)} sanitation facilities needed (1 per 25 people)`,
-        `${Math.ceil(demo.seniors * 0.3)} medical staff for elderly care`,
-        `${Math.ceil(demo.infants * 0.5)} caregivers for infant support`,
-        `${Math.ceil(demo.pwd * 0.4)} accessibility assistants`,
-        `${Math.ceil(demo.pregnant * 0.3)} maternal health specialists`
-    ];
+            const criticalRequirements = [
+                `Immediate food supply for ${totalDailyMeals} daily meals (based on actual age demographics)`,
+                `${evacueeData.totalWaterNeeded} liters water per day (4L per person)`,
+                `${Math.ceil(total / 25)} sanitation facilities needed (1 per 25 people)`,
+                `${Math.ceil(demo.seniors * 0.3)} medical staff for elderly care`,
+                `${Math.ceil(demo.infants * 0.5)} caregivers for infant support`,
+                `${Math.ceil(demo.pwd * 0.4)} accessibility assistants`,
+                `${Math.ceil(demo.pregnant * 0.3)} maternal health specialists`
+            ];
 
-    if (demo.seniors > 0) {
-        criticalRequirements.push(`${Math.ceil(demo.seniors * 0.6)} chronic medication management kits`);
-        criticalRequirements.push(`${Math.ceil(demo.seniors * 0.4)} mobility assistance devices`);
-    }
+            if (demo.seniors > 0) {
+                criticalRequirements.push(`${Math.ceil(demo.seniors * 0.6)} chronic medication management kits`);
+                criticalRequirements.push(`${Math.ceil(demo.seniors * 0.4)} mobility assistance devices`);
+            }
 
-    if (demo.infants > 0) {
-        criticalRequirements.push(`${demo.infants * 7} baby formula cans per week`);
-        criticalRequirements.push(`${demo.infants * 3} diaper packs per week`);
-    }
+            if (demo.infants > 0) {
+                criticalRequirements.push(`${demo.infants * 7} baby formula cans per week`);
+                criticalRequirements.push(`${demo.infants * 3} diaper packs per week`);
+            }
 
-    if (demo.pregnant > 0) {
-        criticalRequirements.push(`${demo.pregnant} prenatal care packages`);
-        criticalRequirements.push(`${Math.ceil(demo.pregnant * 2)} nutrition supplement kits`);
-    }
+            if (demo.pregnant > 0) {
+                criticalRequirements.push(`${demo.pregnant} prenatal care packages`);
+                criticalRequirements.push(`${Math.ceil(demo.pregnant * 2)} nutrition supplement kits`);
+            }
 
-    const vulnerableGroups = [];
+            const vulnerableGroups = [];
 
-    if (demo.seniors > 0) {
-        vulnerableGroups.push(`${demo.seniors} elderly residents (60+) requiring medical attention, mobility assistance, and special dietary needs`);
-    }
+            if (demo.seniors > 0) {
+                vulnerableGroups.push(`${demo.seniors} elderly residents (60+) requiring medical attention, mobility assistance, and special dietary needs`);
+            }
 
-    if (demo.infants > 0) {
-        vulnerableGroups.push(`${demo.infants} infants (0-2 years) needing formula, diapers, pediatric care, and constant supervision`);
-    }
+            if (demo.infants > 0) {
+                vulnerableGroups.push(`${demo.infants} infants (0-5 years) needing formula, diapers, pediatric care, and constant supervision`);
+            }
 
-    if (demo.children > 0) {
-        vulnerableGroups.push(`${demo.children} children (3-17 years) requiring educational support, child protection services, and recreational activities`);
-    }
+            if (demo.children > 0) {
+                vulnerableGroups.push(`${demo.children} children (6-17 years) requiring educational support, child protection services, and recreational activities`);
+            }
 
-    if (demo.pregnant > 0) {
-        vulnerableGroups.push(`${demo.pregnant} pregnant women requiring prenatal care, nutrition supplements, and maternal health monitoring`);
-    }
+            if (demo.pregnant > 0) {
+                vulnerableGroups.push(`${demo.pregnant} pregnant women requiring prenatal care, nutrition supplements, and maternal health monitoring`);
+            }
 
-    if (demo.pwd > 0) {
-        vulnerableGroups.push(`${demo.pwd} persons with disabilities needing accessibility support, specialized equipment, and inclusive services`);
-    }
+            if (demo.pwd > 0) {
+                vulnerableGroups.push(`${demo.pwd} persons with disabilities needing accessibility support, specialized equipment, and inclusive services`);
+            }
 
-    const chronicPatients = Math.ceil(demo.seniors * 0.2);
-    if (chronicPatients > 0) {
-        vulnerableGroups.push(`${chronicPatients} chronic illness patients requiring ongoing medication and regular medical monitoring`);
-    }
+            if (evacueeData.totalChronicCount > 0) {
+                vulnerableGroups.push(`${evacueeData.totalChronicCount} chronic illness patients requiring ongoing medication and regular medical monitoring`);
+            }
 
-    return {
-        dailyMeals: totalDailyMeals,
-        waterLiters: total * 4,
-        hygieneKits: Math.ceil(total * 0.8),
-        blankets: Math.ceil(total * 0.7),
-        criticalRequirements: criticalRequirements,
-        vulnerableGroups: vulnerableGroups
-    };
-}
+            return {
+                totalEvacuees: evacueeData.totalEvacuees,
+                totalFamilyMembers: evacueeData.totalFamilyMembers,
+                dailyMeals: totalDailyMeals,
+                waterLiters: evacueeData.totalWaterNeeded,
+                hygieneKits: evacueeData.totalHygieneKits,
+                blankets: evacueeData.totalBlankets,
+                criticalRequirements: criticalRequirements,
+                vulnerableGroups: vulnerableGroups,
+                areaBreakdown: evacueeData.areas.map(area => ({
+                    name: area.area,
+                    evacuees: area.evacuees.length,
+                    members: area.totalMembers,
+                    meals: area.dailyMealsNeeded,
+                    water: area.waterNeeded,
+                    hygiene: area.hygieneKitsNeeded,
+                    blankets: area.blanketsNeeded
+                }))
+            };
+        }
 
 function displayAidRequirements(needs, data) {
-    document.getElementById('evacueeTotal').textContent = data.totalEvacuees.toLocaleString();
+    // Handle both real-time data and fallback data structures
+    const totalEvacuees = data.totalEvacuees || data.totalFamilyMembers || 0;
+    const totalFamilyMembers = data.totalFamilyMembers || data.totalEvacuees || 0;
+    
+    document.getElementById('evacueeTotal').textContent = totalEvacuees.toLocaleString();
     document.getElementById('dailyMeals').textContent = needs.dailyMeals.toLocaleString();
     document.getElementById('waterLiters').textContent = needs.waterLiters.toLocaleString();
     document.getElementById('hygieneKits').textContent = needs.hygieneKits.toLocaleString();
@@ -6581,7 +6738,45 @@ function displayAidRequirements(needs, data) {
     vulnerableDiv.innerHTML = needs.vulnerableGroups.map(group => 
         `<div style="margin-bottom: 6px;">· ${group}</div>`
     ).join('');
+    
+    // Display area breakdown if available (real-time data feature)
+    if (needs.areaBreakdown && needs.areaBreakdown.length > 0) {
+        const areaHtml = needs.areaBreakdown.map(area => 
+            `<div style="background: var(--slate-light); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">${area.name}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">
+                    Families: ${area.evacuees} | Members: ${area.members} | 
+                    Meals: ${area.meals} | Water: ${area.water}L | 
+                    Hygiene: ${area.hygiene} | Blankets: ${area.blankets}
+                </div>
+            </div>`
+        ).join('');
+        
+        // Add area breakdown after vulnerable groups
+        vulnerableDiv.innerHTML += `
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 8px;">
+                    <i class="fas fa-map-marked-alt" style="color: var(--teal); margin-right: 6px;"></i>
+                    Evacuation Area Breakdown
+                </div>
+                ${areaHtml}
+            </div>
+        `;
+    }
 }
+
+// Add refresh functionality for evacuee aid data
+function refreshEvacueeAidData() {
+    calculateEvacueeAidNeeds();
+}
+
+// Auto-calculate evacuee aid requirements on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Delay slightly to ensure all elements are loaded
+    setTimeout(() => {
+        calculateEvacueeAidNeeds();
+    }, 1000);
+});
 
 function generateDistributionPlan() {
     showToast('Generating comprehensive distribution plan...');

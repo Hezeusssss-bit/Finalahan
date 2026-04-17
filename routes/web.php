@@ -243,6 +243,10 @@ Route::get('/officials', function () {
 
 })->name('officials');
 
+// Upcoming Assistance Requirements Route
+
+Route::get('/upcoming-assistance-requirements', [App\Http\Controllers\UpcomingAssistanceController::class, 'index'])->name('upcoming-assistance-requirements');
+
 
 
 // IDP's Route

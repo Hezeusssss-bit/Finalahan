@@ -1081,6 +1081,7 @@ public function index(Request $request)
                 $pwdCount = 0;
                 $seniorCount = 0;
                 $pregnantCount = 0;
+                $childCount = 0;
                 $totalResidents = $residents->count();
                 
                 foreach ($residents as $resident) {
@@ -1099,6 +1100,12 @@ public function index(Request $request)
                     
                     // Count Pregnant Women
                     if ($resident->wife_pregnant) $pregnantCount++;
+                    
+                    // Count Children (under 18 years) - comprehensive counting like home.blade.php
+                    if ($resident->family_head_age < 18 && $resident->family_head_fullname) $childCount++;
+                    if ($resident->wife_age < 18 && $resident->wife_fullname) $childCount++;
+                    if ($resident->son_age < 18 && $resident->son_fullname) $childCount++;
+                    if ($resident->daughter_age < 18 && $resident->daughter_fullname) $childCount++;
                 }
                 
                 $programRequirements = [
@@ -1109,10 +1116,20 @@ public function index(Request $request)
                     'pwd_count' => $pwdCount,
                     'senior_count' => $seniorCount,
                     'pregnant_count' => $pregnantCount,
+                    'child_count' => $childCount,
                 ];
                 
                 // Specific assistance needs based on program type
-                if (strpos($programType, 'pwd') !== false || strpos($programType, 'assistance') !== false) {
+                if (strpos($programType, 'educational') !== false || strpos($programType, 'education') !== false || strpos($programType, 'school') !== false) {
+                    $programRequirements['assistance_type'] = 'Educational Assistance';
+                    $programRequirements['specific_needs'] = [
+                        'school_supplies_needed' => $totalResidents,
+                        'educational_materials' => max(1, floor($totalResidents * 0.8)),
+                        'backpacks_needed' => max(1, floor($totalResidents * 0.6)),
+                        'uniform_assistance' => max(1, floor($totalResidents * 0.4))
+                    ];
+                }
+                elseif (strpos($programType, 'pwd') !== false || (strpos($programType, 'assistance') !== false && strpos($programType, 'educational') === false && strpos($programType, 'education') === false)) {
                     $programRequirements['assistance_type'] = 'PWD Assistance';
                     $programRequirements['specific_needs'] = [
                         'wheelchairs_needed' => max(1, floor($pwdCount * 0.3)),

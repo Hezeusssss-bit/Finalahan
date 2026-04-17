@@ -1122,21 +1122,54 @@
                     <div class="form-group">
                         <label class="form-label">Program Title</label>
                         <select name="title" id="programTitleSelect" class="form-control" required>
-                            <option value="">Select a program type…</option>
-                            <option value="Medical Mission">Medical Mission</option>
-                            <option value="Clean-up Drive">Clean-up Drive</option>
-                            <option value="Youth Sports League">Youth Sports League</option>
-                            <option value="Disaster Preparedness Training">Disaster Preparedness Training</option>
-                            <option value="Senior Citizens Outreach">Senior Citizens Outreach</option>
-                            <option value="Food Distribution Program">Food Distribution Program</option>
-                            <option value="Health and Wellness Campaign">Health and Wellness Campaign</option>
-                            <option value="Educational Assistance Program">Educational Assistance Program</option>
-                            <option value="Infrastructure Development">Infrastructure Development</option>
-                            <option value="Environmental Protection">Environmental Protection</option>
-                            <option value="Community Building Activity">Community Building Activity</option>
-                            <option value="Livelihood Training Program">Livelihood Training Program</option>
-                            <option value="Evacuee Program">Evacuee Program</option>
-                            <option value="Others">Others (custom)</option>
+                            <option value="">Select a program type...</option>
+                            
+                            @if($vulnerableGroups['total_vulnerable'] > 0)
+                            <optgroup label="Vulnerable Groups Support Programs">
+                                @if($vulnerableGroups['pregnant_count'] > 0)
+                                <option value="Maternal Health Program">Maternal Health Program ({{ $vulnerableGroups['pregnant_count'] }} Pregnant)</option>
+                                <option value="Prenatal Care Assistance">Prenatal Care Assistance</option>
+                                <option value="Nutrition Support for Mothers">Nutrition Support for Mothers</option>
+                                @endif
+                                
+                                @if($vulnerableGroups['pwd_count'] > 0)
+                                <option value="PWD Assistance Program">PWD Assistance Program ({{ $vulnerableGroups['pwd_count'] }} PWD)</option>
+                                <option value="Accessibility Support Services">Accessibility Support Services</option>
+                                <option value="Mobility Aid Distribution">Mobility Aid Distribution</option>
+                                @endif
+                                
+                                @if($vulnerableGroups['senior_count'] > 0)
+                                <option value="Senior Citizens Outreach">Senior Citizens Outreach ({{ $vulnerableGroups['senior_count'] }} Seniors)</option>
+                                <option value="Elderly Care Program">Elderly Care Program</option>
+                                <option value="Senior Medical Mission">Senior Medical Mission</option>
+                                @endif
+                                
+                                @if($vulnerableGroups['children_count'] > 0)
+                                <option value="Educational Assistance Program">Educational Assistance Program ({{ $vulnerableGroups['children_count'] }} Children)</option>
+                                <option value="Child Protection Program">Child Protection Program</option>
+                                <option value="Youth Development Services">Youth Development Services</option>
+                                @endif
+                                
+                                @if($vulnerableGroups['total_vulnerable'] > 1)
+                                <option value="Comprehensive Vulnerable Support">Comprehensive Vulnerable Support ({{ $vulnerableGroups['total_vulnerable'] }} Total)</option>
+                                @endif
+                            </optgroup>
+                            @endif
+                            
+                            <optgroup label="General Community Programs">
+                                <option value="Medical Mission">Medical Mission</option>
+                                <option value="Food Distribution Program">Food Distribution Program</option>
+                                <option value="Health and Wellness Campaign">Health and Wellness Campaign</option>
+                                <option value="Livelihood Training Program">Livelihood Training Program</option>
+                                <option value="Disaster Preparedness Training">Disaster Preparedness Training</option>
+                                <option value="Clean-up Drive">Clean-up Drive</option>
+                                <option value="Youth Sports League">Youth Sports League</option>
+                                <option value="Infrastructure Development">Infrastructure Development</option>
+                                <option value="Environmental Protection">Environmental Protection</option>
+                                <option value="Community Building Activity">Community Building Activity</option>
+                                <option value="Evacuee Program">Evacuee Program</option>
+                                <option value="Others">Others (custom)</option>
+                            </optgroup>
                         </select>
                     </div>
 
@@ -1149,8 +1182,8 @@
                         <label class="form-label" id="locationLabel">Purok / Location</label>
                         <select name="location" id="locationSelect" class="form-control" onchange="handleLocationChange()">
                             <option value="">Select Purok...</option>
-                            @foreach(['Purok I','Purok II','Purok III','Purok IV','Purok V'] as $p)
-                            <option value="{{ $p }}">{{ $p }}</option>
+                            @foreach($allPuroks as $purok)
+                            <option value="{{ $purok }}">{{ $purok }}</option>
                             @endforeach
                         </select>
                     </div>
